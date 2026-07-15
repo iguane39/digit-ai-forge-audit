@@ -1,0 +1,9 @@
+{
+  "jurisdiction": "apac-demo",
+  "label": "Démonstration (juridiction fictive APAC)",
+  "regulations": [
+    "<réglementation locale à cartographier>"
+  ],
+  "controls": [],
+  "note": "Pack de démonstration : prouve la mécanique multi-juridictions. Ajouter les contrôles tagués `jurisdiction: apac-demo`."
+}

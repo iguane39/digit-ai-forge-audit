@@ -1,0 +1,12 @@
+schema_version: 1
+core_version: "1.0.x"
+tenant: { name: "ACME", short_code: "AC", language: fr }
+branding:
+  colors: { accent: "#2563eb", fatal: "#a3231c", bloquant: "#9a4a06", majeur: "#8a6500", standard: "#136e34" }
+domains:
+  - { code: "00", key: meta, label: "Méta" }
+  - { code: "01", key: org, label: "Org" }
+  - { code: "02", key: sec, label: "Séc" }
+dimensions: { pack: core-v1 }
+constraint_packs: [ "pack-fixture.json" ]
+enforcement: { binding_authorities: ["ACME"] }

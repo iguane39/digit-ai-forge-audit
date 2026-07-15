@@ -1,0 +1,499 @@
+{
+  "dimension": "D02",
+  "label": "Application security",
+  "controls": [
+    {
+      "id": "CTL-D02-01",
+      "adr_source": [
+        "ADR0505"
+      ],
+      "dimension_audit": "D02",
+      "regle": "An explicit map covers the ten risk categories of the current OWASP Top 10, each associated with at least one verified mitigation measure and its proof.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Request the risk → mitigation → proof map; verify that no Top 10 category is left without an associated measure or proof.",
+      "preuve_attendue": "OWASP Top 10 coverage table (category, measure, proof, verification date).",
+      "grille_verdict": "compliant = 10 categories covered with proof ; partial = incomplete coverage or missing proofs ; non-compliant = no map",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the OWASP Top 10 coverage map; verify its completeness against the current edition.",
+        "Sample 2-3 categories and verify the associated proof (test, configuration, code).",
+        "If gap: complete the map and schedule verification of the uncovered categories."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 2021 — A01 à A10",
+        "OWASP ASVS 5.0 — V1 (Architecture, conception, threat modeling)"
+      ]
+    },
+    {
+      "id": "CTL-D02-02",
+      "adr_source": [
+        "ADR0305"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Every external input (user input, API parameter, imported file) is validated and sanitized server-side according to an expected format model; client-side validation is never the sole barrier.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Identify the exposed entry points (forms, API endpoints, file imports); verify the presence of systematic server-side validation (type, format, length, range) and the absence of any possible bypass from the client.",
+      "preuve_attendue": "Code or validation configuration excerpts per entry point + result of a malformed input test rejected server-side.",
+      "grille_verdict": "compliant = systematic server-side validation on all recorded entry points ; partial = partial or inconsistent validation ; non-compliant = no validation or client-side only",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the exposed entry points and verify the server-side validation associated with each.",
+        "Submit a malformed/malicious input to a representative entry point; verify its rejection and logging.",
+        "If gap: instrument the missing validation and remove any reliance on client-side validation alone."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V5 (Validation, Sanitization, Encoding)",
+        "OWASP Top 10 2021 — A03:2021 Injection"
+      ]
+    },
+    {
+      "id": "CTL-D02-03",
+      "adr_source": [
+        "ADR0209"
+      ],
+      "dimension_audit": "D02",
+      "regle": "The project's direct and transitive dependencies are automatically scanned (SCA) at each significant change; any known, fixable critical or high vulnerability is subject to a dated remediation plan.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Run or review the latest SCA scan for the technology profile; verify the absence of any critical/high vulnerability without a remediation plan and the scan's execution frequency.",
+      "preuve_attendue": "Dated SCA scan report (list of CVEs, severity) + remediation plan for open vulnerabilities.",
+      "grille_verdict": "compliant = recent scan, no critical/high CVE without a dated plan ; partial = high CVE with a plan but deadline exceeded ; non-compliant = critical CVE with no remediation or no scan",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Run the SCA scan on the direct and transitive dependencies; attach the report.",
+        "Cross-check each critical/high CVE against a dated remediation plan and its owner.",
+        "If gap: update or isolate the vulnerable dependency and schedule the fix."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 2021 — A06:2021 Vulnerable and Outdated Components",
+        "NIST SSDF — PS.3",
+        "SLSA — niveau de provenance des builds"
+      ]
+    },
+    {
+      "id": "CTL-D02-04",
+      "adr_source": [
+        "ADR0301"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Each exposed entry point applies a rate-limiting policy (quotas, throttling) proportionate to the expected usage, protecting against abuse and application-level denial of service.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Identify the exposed entry points and their rate-limiting policy; test exceeding the quota and verify the controlled rejection response (code, message, logging).",
+      "preuve_attendue": "Rate-limiting policy configuration per entry point + result of a quota-exceeding test.",
+      "grille_verdict": "compliant = rate limiting active and tested on all exposed entry points ; partial = partial or untested rate limiting ; non-compliant = no rate limiting",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the exposed entry points and their declared rate-limiting policy.",
+        "Trigger a quota-exceeding condition in a test environment; verify the controlled rejection.",
+        "If gap: instrument the missing rate limiting and define the thresholds per entry point."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V13 (API et services Web)",
+        "NIST SP 800-207"
+      ]
+    },
+    {
+      "id": "CTL-D02-05",
+      "adr_source": [
+        "ADR0204"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Application sessions are protected against theft and replay (secure cookies, bounded expiration, identifier regeneration upon authentication), and any state-changing action is protected against cross-site request forgery (CSRF).",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inspect the session cookie attributes (Secure, HttpOnly, SameSite), the session lifetime, and the presence of an anti-CSRF token on state-changing actions; test a forged request without a valid token.",
+      "preuve_attendue": "Session cookie configuration excerpts + result of the CSRF request test without a token (rejected).",
+      "grille_verdict": "compliant = hardened cookies + systematic, verified CSRF token ; partial = partial hardening or token not verified everywhere ; non-compliant = unprotected session or no CSRF protection",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inspect the security attributes of the session cookies and the expiration policy.",
+        "Submit a state-changing request without a valid CSRF token; verify its rejection.",
+        "If gap: harden the cookies and extend CSRF protection to the relevant actions."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V3 (Session Management)",
+        "NIST SP 800-63B — gestion de session",
+        "OWASP Top 10 2021 — A01:2021 Broken Access Control"
+      ]
+    },
+    {
+      "id": "CTL-D02-06",
+      "adr_source": [
+        "ADR0303"
+      ],
+      "dimension_audit": "D02",
+      "regle": "HTTP responses carry security headers aligned with the state of the art (content security policy, strict transport, anti-sniffing protection, referrer policy) across all exposed routes.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Analyze the HTTP response headers on a representative sample of exposed routes; verify their presence and their non-permissive configuration.",
+      "preuve_attendue": "Analysis capture of the security headers on the exposed routes (technology profile tool).",
+      "grille_verdict": "compliant = recommended headers present and non-permissive on all routes ; partial = partial or permissive headers ; non-compliant = no security headers",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Analyze the HTTP security headers on a sample of exposed routes; attach the capture.",
+        "Verify the precise configuration of each header (non-permissive values).",
+        "If gap: configure the missing headers or strengthen the permissive values."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V14 (Configuration)",
+        "ISO/IEC 27002:2022 — 8.24"
+      ]
+    },
+    {
+      "id": "CTL-D02-07",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D02",
+      "regle": "No sensitive data (secret, personal data, authentication token) appears in clear text in the application logs; a redaction/masking mechanism applies before writing, regardless of the log level.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Trigger a logged event including sensitive data in a test environment; inspect the resulting log to verify its actual masking.",
+      "preuve_attendue": "Log excerpt showing masked sensitive data + configuration of the redaction mechanism.",
+      "grille_verdict": "compliant = systematic redaction verified by test ; partial = partial redaction (some fields/levels not covered) ; non-compliant = sensitive data in clear text in the logs",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Trigger, in a test, a logged event carrying a known sensitive data item; inspect the resulting log.",
+        "Verify the configuration of the redaction mechanism across all log levels and destinations.",
+        "If gap: instrument the missing redaction and purge the affected historical logs."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 2021 — A09:2021 Security Logging and Monitoring Failures",
+        "RGPD — art. 32",
+        "ISO/IEC 27701:2019 — 7.4"
+      ]
+    },
+    {
+      "id": "CTL-D02-08",
+      "adr_source": [
+        "ADR0505"
+      ],
+      "dimension_audit": "D02",
+      "regle": "A static scan (SAST) and a dynamic scan (DAST) run on every significant change in continuous integration, with a blocking pipeline failure on any critical vulnerability.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the SAST/DAST integration in the CI pipeline configuration and the recent execution history; confirm the blocking behavior on a critical vulnerability introduced in test.",
+      "preuve_attendue": "CI pipeline configuration (SAST/DAST steps) + recent execution report + proof of blocking on a critical vulnerability.",
+      "grille_verdict": "compliant = SAST and DAST active and blocking in CI ; partial = only one of the two scans active or non-blocking ; non-compliant = no security scan in CI",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the presence and execution frequency of the SAST/DAST steps in the CI pipeline; attach the configuration.",
+        "Introduce a canary vulnerability and verify the pipeline blocks; attach the proof.",
+        "If gap: integrate the missing scans and configure the blocking threshold."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SSDF — PW.7/PW.8",
+        "OWASP SAMM — Verification"
+      ]
+    },
+    {
+      "id": "CTL-D02-09",
+      "adr_source": [
+        "ADR0208"
+      ],
+      "dimension_audit": "D02",
+      "regle": "A formalized threat model covers the application's critical flows, assets, and trust boundaries, and is reviewed at every significant architectural change.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Request the threat model and its last review date; verify its correspondence with the actually deployed architecture.",
+      "preuve_attendue": "Dated threat model document + minutes of the last review and its trigger (architectural change).",
+      "grille_verdict": "compliant = threat model up to date and covering the actual architecture ; partial = threat model exists but outdated ; non-compliant = no threat model",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the threat model and verify its last review date.",
+        "Compare the threat model against the actually deployed architecture; note any coverage gaps.",
+        "If gap: produce or update the threat model and schedule its periodic review."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SSDF — PW.1",
+        "OWASP SAMM — Threat Assessment"
+      ]
+    },
+    {
+      "id": "CTL-D02-10",
+      "adr_source": [
+        "ADR0302"
+      ],
+      "dimension_audit": "D02",
+      "regle": "The production configuration eliminates default settings, demo accounts, debug mode, and any service or feature that is not strictly necessary, in order to minimize the attack surface.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Compare the production configuration against a hardening baseline; verify the absence of default accounts, active debug mode, and superfluous services.",
+      "preuve_attendue": "Capture of the production configuration compared against the hardening baseline + list of deviations.",
+      "grille_verdict": "compliant = configuration aligned with the hardening baseline, no deviation ; partial = minor documented deviations ; non-compliant = active debug mode or default accounts present in production",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Compare the production configuration against the technology profile's hardening baseline; note the deviations.",
+        "Specifically verify the absence of active debug mode and default accounts.",
+        "If gap: apply the hardening baseline and remove the superfluous elements."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 2021 — A05:2021 Security Misconfiguration",
+        "CIS Controls v8 — 4",
+        "ISO/IEC 27002:2022 — 8.9"
+      ]
+    },
+    {
+      "id": "CTL-D02-11",
+      "adr_source": [
+        "ADR0306"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Network egress is denied by default with an explicit list of allowed destinations; name resolution is governed and logged.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inspect the network egress rules (default deny, allow list) and the name resolution configuration; verify the logging of resolutions and denied egress attempts.",
+      "preuve_attendue": "Export of the egress rules + name resolution configuration + log excerpt.",
+      "grille_verdict": "compliant = default deny + allow list + logging all active ; partial = allow list without logging ; non-compliant = unrestricted network egress",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Extract the effective network egress rules; attach the export.",
+        "Test an egress attempt to an unauthorized destination: it must be denied and logged.",
+        "If gap: establish the profile's default deny and allow list."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SP 800-207",
+        "CIS Controls v8 — 12"
+      ]
+    },
+    {
+      "id": "CTL-D02-12",
+      "adr_source": [
+        "ADR0211"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Vulnerabilities in the runtime base and dependencies are continuously inventoried; critical patches are applied within a defined, measured, and tracked timeframe.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the continuous inventory of vulnerabilities (base + dependencies), the timeframe policy by severity, and the metrics for timeframe compliance.",
+      "preuve_attendue": "Dated inventory report + timeframe policy + remediation metric (e.g., average critical timeframe).",
+      "grille_verdict": "compliant = continuous inventory + timeframes met and measured ; partial = inventory without timeframe tracking ; non-compliant = no inventory of the production estate",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the current vulnerability inventory and its freshness; attach.",
+        "Verify the timeframe policy by severity and its compliance over the last 3 months.",
+        "If gap: tool the continuous inventory and establish the patching policy."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.8",
+        "NIST SSDF — RV.1-RV.3",
+        "CIS Controls v8 — 7"
+      ]
+    },
+    {
+      "id": "CTL-D02-13",
+      "adr_source": [
+        "ADR0212"
+      ],
+      "dimension_audit": "D02",
+      "regle": "A governed security program exists: named responsibilities, periodic team awareness training, security metrics tracked in review.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the designation of security responsibilities, the awareness plan and its last execution, and the existence of periodically reviewed metrics.",
+      "preuve_attendue": "Organization chart/designations + awareness training trace + metrics review excerpt.",
+      "grille_verdict": "compliant = responsibilities + awareness training + metrics all active ; partial = responsibilities without metrics ; non-compliant = no security governance",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the named security officers; attach the designation.",
+        "Collect the awareness plan/trace and the tracked metrics.",
+        "If gap: appoint responsible parties, schedule awareness training, define 3 starting metrics."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP SAMM — Governance (Strategy & Metrics, Education & Guidance)",
+        "NIST SSDF — PO.1/PO.2"
+      ]
+    }
+  ]
+}

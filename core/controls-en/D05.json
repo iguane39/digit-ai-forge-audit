@@ -1,0 +1,573 @@
+{
+  "dimension": "D05",
+  "label": "Data & quality",
+  "controls": [
+    {
+      "id": "CTL-D05-01",
+      "adr_source": [
+        "ADR0601"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Each data source and each data pipeline is inventoried and attached to a named business owner (Data Owner), responsible for arbitrating access, quality, and the asset's lifecycle.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Extract the register of data sources and pipelines consumed or produced by the application; verify that each entry carries a named Data Owner and a last review date, and cross-check against the connections actually configured.",
+      "preuve_attendue": "Register of sources/pipelines with a named Data Owner per entry and last review date + excerpt of the actual connection configuration.",
+      "grille_verdict": "compliant = 100% of sources/pipelines inventoried with a named Data Owner and review ≤ 12 months ; partial = partial coverage or expired review ; non-compliant = no register or a source with no identified Data Owner",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the list of data sources and pipelines connected to the application; cross-check against the declared register.",
+        "Verify for each entry the presence of a named Data Owner and the last review date.",
+        "If gap: complete the register and designate a Data Owner for each uncovered source or pipeline."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 3 (Data Governance)",
+        "ISO/IEC 38505-1:2017 — gouvernance des données",
+        "RGPD — art. 24"
+      ]
+    },
+    {
+      "id": "CTL-D05-02",
+      "adr_source": [
+        "ADR0603"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Data assets (sources, tables, flows, datasets) follow a single, documented naming convention, whose compliance is verified by an automated check or by a tracked periodic review.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of a documented and versioned naming convention for data assets, and the actual execution of a compliance check (automated in continuous integration or via periodic review).",
+      "preuve_attendue": "Documented and versioned naming convention + latest compliance check report on asset names.",
+      "grille_verdict": "compliant = convention documented and check active and tracked ; partial = convention documented but no check executed ; non-compliant = no formalized convention",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the documented naming convention and its last revision date.",
+        "Review or run the latest compliance check report on existing asset names.",
+        "If gap: formalize the convention and schedule the automated check or the periodic review."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management)",
+        "ISO/IEC 11179 — registres de métadonnées"
+      ]
+    },
+    {
+      "id": "CTL-D05-03",
+      "adr_source": [
+        "ADR0604"
+      ],
+      "dimension_audit": "D05",
+      "regle": "For each critical reference dataset (reference entity shared across domains), an authoritative source (golden source) is declared and documented; no undeclared competing source is tolerated.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Identify the critical reference datasets shared across domains; verify that a golden source is declared for each and look for the existence of undeclared competing sources.",
+      "preuve_attendue": "Register of critical reference datasets with associated golden source + result of the competing-source detection review.",
+      "grille_verdict": "compliant = golden source declared for all critical reference datasets and no undeclared competing source ; partial = golden source declared with documented exceptions ; non-compliant = critical reference dataset with no golden source",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "List the reference entities shared across several domains or teams.",
+        "Verify the declaration of a golden source per entity and look for undeclared replications.",
+        "If gap: arbitrate and declare the golden source, plan the switchover of consumers."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 10 (Reference and Master Data)",
+        "ISO 8000-110 — qualité syntaxique et sémantique des données maîtres"
+      ]
+    },
+    {
+      "id": "CTL-D05-04",
+      "adr_source": [
+        "ADR0605"
+      ],
+      "dimension_audit": "D05",
+      "regle": "The quality of each critical data asset (completeness, uniqueness, format, freshness, statistical drift) is continuously measured by automated declarative rules, against explicitly documented thresholds.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the existence of a catalog of quality rules with thresholds per critical asset, the automated execution of these rules at each cycle, and the trace of the alerts or blocks triggered upon a threshold breach, including statistical drift relative to a reference distribution.",
+      "preuve_attendue": "Catalog of quality rules with thresholds + history of executions and triggered alerts, including drift indicators.",
+      "grille_verdict": "compliant = automated rules active on all critical assets, thresholds documented, drift monitored ; partial = rules defined but execution manual, partial, or drift not monitored ; non-compliant = no formalized rules",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the catalog of declared quality rules and their thresholds per critical asset.",
+        "Verify the execution history and the alerts/blocks actually triggered, including for statistical drift.",
+        "If gap: define the missing rules and thresholds and automate their execution."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25012:2008 — modèle de qualité des données",
+        "DAMA-DMBOK2 — Chapitre 13 (Data Quality)",
+        "ISO/IEC 25024:2015 — mesures de qualité des données"
+      ]
+    },
+    {
+      "id": "CTL-D05-05",
+      "adr_source": [
+        "ADR0606"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Data processing pipelines are structured into progressive refinement layers (raw → cleansed/conformed → consumable), documented, replayable idempotently, and governed by contracts between layers.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the architecture diagram of the processing layers, the documented input/output contract of each layer, and the ability to replay a process from an intermediate state without side effects (idempotence).",
+      "preuve_attendue": "Pipeline layer diagram + documented contracts between layers + proof of idempotent replay (log or test).",
+      "grille_verdict": "compliant = layers documented, governed by contracts, idempotent replay proven ; partial = layers present without a formalized contract or replay not proven ; non-compliant = opaque single-step transformation, not traceable",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Obtain the architecture diagram of the data processing layers and the associated contracts.",
+        "Replay a process on a sample from an intermediate state and verify the absence of side effects (idempotence).",
+        "If gap: document the missing layer contracts and fix the non-idempotent processes."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 4 (Data Architecture)",
+        "DAMA-DMBOK2 — Chapitre 6 (Data Storage and Operations)",
+        "ISO/IEC 25010:2011 — maintenabilité (modularité)"
+      ]
+    },
+    {
+      "id": "CTL-D05-06",
+      "adr_source": [
+        "ADR0607"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Every data exchange between a producer and its consumers (file, flow, API, shared table) is governed by a versioned data contract, verified before each publication of a structural change.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Identify the data exchanges between teams or systems; verify the existence of a versioned contract for each and the execution of a compatibility check before publishing a change.",
+      "preuve_attendue": "Register of data contracts with version history + compatibility check report for the last published change.",
+      "grille_verdict": "compliant = versioned contract and automated verification active for all critical exchanges ; partial = contract documented without automated verification ; non-compliant = no formalized contract",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Map the data exchanges between the producer and its consumers.",
+        "Verify the version of the contract in force and the compatibility report of the last change.",
+        "If gap: formalize the contract and hook up the compatibility check before publication."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 8 (Data Integration and Interoperability)",
+        "ISO/IEC 25010:2011 — compatibilité (interopérabilité)",
+        "SemVer 2.0.0"
+      ]
+    },
+    {
+      "id": "CTL-D05-07",
+      "adr_source": [
+        "ADR0608"
+      ],
+      "dimension_audit": "D05",
+      "regle": "The end-to-end lineage of each critical data asset (from the source to final consumption) is automatically tracked and viewable, to allow tracing any inconsistent result back to its cause.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Select a critical data asset and verify that its complete lineage graph (sources, transformations, consumers) is viewable and up to date.",
+      "preuve_attendue": "Capture of the lineage graph of a critical asset, from the source to consumption.",
+      "grille_verdict": "compliant = end-to-end lineage viewable for all critical assets ; partial = partial lineage (missing segments) ; non-compliant = no traceable lineage",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Choose a critical asset and request the rendering of its complete lineage graph.",
+        "Verify the freshness and completeness of the lineage (no missing segment between source and consumption).",
+        "If gap: instrument the lineage on the missing segments."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management — lignage)",
+        "ISO 8000-8 — qualité de l'information : concepts et mesure"
+      ]
+    },
+    {
+      "id": "CTL-D05-08",
+      "adr_source": [
+        "ADR0609"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Each critical data asset carries a declared retention policy (duration, archiving, purge), applied and verified, independent of the storage medium.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of a declared retention policy per critical asset and the actual execution of the scheduled purges/archiving.",
+      "preuve_attendue": "Register of retention policies per asset + execution report of the scheduled purges/archiving.",
+      "grille_verdict": "compliant = policy declared and purge/archiving executed for all relevant assets ; partial = policy declared without verifiable execution ; non-compliant = no policy",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the register of declared retention policies per critical asset.",
+        "Verify the latest execution report of the scheduled purges/archiving.",
+        "If gap: declare the missing policy and schedule its automation."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5.1.e (limitation de la conservation)",
+        "ISO/IEC 27002:2022 — 8.10 (suppression des informations)",
+        "DAMA-DMBOK2 — Chapitre 6 (Data Storage and Operations)"
+      ]
+    },
+    {
+      "id": "CTL-D05-09",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Each critical data asset is backed up in accordance with an explicitly declared recovery point objective (RPO), and restoration is tested periodically.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the RPO declared per critical asset, the compliance of the actual backups with that objective, and the existence of a recent restoration exercise.",
+      "preuve_attendue": "RPO declared per asset + report of the latest restoration exercise (duration, integrity observed).",
+      "grille_verdict": "compliant = RPO declared and met, restoration successfully tested ≤ 12 months ago ; partial = RPO declared without a recent test ; non-compliant = no RPO declared or last test failed and uncorrected",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the declared RPO and the actual backup frequency per critical asset.",
+        "Verify the date and the result of the latest restoration exercise.",
+        "If gap: declare the missing RPO, correct the backup frequency, and schedule a restoration test."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
+        "RGPD — art. 32.1.c",
+        "DORA (Accelerate) — reprise de service"
+      ]
+    },
+    {
+      "id": "CTL-D05-10",
+      "adr_source": [
+        "ADR0801"
+      ],
+      "dimension_audit": "D05",
+      "regle": "The reporting semantic model is documented and validated by a modeling authority before exposure; each measure is defined only once.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Request the documentation of the semantic model (entities, measures, dimensions) and the trace of validation; look for measures defined twice across reports.",
+      "preuve_attendue": "Model documentation + validation report + inventory of measures.",
+      "grille_verdict": "compliant = model documented, validated, measures unique ; partial = model documented but not validated ; non-compliant = model not documented or duplicated measures",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "web-app"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Collect the semantic model documentation; attach the excerpt.",
+        "Cross-check the measure definitions across exposed reports; list the duplicates.",
+        "If gap: centralize the definition of measures and have the model validated."
+      ],
+      "derogation": null,
+      "standards": [
+        "Kimball (modélisation dimensionnelle)",
+        "DAMA-DMBOK2 — Ch.11"
+      ]
+    },
+    {
+      "id": "CTL-D05-11",
+      "adr_source": [
+        "ADR0802"
+      ],
+      "dimension_audit": "D05",
+      "regle": "The reporting layer draws exclusively from a governed and recorded source of truth; no unrecorded parallel extraction feeds an exposed report.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the connections of the exposed reports; compare against the list of governed sources; look for unrecorded local extractions and copies.",
+      "preuve_attendue": "Inventory of the reporting layer's connections with governed/unrecorded status.",
+      "grille_verdict": "compliant = 100% of connections to governed sources ; partial = recorded parallel extractions being phased out ; non-compliant = active unrecorded feeds",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "data",
+          "web-app"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Extract the connections/feeds of the exposed reports; attach the inventory.",
+        "Cross-check against the register of governed sources; list the deviations.",
+        "If gap: reconnect the report to the governed source and close the parallel extraction."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Ch.11",
+        "Kimball (architecture de restitution)"
+      ]
+    },
+    {
+      "id": "CTL-D05-12",
+      "adr_source": [
+        "ADR0803"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Significant transformation logic is tested and versioned as close to the source as possible; it is not recreated in the reporting tool.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Examine where the transformations live (versioned pipelines vs. formulas embedded in reports); assess the share of business logic carried by the reporting layer.",
+      "preuve_attendue": "Inventory of transformations with location + excerpts (versioned pipeline vs. report).",
+      "grille_verdict": "compliant = significant logic versioned close to the source ; partial = residual logic in reporting, documented ; non-compliant = major business logic recreated in the reports",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "List the significant transformations and their location; attach the inventory.",
+        "Verify the tests and versioning of the transformations on the source side.",
+        "If gap: push the logic back down to the prepared layer and simplify the reports."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Ch.11",
+        "ISO/IEC 25010 (maintenabilité)"
+      ]
+    },
+    {
+      "id": "CTL-D05-13",
+      "adr_source": [
+        "ADR0804"
+      ],
+      "dimension_audit": "D05",
+      "regle": "A shared, standardized time dimension (civil calendar, fiscal year) is referenced by every exposed semantic model — no locally recalculated calendar.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a central time dimension and its actual referencing by the exposed models; look for diverging local calendars.",
+      "preuve_attendue": "Definition of the time dimension + list of the models referencing it.",
+      "grille_verdict": "compliant = single dimension referenced everywhere ; partial = dimension exists but not generalized ; non-compliant = diverging local calendars",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Identify the reference time dimension; attach its definition.",
+        "Verify its use in each exposed model; list the local calendars.",
+        "If gap: substitute the shared dimension for the local calendars."
+      ],
+      "derogation": null,
+      "standards": [
+        "Kimball (dimension de temps conforme)"
+      ]
+    },
+    {
+      "id": "CTL-D05-14",
+      "adr_source": [
+        "ADR0805"
+      ],
+      "dimension_audit": "D05",
+      "regle": "The storage/connection mode of each exposed report is chosen and documented according to a declared need profile (freshness, volume, load on the source) — no implicit default choice.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Request the documented choice rule and verify, on a sample of reports, the consistency between the declared need profile and the observed mode.",
+      "preuve_attendue": "Choice rule + sample of reports with the observed mode and declared need.",
+      "grille_verdict": "compliant = rule documented and applied ; partial = rule documented but not applied systematically ; non-compliant = unjustified inconsistent choices",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "web-app"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Collect the access mode choice rule; attach the document.",
+        "Sample 5 reports and compare the observed mode vs. the declared need.",
+        "If gap: document the rule and realign the out-of-profile reports."
+      ],
+      "derogation": null,
+      "standards": [
+        "Kimball",
+        "ISO/IEC 25010 (efficacité de performance)"
+      ]
+    },
+    {
+      "id": "CTL-D05-15",
+      "adr_source": [
+        "ADR0806"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Each published report carries a governance status visible to the end user (certified / exploratory / deprecated), assigned and reviewed by a named authority.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the published reports and their displayed status; verify the existence of the certification authority and the trace of the reviews.",
+      "preuve_attendue": "Inventory of reports with status + certification review report.",
+      "grille_verdict": "compliant = 100% of reports statused and reviewed ; partial = statuses present without periodic review ; non-compliant = reports published with no status",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "web-app"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Extract the list of published reports and their visible status; attach the inventory.",
+        "Verify the certification authority and the latest review; attach the report.",
+        "If gap: establish the visible status and the periodic review by the authority."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Ch.11",
+        "DAMA-DMBOK2 — Ch.3 (gouvernance)"
+      ]
+    },
+    {
+      "id": "CTL-D05-16",
+      "adr_source": [
+        "ADR0612"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Data residency (location) is declared by classification, applied by design, and verifiable for each category subject to a location requirement.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the residency declaration per data classification and its correspondence with the actual location of storage and processing.",
+      "preuve_attendue": "Classification → declared residency table + proof of the actual location of storage.",
+      "grille_verdict": "compliant = residency declared and verified ; partial = declared but not verified ; non-compliant = no residency declaration",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Collect the classification → residency table; attach.",
+        "Verify the actual location of a sample of storage; attach the captures.",
+        "If gap: declare the residency per classification and correct the out-of-zone storage."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27018:2019",
+        "DAMA-DMBOK2 — Ch.7 (sécurité des données)"
+      ]
+    }
+  ]
+}

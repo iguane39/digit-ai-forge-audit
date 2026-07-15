@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "auditcore/control.schema.json",
+  "title": "AuditCore control (généralise le schéma 18 champs de constraints.json)",
+  "type": "object",
+  "required": ["id", "dimension_audit", "regle", "criticite", "mode_de_controle", "verification", "preuve_attendue", "grille_verdict", "enforcement", "standards"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^(CTL-D(0[0-9]|1[0-6])-[0-9]{2}|C-[0-9]{4}-[0-9]{2})$" },
+    "adr_source": { "type": "array", "items": { "type": "string", "pattern": "^ADR[0-9]{4}$" } },
+    "dimension_audit": { "type": "string", "pattern": "^D(0[0-9]|1[0-6])( · D(0[0-9]|1[0-6]))*$" },
+    "regle": { "type": "string", "minLength": 10 },
+    "criticite": { "enum": ["Fatal", "Bloquant", "Majeur", "Standard"] },
+    "bucket": { "enum": ["opposable", "informatif", null] },
+    "authority": { "type": "string", "description": "origine de l'exigence ; bucket dérivé via enforcement.binding_authorities" },
+    "profil": { "type": "array", "items": { "enum": ["light", "complet"] } },
+    "mode_de_controle": { "enum": ["automatique", "revue", "déclaratif", "automatique + revue", "déclaratif + revue"] },
+    "verification": { "type": "string" },
+    "preuve_attendue": { "type": "string" },
+    "grille_verdict": { "type": "string" },
+    "enforcement": { "enum": ["blocking", "required", "advisory", "recommendation"] },
+    "statut": { "type": "string" },
+    "applicabilite": {
+      "type": "object",
+      "properties": {
+        "types": { "type": "array", "items": { "enum": ["web-app", "api", "data", "mobile", "ml", "infra"] } },
+        "defaut": { "enum": ["applicable", "a_evaluer", "sans_objet"] }
+      }
+    },
+    "applicabilite_defaut": { "type": "string" },
+    "applicabilite_motif": { "type": "string" },
+    "actions_audit": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "derogation": { "type": ["object", "string", "null"] },
+    "jurisdiction": { "type": "string", "description": "juridiction réglementaire du contrôle (ex. eu) — absent = universel" },
+    "standards": { "type": "array", "items": { "type": "string", "minLength": 3 }, "minItems": 1 }
+  }
+}

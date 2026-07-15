@@ -1,0 +1,67 @@
+{
+  "profile": "powerbi",
+  "version": "1.0.0",
+  "description": "Instanciation des contrôles de modélisation et de gouvernance de la restitution (modèle sémantique en étoile, source unique, homogénéité des modes de stockage, gouvernance de la certification, dimension de temps) ainsi que des contrôles d'accessibilité des rapports (D11) sur la plateforme Power BI.",
+  "bindings": [
+    {
+      "control": "CTL-D16-01",
+      "instanciation": "Le modèle sémantique en étoile (tables de faits et de dimensions) du jeu de données est documenté dans la vue Modèle de Power BI Desktop et tenu à jour à chaque publication ; sa structure est confrontée aux métadonnées réelles exposées par le point de terminaison XMLA du service.",
+      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_TABLES ; SELECT * FROM $SYSTEM.TMSCHEMA_RELATIONSHIPS (via DAX Studio ou SSMS connecté au XMLA endpoint de l'espace de travail Premium/Fabric) — comparer avec le diagramme du modèle documenté.",
+      "evidence": "Capture de la vue Modèle (diagramme étoile) + export des DMV TMSCHEMA_TABLES/TMSCHEMA_RELATIONSHIPS pour comparaison."
+    },
+    {
+      "control": "CTL-D16-02",
+      "instanciation": "Les relations entre tables de faits et de dimensions du modèle en étoile sont déclarées explicitement (cardinalité, sens de filtrage), actives et non ambiguës ; aucune jointure logique (colonne clé partagée) ne reste sans relation modélisée.",
+      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_RELATIONSHIPS WHERE IsActive = 1 ; règles BPA via Tabular Editor : TabularEditor.exe <model> -R BPARules_relationships.json -A",
+      "evidence": "Export DMV TMSCHEMA_RELATIONSHIPS (cardinalité, sens de filtrage) + rapport Best Practice Analyzer signalant les relations inactives ou ambiguës."
+    },
+    {
+      "control": "CTL-D05-03",
+      "instanciation": "Pour chaque domaine analytique partagé entre plusieurs rapports (ventes, finance, RH), un modèle sémantique unique et certifié fait office de golden source ; aucun jeu de données concurrent non déclaré (extraction Excel parallèle, import dupliqué) n'est toléré pour le même périmètre.",
+      "verification_command": "Revue outillée : lister via l'API REST GET /v1.0/myorg/datasets les jeux de données du workspace et rechercher les doublons de périmètre fonctionnel non déclarés comme certifiés/promus.",
+      "evidence": "Registre des modèles sémantiques certifiés par domaine + résultat de la revue de détection de jeux de données concurrents non déclarés."
+    },
+    {
+      "control": "CTL-D05-04",
+      "instanciation": "La table de dimension de temps (calendrier) du modèle sémantique est marquée comme table de dates, contiguë sans trou et à grain unique (jour) ; cette qualité est vérifiée par des règles automatisées plutôt que par une revue ponctuelle.",
+      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_TABLES WHERE DataCategory = 'Time' ; requête DAX de contrôle sur la table Calendrier pour détecter les trous de séquence ; règle BPA dédiée via Tabular Editor.",
+      "evidence": "Extrait DMV confirmant le marquage DataCategory=Time + résultat de la requête DAX de contrôle de contiguïté du calendrier."
+    },
+    {
+      "control": "CTL-D01-03",
+      "instanciation": "Le mode de stockage retenu par table du modèle composite (Import, DirectQuery, Dual) est conforme à un standard interne déclaré (ex. Import par défaut, DirectQuery réservé aux besoins de fraîcheur quasi temps réel, Dual pour les dimensions partagées) ; tout mélange incohérent au sein d'un même modèle est identifié et justifié.",
+      "verification_command": "DMV : SELECT [Name], [Mode] FROM $SYSTEM.TMSCHEMA_PARTITIONS — relever le mode de stockage par table/partition et le confronter au standard déclaré.",
+      "evidence": "Standard interne des modes de stockage documenté + export DMV TMSCHEMA_PARTITIONS avec le mode effectif par table, écarts justifiés."
+    },
+    {
+      "control": "CTL-D01-04",
+      "instanciation": "Le cycle de vie d'un rapport suit une chaîne de promotion documentée entre espaces de travail distincts (développement, test, production) via les pipelines de déploiement Power BI, avec un transfert de responsabilité explicite avant certification.",
+      "verification_command": "Revue outillée : dans le portail Power BI Service, vérifier la configuration des pipelines de déploiement (onglet Pipelines) — trois étapes Dev/Test/Prod, règles de déploiement et historique des promotions.",
+      "evidence": "Capture de la configuration des pipelines de déploiement Power BI + historique des promotions Dev vers Test vers Prod."
+    },
+    {
+      "control": "CTL-D05-01",
+      "instanciation": "Chaque modèle sémantique certifié ou promu porte un propriétaire (Data Owner) nommé dans le portail Power BI Service, responsable de la certification, de la qualité et du cycle de vie du jeu de données.",
+      "verification_command": "Revue outillée : API REST GET /v1.0/myorg/admin/datasets pour lister les jeux de données et leur propriétaire/statut d'endorsement déclaré ; confronter au registre des Data Owners.",
+      "evidence": "Registre des Data Owners par modèle sémantique + export des métadonnées de propriété/certification du portail Power BI Service."
+    },
+    {
+      "control": "CTL-D11-01",
+      "instanciation": "Chaque rapport Power BI destiné à une diffusion large fait l'objet d'un audit d'accessibilité outillé (Vérificateur d'accessibilité de Power BI Desktop) couvrant les critères WCAG 2.2 AA applicables (alternatives textuelles, ordre de lecture, contrastes), avec un plan de remédiation pour tout écart.",
+      "verification_command": "Revue outillée : Power BI Desktop, menu Affichage puis Vérificateur d'accessibilité — exécuter sur chaque page du rapport et exporter la liste des problèmes détectés.",
+      "evidence": "Rapport du Vérificateur d'accessibilité par page de rapport + plan de remédiation daté des écarts identifiés."
+    },
+    {
+      "control": "CTL-D11-02",
+      "instanciation": "Chaque rapport est intégralement opérable au clavier seul (tabulation entre visuels selon l'ordre défini dans le volet Ordre de tabulation), sans piège de focus, avec un indicateur de focus visible sur chaque visuel interactif.",
+      "verification_command": "Revue outillée : parcourir le rapport en navigation clavier exclusive (Tab, Entrée, Échap) et vérifier l'ordre de tabulation défini dans Power BI Desktop (volet Ordre de tabulation).",
+      "evidence": "Compte-rendu de la navigation clavier sur les rapports critiques + capture du volet Ordre de tabulation configuré."
+    },
+    {
+      "control": "CTL-D11-03",
+      "instanciation": "Les contrastes de couleur du texte, des visuels et des indicateurs de mise en forme conditionnelle du rapport respectent les ratios minimaux requis, y compris pour le thème à contraste élevé, vérifiés par un outil de mesure de contraste sur chaque page type.",
+      "verification_command": "Revue outillée : mesurer le ratio de contraste de chaque page type du rapport (texte, visuels, mise en forme conditionnelle) avec un outil de mesure de contraste, en thème standard et en thème à contraste élevé.",
+      "evidence": "Rapport de mesure de contraste par page type et par thème, avec les ratios obtenus en regard du seuil requis."
+    }
+  ]
+}

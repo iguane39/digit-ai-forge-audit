@@ -1,0 +1,195 @@
+{
+  "dimension": "D00",
+  "label": "Périmètre fonctionnel & valeur métier",
+  "controls": [
+    {
+      "id": "CTL-D00-01",
+      "adr_source": ["ADR0005"],
+      "dimension_audit": "D00",
+      "regle": "Le cas d'usage métier (raison d'être, problème adressé, valeur attendue) est formalisé dans un document validé par le sponsor métier, antérieur ou concomitant au démarrage du projet.",
+      "criticite": "Fatal",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence d'un document de cadrage (note de cadrage, mandat, pitch) décrivant le problème adressé et la valeur attendue, et vérifier sa validation formelle par le sponsor métier.",
+      "preuve_attendue": "Document de cadrage du cas d'usage + preuve de validation (signature, compte-rendu de comité, e-mail d'approbation).",
+      "grille_verdict": "conforme = document de cadrage existant et validé par le sponsor ; partiel = document existant mais non validé formellement ; non conforme = aucun cas d'usage formalisé",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander le document de cadrage du cas d'usage et vérifier qu'il couvre la raison d'être, le problème adressé et la valeur attendue.",
+        "Vérifier la trace de validation par le sponsor métier (signature, compte-rendu, e-mail).",
+        "Si écart : faire formaliser le cas d'usage et organiser sa validation avant toute poursuite de l'audit technique."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase A (vision d'architecture)", "ISO/IEC/IEEE 42010:2022 — 5.2 (parties prenantes et préoccupations)"]
+    },
+    {
+      "id": "CTL-D00-02",
+      "adr_source": ["ADR0004"],
+      "dimension_audit": "D00",
+      "regle": "Les utilisateurs cibles de l'application sont identifiés et caractérisés par au moins un persona documenté par profil d'usage significatif.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence de fiches persona ou d'une caractérisation équivalente (profil, besoins, fréquence d'usage, niveau d'autonomie) pour chaque profil d'utilisateur significatif, et leur cohérence avec les utilisateurs réels observés.",
+      "preuve_attendue": "Fiches persona ou document équivalent + données d'usage observées (utilisateurs actifs, fréquence) si disponibles.",
+      "grille_verdict": "conforme = personas documentés pour tous les profils significatifs et cohérents avec l'usage observé ; partiel = personas partiels ou non confrontés à l'usage réel ; non conforme = aucun persona documenté",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander les fiches persona ou la documentation utilisateur équivalente ; vérifier leur couverture des profils d'usage.",
+        "Confronter les personas déclarés aux données d'usage réel si elles existent (utilisateurs actifs, fonctionnalités utilisées).",
+        "Si écart : faire formaliser les personas manquants à partir d'entretiens utilisateurs représentatifs."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase B (architecture métier, acteurs et rôles)", "COBIT 2019 — APO08 (gérer les relations)"]
+    },
+    {
+      "id": "CTL-D00-03",
+      "adr_source": ["ADR0001"],
+      "dimension_audit": "D00",
+      "regle": "Les règles de gestion structurantes (calculs, seuils, autorisations métier, cas particuliers) sont documentées dans un référentiel validé par le métier, distinct du code source.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence d'un document de règles de gestion couvrant les règles structurantes de l'application, et sa validation par un représentant métier ; vérifier par sondage la cohérence entre règles documentées et règles implémentées.",
+      "preuve_attendue": "Document de règles de gestion validé (signé ou en cours de signature) + extraits de code illustrant 2-3 règles pour recoupement.",
+      "grille_verdict": "conforme = règles documentées, validées, et cohérentes avec le code sur l'échantillon vérifié ; partiel = règles documentées mais non validées ou partiellement cohérentes ; non conforme = règles de gestion implicites, connues seulement du code",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander le document de règles de gestion et vérifier sa couverture des cas structurants et des cas particuliers.",
+        "Sélectionner un échantillon de règles et vérifier leur cohérence avec l'implémentation réelle (code, configuration).",
+        "Si écart : faire compléter/valider le référentiel de règles et corriger les incohérences identifiées."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase B (règles métier)", "COBIT 2019 — BAI02 (gérer la définition des exigences)"]
+    },
+    {
+      "id": "CTL-D00-04",
+      "adr_source": ["ADR0103"],
+      "dimension_audit": "D00",
+      "regle": "La valeur attendue de l'application est traduite en indicateurs métier (KPIs) mesurables, dotés d'une valeur de référence (baseline) et d'une cible.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence d'indicateurs métier formalisés avec méthode de calcul, valeur de référence et cible, et vérifier qu'ils sont effectivement mesurés (tableau de bord, extraction, journal de mesure).",
+      "preuve_attendue": "Tableau de bord ou document de KPIs avec valeurs baseline et observées + méthode de calcul.",
+      "grille_verdict": "conforme = KPIs définis, mesurés, avec baseline et cible ; partiel = KPIs définis mais non mesurés ou sans baseline ; non conforme = aucun KPI métier défini",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander la liste des KPIs métier et leur méthode de calcul ; vérifier l'existence d'une valeur de référence et d'une cible.",
+        "Vérifier la fraîcheur et la fiabilité des mesures produites (source, date de dernière mise à jour).",
+        "Si écart : faire définir les KPIs manquants et instrumenter leur mesure automatisée."
+      ],
+      "derogation": null,
+      "standards": ["COBIT 2019 — MEA01 (suivi de la performance)", "ITIL 4 — pratique d'amélioration continue"]
+    },
+    {
+      "id": "CTL-D00-05",
+      "adr_source": ["ADR0003"],
+      "dimension_audit": "D00",
+      "regle": "Le périmètre fonctionnel couvert par l'application est borné par une liste explicite d'exclusions (hors-périmètre), communiquée aux parties prenantes.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence d'une liste documentée du hors-périmètre fonctionnel et sa communication effective aux parties prenantes (sponsor, utilisateurs, équipes dépendantes).",
+      "preuve_attendue": "Document de périmètre incluant une section hors-périmètre explicite + preuve de diffusion (compte-rendu, support partagé).",
+      "grille_verdict": "conforme = hors-périmètre documenté et communiqué ; partiel = hors-périmètre documenté mais non diffusé ; non conforme = aucune délimitation explicite du hors-périmètre",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander la documentation de périmètre et vérifier la présence d'une section hors-périmètre explicite.",
+        "Vérifier que le hors-périmètre a été communiqué et compris par les parties prenantes concernées (entretien rapide).",
+        "Si écart : faire formaliser et diffuser la liste des exclusions de périmètre."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase A (délimitation du périmètre)", "ISO/IEC/IEEE 42010:2022 — 4.2 (frontière du système)"]
+    },
+    {
+      "id": "CTL-D00-06",
+      "adr_source": ["ADR0104"],
+      "dimension_audit": "D00",
+      "regle": "Le pilotage produit repose sur un backlog structuré, un mécanisme de priorisation explicite et des rituels de gouvernance réguliers (revue, arbitrage).",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence d'un backlog produit à jour, d'une méthode de priorisation documentée et la tenue effective de rituels de gouvernance (fréquence, participants, décisions tracées).",
+      "preuve_attendue": "Extrait du backlog produit + méthode de priorisation + compte-rendus des rituels de gouvernance sur une période représentative.",
+      "grille_verdict": "conforme = backlog structuré, priorisation documentée, rituels tenus et tracés ; partiel = backlog existant sans méthode de priorisation ou rituels irréguliers ; non conforme = absence de backlog ou de gouvernance produit",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander l'accès au backlog produit et vérifier sa structuration (statut, priorité, valeur).",
+        "Vérifier la tenue des rituels de gouvernance produit sur les dernières périodes (comptes-rendus, décisions).",
+        "Si écart : recommander la mise en place d'un backlog structuré et d'un rituel de priorisation régulier."
+      ],
+      "derogation": null,
+      "standards": ["COBIT 2019 — APO05 (gérer le portefeuille)", "ITIL 4 — pratique de gestion du portefeuille"]
+    },
+    {
+      "id": "CTL-D00-07",
+      "adr_source": ["ADR0107"],
+      "dimension_audit": "D00",
+      "regle": "La valeur métier de l'application est démontrée par des résultats mesurés (adoption, gains, retour sur investissement), et non uniquement projetée.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence de résultats mesurés (usage réel, gains qualitatifs/quantitatifs, retours utilisateurs) et leur confrontation aux hypothèses de valeur initiales.",
+      "preuve_attendue": "Bilan de valeur (résultats mesurés vs hypothèses initiales) + données d'usage ou de gains observés.",
+      "grille_verdict": "conforme = valeur démontrée par des résultats mesurés confrontés aux hypothèses initiales ; partiel = premiers résultats disponibles mais incomplets ou non confrontés aux hypothèses ; non conforme = valeur uniquement projetée, aucun résultat mesuré",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander le bilan de valeur et les données d'usage ou de gains observés depuis la mise à disposition.",
+        "Confronter les résultats mesurés aux hypothèses de valeur formulées au démarrage.",
+        "Si écart : faire organiser la mesure de la valeur (instrumentation, enquête utilisateurs) avant la décision d'industrialisation."
+      ],
+      "derogation": null,
+      "standards": ["COBIT 2019 — EDM02 (assurer l'obtention des bénéfices)", "ITIL 4 — co-création de valeur"]
+    },
+    {
+      "id": "CTL-D00-08",
+      "adr_source": ["ADR0005"],
+      "dimension_audit": "D00",
+      "regle": "Les parcours fonctionnels critiques (ceux dont l'échec compromet la valeur métier) sont formalisés et validés avec les utilisateurs représentatifs.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence d'une formalisation des parcours critiques (storyboard, parcours utilisateur, processus) et leur validation par des utilisateurs représentatifs ou le métier.",
+      "preuve_attendue": "Document de parcours fonctionnel formalisé + preuve de validation utilisateur (test, atelier, retour documenté).",
+      "grille_verdict": "conforme = parcours critiques formalisés et validés par des utilisateurs représentatifs ; partiel = parcours formalisés par fragments ou non validés ; non conforme = parcours critiques non documentés",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Identifier avec le métier les parcours fonctionnels critiques et demander leur formalisation existante.",
+        "Vérifier la trace d'une validation par des utilisateurs représentatifs (atelier, test, retour recueilli).",
+        "Si écart : faire formaliser et valider les parcours critiques manquants avant la décision d'industrialisation."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase B (processus métier)", "ISO/IEC 25010:2023 — aptitude à l'utilisation"]
+    },
+    {
+      "id": "CTL-D00-09",
+      "adr_source": ["ADR0003"],
+      "dimension_audit": "D00",
+      "regle": "Les hypothèses structurantes et les risques métier du projet sont recensés dans un registre vivant, avec un plan de mitigation pour chaque risque significatif.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence d'un registre des hypothèses et risques métier, sa mise à jour récente, et la présence d'un plan de mitigation pour les risques significatifs.",
+      "preuve_attendue": "Registre des hypothèses/risques métier daté + plan de mitigation associé aux risques significatifs.",
+      "grille_verdict": "conforme = registre à jour avec plans de mitigation pour tous les risques significatifs ; partiel = registre existant mais non mis à jour ou mitigation partielle ; non conforme = aucun registre d'hypothèses ou de risques métier",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander le registre des hypothèses et risques métier et vérifier sa date de dernière mise à jour.",
+        "Vérifier l'existence d'un plan de mitigation pour chaque risque coté significatif.",
+        "Si écart : faire établir le registre et prioriser les plans de mitigation manquants."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM (gestion des risques d'architecture)", "COBIT 2019 — APO12 (gérer le risque)"]
+    }
+  ]
+}

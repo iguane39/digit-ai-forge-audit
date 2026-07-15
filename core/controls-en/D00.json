@@ -1,0 +1,195 @@
+{
+  "dimension": "D00",
+  "label": "Functional scope & business value",
+  "controls": [
+    {
+      "id": "CTL-D00-01",
+      "adr_source": ["ADR0005"],
+      "dimension_audit": "D00",
+      "regle": "The business use case (rationale, problem addressed, expected value) is formalized in a document validated by the business sponsor, prior to or concurrent with the project's start.",
+      "criticite": "Fatal",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a scoping document (scoping note, mandate, pitch) describing the problem addressed and the expected value, and verify its formal validation by the business sponsor.",
+      "preuve_attendue": "Use case scoping document + proof of validation (signature, committee minutes, approval e-mail).",
+      "grille_verdict": "compliant = scoping document exists and is validated by the sponsor ; partial = document exists but not formally validated ; non-compliant = no formalized use case",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the use case scoping document and verify that it covers the rationale, the problem addressed, and the expected value.",
+        "Verify the trace of validation by the business sponsor (signature, minutes, e-mail).",
+        "If gap: have the use case formalized and organize its validation before continuing the technical audit."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase A (vision d'architecture)", "ISO/IEC/IEEE 42010:2022 — 5.2 (parties prenantes et préoccupations)"]
+    },
+    {
+      "id": "CTL-D00-02",
+      "adr_source": ["ADR0004"],
+      "dimension_audit": "D00",
+      "regle": "The application's target users are identified and characterized by at least one documented persona per significant usage profile.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of persona sheets or an equivalent characterization (profile, needs, frequency of use, level of autonomy) for each significant user profile, and their consistency with actually observed users.",
+      "preuve_attendue": "Persona sheets or equivalent document + observed usage data (active users, frequency) if available.",
+      "grille_verdict": "compliant = personas documented for all significant profiles and consistent with observed usage ; partial = partial personas or not compared against actual usage ; non-compliant = no documented persona",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the persona sheets or equivalent user documentation; verify their coverage of usage profiles.",
+        "Compare the declared personas against actual usage data if available (active users, features used).",
+        "If gap: have the missing personas formalized based on representative user interviews."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase B (architecture métier, acteurs et rôles)", "COBIT 2019 — APO08 (gérer les relations)"]
+    },
+    {
+      "id": "CTL-D00-03",
+      "adr_source": ["ADR0001"],
+      "dimension_audit": "D00",
+      "regle": "Structuring business rules (calculations, thresholds, business authorizations, special cases) are documented in a repository validated by the business, separate from the source code.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a business rules document covering the application's structuring rules, and its validation by a business representative; spot-check the consistency between documented rules and implemented rules.",
+      "preuve_attendue": "Validated business rules document (signed or pending signature) + code excerpts illustrating 2-3 rules for cross-checking.",
+      "grille_verdict": "compliant = rules documented, validated, and consistent with the code on the sample checked ; partial = rules documented but not validated or partially consistent ; non-compliant = implicit business rules, known only from the code",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the business rules document and verify its coverage of structuring cases and special cases.",
+        "Select a sample of rules and verify their consistency with the actual implementation (code, configuration).",
+        "If gap: have the rules repository completed/validated and correct the identified inconsistencies."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase B (règles métier)", "COBIT 2019 — BAI02 (gérer la définition des exigences)"]
+    },
+    {
+      "id": "CTL-D00-04",
+      "adr_source": ["ADR0103"],
+      "dimension_audit": "D00",
+      "regle": "The application's expected value is translated into measurable business indicators (KPIs), each with a baseline value and a target.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of formalized business indicators with a calculation method, baseline value, and target, and verify that they are actually measured (dashboard, extraction, measurement log).",
+      "preuve_attendue": "Dashboard or KPI document with baseline and observed values + calculation method.",
+      "grille_verdict": "compliant = KPIs defined, measured, with baseline and target ; partial = KPIs defined but not measured or without a baseline ; non-compliant = no business KPI defined",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the list of business KPIs and their calculation method; verify the existence of a baseline value and a target.",
+        "Verify the freshness and reliability of the measurements produced (source, last update date).",
+        "If gap: have the missing KPIs defined and instrument their automated measurement."
+      ],
+      "derogation": null,
+      "standards": ["COBIT 2019 — MEA01 (suivi de la performance)", "ITIL 4 — pratique d'amélioration continue"]
+    },
+    {
+      "id": "CTL-D00-05",
+      "adr_source": ["ADR0003"],
+      "dimension_audit": "D00",
+      "regle": "The functional scope covered by the application is bounded by an explicit list of exclusions (out-of-scope items), communicated to stakeholders.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a documented list of functional out-of-scope items and its actual communication to stakeholders (sponsor, users, dependent teams).",
+      "preuve_attendue": "Scope document including an explicit out-of-scope section + proof of distribution (minutes, shared material).",
+      "grille_verdict": "compliant = out-of-scope items documented and communicated ; partial = out-of-scope items documented but not distributed ; non-compliant = no explicit delineation of out-of-scope items",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the scope documentation and verify the presence of an explicit out-of-scope section.",
+        "Verify that the out-of-scope items were communicated to and understood by the relevant stakeholders (quick interview).",
+        "If gap: have the list of scope exclusions formalized and distributed."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase A (délimitation du périmètre)", "ISO/IEC/IEEE 42010:2022 — 4.2 (frontière du système)"]
+    },
+    {
+      "id": "CTL-D00-06",
+      "adr_source": ["ADR0104"],
+      "dimension_audit": "D00",
+      "regle": "Product governance relies on a structured backlog, an explicit prioritization mechanism, and regular governance rituals (review, arbitration).",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of an up-to-date product backlog, a documented prioritization method, and the actual holding of governance rituals (frequency, participants, tracked decisions).",
+      "preuve_attendue": "Product backlog excerpt + prioritization method + minutes of governance rituals over a representative period.",
+      "grille_verdict": "compliant = structured backlog, documented prioritization, rituals held and tracked ; partial = backlog exists without a prioritization method or irregular rituals ; non-compliant = no backlog or product governance",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request access to the product backlog and verify its structure (status, priority, value).",
+        "Verify that product governance rituals were held over recent periods (minutes, decisions).",
+        "If gap: recommend implementing a structured backlog and a regular prioritization ritual."
+      ],
+      "derogation": null,
+      "standards": ["COBIT 2019 — APO05 (gérer le portefeuille)", "ITIL 4 — pratique de gestion du portefeuille"]
+    },
+    {
+      "id": "CTL-D00-07",
+      "adr_source": ["ADR0107"],
+      "dimension_audit": "D00",
+      "regle": "The application's business value is demonstrated by measured results (adoption, gains, return on investment), not merely projected.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of measured results (actual usage, qualitative/quantitative gains, user feedback) and their comparison against the initial value hypotheses.",
+      "preuve_attendue": "Value assessment (measured results vs. initial hypotheses) + observed usage or gains data.",
+      "grille_verdict": "compliant = value demonstrated by measured results compared against the initial hypotheses ; partial = initial results available but incomplete or not compared against the hypotheses ; non-compliant = value only projected, no measured result",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the value assessment and the usage or gains data observed since release.",
+        "Compare the measured results against the value hypotheses formulated at the outset.",
+        "If gap: have value measurement organized (instrumentation, user survey) before the industrialization decision."
+      ],
+      "derogation": null,
+      "standards": ["COBIT 2019 — EDM02 (assurer l'obtention des bénéfices)", "ITIL 4 — co-création de valeur"]
+    },
+    {
+      "id": "CTL-D00-08",
+      "adr_source": ["ADR0005"],
+      "dimension_audit": "D00",
+      "regle": "Critical functional journeys (those whose failure would compromise business value) are formalized and validated with representative users.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a formalization of the critical journeys (storyboard, user journey, process) and their validation by representative users or the business.",
+      "preuve_attendue": "Formalized functional journey document + proof of user validation (test, workshop, documented feedback).",
+      "grille_verdict": "compliant = critical journeys formalized and validated by representative users ; partial = journeys formalized in fragments or not validated ; non-compliant = critical journeys not documented",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Identify the critical functional journeys with the business and request their existing formalization.",
+        "Verify the trace of a validation by representative users (workshop, test, feedback collected).",
+        "If gap: have the missing critical journeys formalized and validated before the industrialization decision."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM Phase B (processus métier)", "ISO/IEC 25010:2023 — aptitude à l'utilisation"]
+    },
+    {
+      "id": "CTL-D00-09",
+      "adr_source": ["ADR0003"],
+      "dimension_audit": "D00",
+      "regle": "The project's structuring assumptions and business risks are recorded in a living register, with a mitigation plan for each significant risk.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a register of business assumptions and risks, its recent update, and the presence of a mitigation plan for significant risks.",
+      "preuve_attendue": "Dated register of business assumptions/risks + mitigation plan associated with significant risks.",
+      "grille_verdict": "compliant = register up to date with mitigation plans for all significant risks ; partial = register exists but not updated or partial mitigation ; non-compliant = no register of business assumptions or risks",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the register of business assumptions and risks and verify its last update date.",
+        "Verify the existence of a mitigation plan for each risk rated as significant.",
+        "If gap: have the register established and prioritize the missing mitigation plans."
+      ],
+      "derogation": null,
+      "standards": ["TOGAF — ADM (gestion des risques d'architecture)", "COBIT 2019 — APO12 (gérer le risque)"]
+    }
+  ]
+}

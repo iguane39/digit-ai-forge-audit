@@ -1,0 +1,340 @@
+{
+  "dimension": "D13",
+  "label": "Documentation",
+  "controls": [
+    {
+      "id": "CTL-D13-01",
+      "adr_source": [
+        "ADR0005"
+      ],
+      "dimension_audit": "D13",
+      "regle": "Chaque dépôt applicatif porte un README opérationnel décrivant l'objet du projet, les prérequis, les commandes de démarrage/test/déploiement et les points de contact, maintenu à jour à chaque évolution structurante.",
+      "criticite": "Standard",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la présence et l'exhaustivité du README (objet, prérequis, commandes essentielles, contacts) et sa cohérence avec l'état réel du projet.",
+      "preuve_attendue": "Contenu du README + vérification que les commandes documentées s'exécutent effectivement.",
+      "grille_verdict": "conforme = README complet, à jour, commandes vérifiées fonctionnelles ; partiel = README présent mais incomplet ou partiellement obsolète ; non conforme = README absent ou réduit à un titre",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la présence des sections attendues du README (objet, prérequis, démarrage, déploiement, contacts).",
+        "Exécuter les commandes documentées et vérifier leur succès.",
+        "Si écart : compléter les sections manquantes et corriger les commandes obsolètes."
+      ],
+      "derogation": null,
+      "standards": [
+        "docs-as-code (Docs Like Code)"
+      ]
+    },
+    {
+      "id": "CTL-D13-02",
+      "adr_source": [
+        "ADR0704"
+      ],
+      "dimension_audit": "D13",
+      "regle": "Toute API exposée publie un contrat d'interface explicite (ex. spécification ouverte), versionné, synchronisé avec l'implémentation réelle et vérifié automatiquement en intégration continue.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier la publication d'un contrat d'interface pour chaque API exposée, son versionnement explicite, et l'existence d'une vérification automatisée de conformité contrat/implémentation en CI.",
+      "preuve_attendue": "Contrat d'interface publié et versionné + rapport de conformité contrat/implémentation généré par le pipeline.",
+      "grille_verdict": "conforme = contrat publié, versionné et vérifié automatiquement en CI ; partiel = contrat publié mais non vérifié automatiquement ; non conforme = absence de contrat d'interface explicite",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la publication et le versionnement du contrat d'interface de chaque API exposée.",
+        "Vérifier l'exécution d'un contrôle automatisé de conformité contrat/implémentation en CI.",
+        "Si écart : publier le contrat manquant et outiller la vérification automatisée."
+      ],
+      "derogation": null,
+      "standards": [
+        "OpenAPI (spécification d'interface)",
+        "SemVer 2.0.0 (versionnement sémantique)"
+      ]
+    },
+    {
+      "id": "CTL-D13-03",
+      "adr_source": [
+        "ADR0001",
+        "ADR0002"
+      ],
+      "dimension_audit": "D13",
+      "regle": "Les décisions d'architecture significatives sont consignées dans un registre de décisions (ADR) actif : chaque décision porte un identifiant et un frontmatter conformes au schéma du corpus, et aucune décision au statut accepté n'est réécrite sur le fond hors changement de statut ou lien de succession explicite.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier que le registre de décisions couvre les choix structurants récents, que chaque entrée respecte le schéma d'identifiant et de frontmatter attendu, et qu'aucune entrée acceptée n'a été modifiée sur le fond sans création d'une décision de remplacement.",
+      "preuve_attendue": "Extrait du registre de décisions + sortie du vérificateur de format + historique de version démontrant l'absence de réécriture d'une décision acceptée.",
+      "grille_verdict": "conforme = registre actif, 0 anomalie de format, aucune réécriture de fond détectée ; partiel = registre actif avec anomalies mineures ou décisions manquantes sur des choix récents ; non conforme = registre absent ou décision acceptée réécrite sans traçabilité",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Vérifier la couverture du registre de décisions par rapport aux choix structurants identifiés en D01.",
+        "Exécuter le vérificateur de format sur le registre et relever les anomalies.",
+        "Si écart : compléter le registre pour les décisions manquantes et corriger les anomalies de format."
+      ],
+      "derogation": null,
+      "standards": [
+        "MADR 4.0.0 (gabarit et cycle de vie des décisions)",
+        "ISO/IEC/IEEE 42010:2022 (rationale de la description d'architecture)"
+      ]
+    },
+    {
+      "id": "CTL-D13-04",
+      "adr_source": [
+        "ADR0003"
+      ],
+      "dimension_audit": "D13",
+      "regle": "La documentation technique d'architecture (schémas, principes retenus, registre des écarts par rapport à la cible) est tenue à jour et accessible à l'ensemble des équipes concernées.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence et la fraîcheur de la documentation technique d'architecture et du registre des écarts par rapport à l'architecture cible documentée.",
+      "preuve_attendue": "Schémas et documents d'architecture technique + registre des écarts avec statut de remédiation.",
+      "grille_verdict": "conforme = documentation à jour et registre des écarts tenu, tous justifiés ; partiel = documentation présente mais partiellement obsolète ou écarts non tous justifiés ; non conforme = absence de documentation technique d'architecture ou de registre des écarts",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Comparer la documentation technique d'architecture à l'implémentation réelle et relever les divergences.",
+        "Vérifier que chaque écart figure au registre avec un statut de remédiation.",
+        "Si écart : mettre à jour la documentation et compléter le registre des écarts."
+      ],
+      "derogation": null,
+      "standards": [
+        "TOGAF ADM — Phase G (gouvernance de la mise en œuvre)",
+        "ISO/IEC/IEEE 42010:2022"
+      ]
+    },
+    {
+      "id": "CTL-D13-05",
+      "adr_source": [
+        "ADR0902"
+      ],
+      "dimension_audit": "D13",
+      "regle": "Une documentation utilisateur couvrant les fonctionnalités principales est publiée, accessible depuis l'application ou son portail associé, et maintenue à jour avec les évolutions fonctionnelles livrées.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence, l'accessibilité et la fraîcheur de la documentation utilisateur au regard des fonctionnalités principales livrées.",
+      "preuve_attendue": "Extrait de la documentation utilisateur (date de dernière mise à jour, couverture fonctionnelle) + accès vérifié depuis l'application.",
+      "grille_verdict": "conforme = documentation utilisateur accessible et à jour sur l'ensemble des fonctionnalités principales ; partiel = documentation partielle ou datée ; non conforme = absence de documentation utilisateur",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la couverture de la documentation utilisateur par rapport aux fonctionnalités principales déclarées.",
+        "Vérifier l'accessibilité de la documentation depuis l'application ou son portail associé.",
+        "Si écart : compléter ou actualiser la documentation utilisateur manquante."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO 9241-11 (efficacité, efficience, satisfaction)"
+      ]
+    },
+    {
+      "id": "CTL-D13-06",
+      "adr_source": [],
+      "dimension_audit": "D13",
+      "regle": "Un guide d'onboarding permet à un nouveau développeur d'obtenir un environnement fonctionnel et de réaliser sa première contribution de façon autonome, sans sollicitation systématique de l'équipe en place.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Faire suivre le guide d'onboarding par une personne n'ayant jamais travaillé sur le projet et mesurer le temps et le nombre de sollicitations nécessaires pour obtenir un environnement fonctionnel.",
+      "preuve_attendue": "Guide d'onboarding documenté + compte-rendu d'un onboarding test (durée, sollicitations nécessaires).",
+      "grille_verdict": "conforme = environnement fonctionnel obtenu de façon autonome en moins d'une journée ; partiel = onboarding réalisable avec quelques sollicitations ponctuelles ; non conforme = onboarding impossible sans assistance continue de l'équipe",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Faire suivre le guide d'onboarding par une personne extérieure au projet et chronométrer le résultat.",
+        "Relever les points de blocage ayant nécessité une sollicitation de l'équipe en place.",
+        "Si écart : compléter le guide sur les points de blocage identifiés."
+      ],
+      "derogation": null,
+      "standards": [
+        "docs-as-code (Docs Like Code)"
+      ]
+    },
+    {
+      "id": "CTL-D13-07",
+      "adr_source": [
+        "ADR0610"
+      ],
+      "dimension_audit": "D13",
+      "regle": "Un dictionnaire de données décrivant les entités, attributs et significations métier est publié dans un catalogue référencé, découvrable et recherchable par sens métier plutôt que par seule structure technique.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la publication d'un dictionnaire de données dans un catalogue référencé, sa couverture des entités en production, et sa recherche possible par signification métier.",
+      "preuve_attendue": "Extrait du catalogue de données montrant la couverture et la fraîcheur des descriptions du dictionnaire.",
+      "grille_verdict": "conforme = dictionnaire publié, à jour, couvrant toutes les entités en production et recherchable par sens métier ; partiel = couverture incomplète ou recherche par sens métier absente ; non conforme = absence de dictionnaire de données référencé",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la couverture du dictionnaire de données par rapport aux entités en production.",
+        "Tester la recherche d'une entité par son sens métier dans le catalogue.",
+        "Si écart : compléter le dictionnaire et publier les entités manquantes dans le catalogue référencé."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management)",
+        "FAIR Principles (Findable, Accessible, Interoperable, Reusable)"
+      ]
+    },
+    {
+      "id": "CTL-D13-08",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D13",
+      "regle": "La documentation de conformité applicable (analyses d'impact, registre des traitements, classifications réglementaires, preuves de contrôle) est centralisée, référencée depuis la documentation du projet et tenue à jour à chaque évolution significative.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence et l'accessibilité de la documentation de conformité applicable, sa référence depuis la documentation du projet, et sa mise à jour après la dernière évolution significative.",
+      "preuve_attendue": "Inventaire de la documentation de conformité applicable + preuve de mise à jour après la dernière évolution significative du projet.",
+      "grille_verdict": "conforme = documentation de conformité complète, référencée et à jour ; partiel = documentation existante mais non référencée ou partiellement datée ; non conforme = documentation de conformité absente sur une obligation applicable",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Recenser les obligations de conformité applicables et vérifier l'existence de la documentation correspondante.",
+        "Vérifier la référence de cette documentation depuis la documentation du projet et sa date de dernière mise à jour.",
+        "Si écart : produire la documentation manquante et établir son processus de mise à jour."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.36 (conformité aux politiques, règles et normes)",
+        "RGPD — art. 30 (registre des activités de traitement)"
+      ]
+    },
+    {
+      "id": "CTL-D13-09",
+      "adr_source": [
+        "ADR0005"
+      ],
+      "dimension_audit": "D13",
+      "regle": "L'ensemble de la documentation projet (README, doc API, doc technique, ADR) est versionné dans le même dépôt ou un dépôt lié, revu par proposition de modification comme le code, et publié automatiquement à chaque évolution acceptée.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier que la documentation est versionnée sous contrôle de source, revue par un mécanisme de proposition de modification, et publiée automatiquement après fusion, avec un horodatage de synchronisation.",
+      "preuve_attendue": "Historique de version de la documentation + configuration de la publication automatisée + horodatage de la dernière synchronisation.",
+      "grille_verdict": "conforme = documentation versionnée, revue systématique, publication synchronisée en moins de 24 heures ; partiel = versionnée et revue mais publication manuelle ou latence documentée ; non conforme = documentation non versionnée ou éditée hors du flux de revue",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que la documentation est stockée sous contrôle de version et passe par une revue avant fusion.",
+        "Vérifier la configuration et la fraîcheur de la publication automatisée de la documentation.",
+        "Si écart : migrer la documentation restante vers le dépôt versionné et outiller la publication automatique."
+      ],
+      "derogation": null,
+      "standards": [
+        "docs-as-code (Docs Like Code)",
+        "DORA (Accelerate) — Accelerate (gestion de configuration versionnée)"
+      ]
+    }
+  ]
+}

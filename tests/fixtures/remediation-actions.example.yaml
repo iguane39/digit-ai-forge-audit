@@ -1,0 +1,67 @@
+# Exemple réaliste — sortie d'audit consommée par tools/forge-adapter.mjs (PLAN/06 §2)
+audit_ref: "NH-AUD-2026-07-PILOTE"
+core_version: "1.0.0"
+project:
+  repo: "https://github.com/org/projet-audite"
+  stack_profile: resolved
+actions:
+  - id: REM-D03-001
+    title: "Purger les secrets de l'historique et brancher le scan en CI"
+    finding_ref: "CST-D03-04"
+    control_ref: "CTL-D03-02"
+    adr_ref: [ADR0201]
+    severity: Fatal
+    priority: urgent
+    effort: "1j"
+    activation:
+      mode: forge-auto
+      reason: "changement code/CI dans le repo audité ; acceptation machine-vérifiable"
+    story:
+      epic: "remediation-D03"
+      title: "Purger les secrets et bloquer leur réintroduction"
+      acceptance:
+        - "Le scan de secrets sur l'historique complet retourne 0 finding"
+        - "Le pipeline CI échoue si un secret est introduit (test avec un canari)"
+        - "La commande de gate code du profil passe (exit 0)"
+    verification:
+      command: "profile:secret_scan"
+      evidence_expected: "rapport de scan + config CI"
+    preconditions: ["accès en écriture au repo", "HITL-1 approuvé"]
+  - id: REM-D10-002
+    title: "Structurer les logs applicatifs et corréler les traces"
+    finding_ref: "CST-D10-01"
+    control_ref: "CTL-D10-01"
+    adr_ref: [ADR0401]
+    severity: Bloquant
+    priority: prio
+    effort: "2j"
+    activation:
+      mode: forge-assisted
+      reason: "changement code, mais l'acceptation inclut un jugement de pertinence des champs de logs"
+    story:
+      epic: "remediation-D10"
+      title: "Logs structurés + identifiant de corrélation sur les parcours critiques"
+      acceptance:
+        - "Les logs des endpoints critiques sont émis en format structuré avec niveaux normalisés"
+        - "Un identifiant de corrélation traverse les appels inter-services (preuve : extrait de trace)"
+    verification:
+      evidence_expected: "extraits de logs structurés + capture de trace bout-en-bout"
+  - id: REM-D05-003
+    title: "Nommer un Data Owner métier et l'acter en revue"
+    finding_ref: "CST-D05-02"
+    control_ref: "C-0601-01"
+    adr_ref: [ADR0601]
+    severity: Fatal
+    priority: urgent
+    effort: "0,5j"
+    activation:
+      mode: manual
+      reason: "décision organisationnelle hors du repo — aucune modification de code ne peut nommer un propriétaire"
+      owner_role: decision_authority
+    story:
+      epic: "remediation-D05"
+      title: "Data Owner nommé et engagé"
+      acceptance:
+        - "Compte-rendu de revue avec nom, rôle et engagement du Data Owner"
+    verification:
+      evidence_expected: "compte-rendu de revue signé"

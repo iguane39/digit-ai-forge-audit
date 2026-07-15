@@ -1,0 +1,340 @@
+{
+ "titre": "Rapport pilote",
+ "tenant": "ACME",
+ "dimensions": [
+  {
+   "id": "D00",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:10"
+   ]
+  },
+  {
+   "id": "D01",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:11"
+   ]
+  },
+  {
+   "id": "D02",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:12"
+   ]
+  },
+  {
+   "id": "D03",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:13"
+   ]
+  },
+  {
+   "id": "D04",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:14"
+   ]
+  },
+  {
+   "id": "D05",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:15"
+   ]
+  },
+  {
+   "id": "D06",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:16"
+   ]
+  },
+  {
+   "id": "D07",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:17"
+   ]
+  },
+  {
+   "id": "D08",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:18"
+   ]
+  },
+  {
+   "id": "D09",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:19"
+   ]
+  },
+  {
+   "id": "D10",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:20"
+   ]
+  },
+  {
+   "id": "D11",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:21"
+   ]
+  },
+  {
+   "id": "D12",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:22"
+   ]
+  },
+  {
+   "id": "D13",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:23"
+   ]
+  },
+  {
+   "id": "D14",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:24"
+   ]
+  },
+  {
+   "id": "D15",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:25"
+   ]
+  },
+  {
+   "id": "D16",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:26"
+   ]
+  }
+ ],
+ "regles": [
+  {
+   "id": "C-0207-01",
+   "verdict": "conforme"
+  },
+  {
+   "id": "C-0601-01",
+   "verdict": "sans_objet",
+   "motif": "pas de périmètre data dans ce projet"
+  }
+ ],
+ "constats": [
+  {
+   "titre": "Secret en clair",
+   "preuves": [
+    {
+     "ref": "config.py:12"
+    }
+   ]
+  }
+ ],
+ "actions": [
+  {
+   "titre": "Purger le secret",
+   "adr": [
+    "ADR0201"
+   ]
+  }
+ ],
+ "db_schema": {
+  "bandes": [
+   {
+    "key": "metier",
+    "label": "Métier"
+   },
+   {
+    "key": "ref",
+    "label": "Référentiel"
+   }
+  ],
+  "tables": [
+   {
+    "id": "users",
+    "bande": "metier",
+    "label": "users",
+    "note": "comptes",
+    "columns": [
+     {
+      "n": "id",
+      "t": "uuid",
+      "k": "PK",
+      "nn": true
+     },
+     {
+      "n": "email",
+      "t": "text",
+      "nn": true,
+      "pii": true
+     },
+     {
+      "n": "org_id",
+      "t": "uuid",
+      "k": "FK"
+     }
+    ]
+   },
+   {
+    "id": "audits",
+    "bande": "metier",
+    "label": "audits",
+    "columns": [
+     {
+      "n": "id",
+      "t": "uuid",
+      "k": "PK",
+      "nn": true
+     },
+     {
+      "n": "user_id",
+      "t": "uuid",
+      "k": "FK"
+     },
+     {
+      "n": "score",
+      "t": "numeric"
+     }
+    ]
+   },
+   {
+    "id": "orgs",
+    "bande": "ref",
+    "label": "organisations",
+    "columns": [
+     {
+      "n": "id",
+      "t": "uuid",
+      "k": "PK",
+      "nn": true
+     },
+     {
+      "n": "nom",
+      "t": "text",
+      "nn": true
+     }
+    ]
+   }
+  ],
+  "relations": [
+   {
+    "from": "users",
+    "to": "orgs",
+    "enforced": true
+   },
+   {
+    "from": "audits",
+    "to": "users",
+    "enforced": true
+   },
+   {
+    "from": "audits",
+    "to": "orgs",
+    "enforced": false
+   }
+  ]
+ },
+ "architecture": {
+  "bandes": [
+   {
+    "key": "acteurs",
+    "label": "Acteurs"
+   },
+   {
+    "key": "app",
+    "label": "Application"
+   },
+   {
+    "key": "data",
+    "label": "Données"
+   }
+  ],
+  "nodes": [
+   {
+    "id": "u",
+    "bande": "acteurs",
+    "label": "Utilisateurs",
+    "sub": "navigateur",
+    "style": "amber"
+   },
+   {
+    "id": "front",
+    "bande": "app",
+    "label": "Frontend",
+    "sub": "SPA",
+    "style": "blue"
+   },
+   {
+    "id": "api",
+    "bande": "app",
+    "label": "API",
+    "sub": "service",
+    "style": "purple"
+   },
+   {
+    "id": "db",
+    "bande": "data",
+    "label": "Base de données",
+    "sub": "relationnelle",
+    "style": "teal"
+   },
+   {
+    "id": "obs",
+    "bande": "data",
+    "label": "Observabilité",
+    "sub": "logs·traces",
+    "style": "gray"
+   }
+  ],
+  "edges": [
+   {
+    "from": "u",
+    "to": "front"
+   },
+   {
+    "from": "front",
+    "to": "api"
+   },
+   {
+    "from": "api",
+    "to": "db"
+   },
+   {
+    "from": "api",
+    "to": "obs",
+    "style": "dashed",
+    "label": "télémétrie"
+   }
+  ]
+ }
+}

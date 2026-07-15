@@ -1,0 +1,174 @@
+{
+  "dimension": "D06",
+  "label": "Performance & charge",
+  "controls": [
+    {
+      "id": "CTL-D06-01",
+      "adr_source": ["ADR0705"],
+      "dimension_audit": "D06",
+      "regle": "Les intégrations asynchrones (files de messages, notifications d'événement, tâches différées) sont conçues pour être reçues plusieurs fois sans effet de duplication (idempotence), avec une politique de nouvelle tentative bornée et une file de rejet dédiée aux échecs répétés.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier la présence d'un identifiant unique de message garantissant la déduplication, la configuration d'une politique de retry bornée (délai, nombre maximal de tentatives) et l'activation d'une file de rejet (dead-letter) pour les messages en échec répété.",
+      "preuve_attendue": "Configuration de la politique de retry (délai, tentatives max) + configuration de la file de rejet + exemple de rejeu d'un message sans duplication d'effet.",
+      "grille_verdict": "conforme = idempotence démontrée + retry borné + file de rejet active ; partiel = idempotence démontrée sans file de rejet ; non conforme = aucune garantie d'idempotence constatée",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "ml"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Vérifier la présence d'un identifiant unique de message et du mécanisme de déduplication pour chaque intégration asynchrone ; joindre les extraits de configuration.",
+        "Rejouer un message en double en environnement de test et constater l'absence d'effet métier dupliqué ; documenter le résultat.",
+        "Si écart : concevoir l'idempotence manquante et activer une file de rejet bornée."
+      ],
+      "derogation": null,
+      "standards": ["EIP — Enterprise Integration Patterns (Idempotent Receiver, Dead Letter Channel)", "ISO/IEC 25010:2011 — Fiabilité (tolérance aux fautes)"]
+    },
+    {
+      "id": "CTL-D06-02",
+      "adr_source": ["ADR0706"],
+      "dimension_audit": "D06",
+      "regle": "Les dépendances externes consommées (API tierces, modèles d'inférence IA, services partagés) sont soumises à des quotas et seuils de débit connus, documentés et surveillés, avec un plan de dégradation maîtrisé en cas de dépassement.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Inventorier les dépendances externes consommées et leurs quotas contractuels (TPM/RPM, appels/minute) ; vérifier que l'usage observé reste sous les seuils déclarés et qu'un plan de dégradation (file d'attente, repli, message d'erreur maîtrisé) existe en cas de dépassement.",
+      "preuve_attendue": "Inventaire des dépendances externes avec quotas contractuels + usage observé sur la période + plan de dégradation documenté.",
+      "grille_verdict": "conforme = quotas connus, usage sous seuil, plan de dégradation testé ; partiel = quotas connus sans plan de dégradation ; non conforme = quotas inconnus ou dépassements non maîtrisés",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Inventorier les dépendances externes consommées et leurs quotas contractuels ; joindre l'inventaire et l'usage observé.",
+        "Simuler ou constater un dépassement de quota et vérifier le comportement de dégradation ; documenter le résultat.",
+        "Si écart : négocier/documenter les quotas manquants et mettre en place un plan de dégradation."
+      ],
+      "derogation": null,
+      "standards": ["OWASP ASVS 5.0 — V13", "Site Reliability Engineering (Google) — gestion de la charge"]
+    },
+    {
+      "id": "CTL-D06-03",
+      "adr_source": ["ADR0704"],
+      "dimension_audit": "D06",
+      "regle": "Des objectifs de latence (p50/p95/p99) sont déclarés pour chaque parcours critique et mesurés en continu en conditions réelles, avec comparaison systématique à la cible déclarée.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'existence d'objectifs de latence déclarés par parcours critique et la présence de métriques p50/p95/p99 mesurées sur une période représentative (7-30 jours) ; comparer les mesures aux objectifs déclarés.",
+      "preuve_attendue": "Document des objectifs de latence par parcours + export des métriques p50/p95/p99 mesurées sur la période.",
+      "grille_verdict": "conforme = objectifs déclarés et mesures conformes sur la période ; partiel = mesures disponibles sans objectif déclaré (ou l'inverse) ; non conforme = ni objectif ni mesure disponible",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Extraire les métriques de latence p50/p95/p99 sur une période représentative pour chaque parcours critique ; joindre l'export.",
+        "Comparer les mesures aux objectifs déclarés ; documenter les écarts constatés.",
+        "Si écart : déclarer les objectifs manquants ou instrumenter les parcours non mesurés."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (comportement temporel)", "Google SRE — Service Level Objectives"]
+    },
+    {
+      "id": "CTL-D06-04",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D06",
+      "regle": "Des tests de charge représentatifs de la cible sont exécutés régulièrement, a minima avant chaque mise en production majeure, avec des budgets de performance définis et vérifiés en intégration continue, bloquant toute régression significative.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Rechercher les scripts de tests de charge (k6, Locust, JMeter ou équivalent) et leur exécution en CI ; vérifier l'existence de seuils (budgets) de performance et le comportement du pipeline en cas de dépassement.",
+      "preuve_attendue": "Rapport du dernier test de charge + configuration des budgets de performance en CI + preuve d'un échec de pipeline sur dépassement de budget.",
+      "grille_verdict": "conforme = tests de charge réguliers + budgets bloquants actifs ; partiel = tests de charge réguliers sans budget bloquant ; non conforme = aucun test de charge constaté",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Rechercher les scripts et l'historique d'exécution des tests de charge ; joindre le dernier rapport.",
+        "Vérifier la configuration des budgets de performance en CI et déclencher un test de régression pour constater le blocage ; documenter le résultat.",
+        "Si écart : mettre en place les tests de charge et les budgets bloquants manquants."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (utilisation des ressources)", "DORA (Accelerate) — pratiques de test en continu"]
+    },
+    {
+      "id": "CTL-D06-05",
+      "adr_source": ["ADR0706"],
+      "dimension_audit": "D06",
+      "regle": "Une stratégie de cache est définie et appliquée sur les points de contention identifiés (réponses coûteuses, appels récurrents à des dépendances externes), avec une politique explicite d'invalidation.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Identifier les points de contention (latence, coût, charge) sur les parcours principaux et vérifier la présence d'un mécanisme de cache adapté (applicatif, HTTP, sémantique) avec politique d'invalidation documentée.",
+      "preuve_attendue": "Configuration du cache (TTL, clé, portée) + justification des points de contention couverts.",
+      "grille_verdict": "conforme = cache en place sur les points de contention majeurs avec invalidation maîtrisée ; partiel = cache partiel ou invalidation non maîtrisée ; non conforme = aucun cache malgré des points de contention identifiés",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "ml"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Identifier les points de contention (latence, coût, charge) sur les parcours principaux ; joindre l'analyse.",
+        "Vérifier la configuration du cache et sa politique d'invalidation sur ces points ; documenter la couverture.",
+        "Si écart : mettre en place le cache manquant et définir la politique d'invalidation."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (utilisation des ressources)"]
+    },
+    {
+      "id": "CTL-D06-06",
+      "adr_source": ["ADR0704"],
+      "dimension_audit": "D06",
+      "regle": "Tout endpoint retournant une collection applique une pagination systématique avec une taille de page bornée, évitant tout payload non maîtrisé.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inventorier les endpoints retournant des collections ; vérifier la présence d'une pagination (curseur ou offset/limit) et d'une taille de page maximale bornée pour chacun.",
+      "preuve_attendue": "Liste des endpoints de collection avec paramètres de pagination + exemple de réponse à payload complet non paginé (le cas échéant).",
+      "grille_verdict": "conforme = pagination systématique et bornée sur 100 % des endpoints de collection ; partiel = pagination partielle ; non conforme = endpoints retournant des collections non bornées",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "sans_objet" },
+      "actions_audit": [
+        "Inventorier les endpoints retournant des collections ; joindre la liste avec paramètres de pagination.",
+        "Requêter un endpoint sans paramètre de pagination et constater la présence d'une borne par défaut ; documenter le résultat.",
+        "Si écart : instrumenter la pagination et borner la taille de page manquantes."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance", "OpenAPI — conventions de pagination"]
+    },
+    {
+      "id": "CTL-D06-07",
+      "adr_source": ["ADR0502"],
+      "dimension_audit": "D06",
+      "regle": "Les connexions vers les services dépendants à état (base de données, cache, services tiers) sont gérées par un pool de connexions dimensionné et configuré, évitant tout épuisement de connexions sous charge.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la configuration du pooling de connexions (taille min/max, timeout) pour chaque dépendance à état, et l'absence d'ouverture de connexion par requête.",
+      "preuve_attendue": "Configuration du pool de connexions par dépendance + métriques d'utilisation du pool sous charge.",
+      "grille_verdict": "conforme = pooling configuré et dimensionné pour toutes les dépendances à état ; partiel = pooling partiel ; non conforme = connexions non poolées (ouverture par requête)",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "ml"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Inventorier les dépendances à état (base de données, cache, services tiers) et leur configuration de pooling ; joindre l'inventaire.",
+        "Observer les métriques d'utilisation du pool sous charge (saturation, attente) ; documenter le résultat.",
+        "Si écart : configurer le pooling manquant et le dimensionner selon la charge cible."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (utilisation des ressources)"]
+    },
+    {
+      "id": "CTL-D06-08",
+      "adr_source": ["ADR0502"],
+      "dimension_audit": "D06",
+      "regle": "La capacité de montée en charge horizontale et/ou verticale est documentée (mécanisme retenu, limites connues) et validée par un test représentatif de la charge cible.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la documentation du mécanisme de scalabilité (autoscaling horizontal, montée en gamme verticale) et l'existence d'un test ayant validé la tenue de la charge cible déclarée.",
+      "preuve_attendue": "Documentation de la stratégie de scalabilité + rapport de test de charge à la cible + configuration d'autoscaling.",
+      "grille_verdict": "conforme = scalabilité documentée et validée par un test à la cible ; partiel = documentée sans validation par test ; non conforme = scalabilité non documentée",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander la documentation du mécanisme de scalabilité (horizontal/vertical) et ses limites connues ; joindre le document.",
+        "Vérifier le rapport du test de charge ayant validé la tenue à la cible déclarée ; documenter le résultat.",
+        "Si écart : documenter le mécanisme et conduire le test de validation à la cible manquants."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (capacité)", "DORA (Accelerate) — pratiques d'infrastructure élastique"]
+    }
+  ]
+}

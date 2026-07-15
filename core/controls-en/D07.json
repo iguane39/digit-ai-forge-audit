@@ -1,0 +1,153 @@
+{
+  "dimension": "D07",
+  "label": "Costs & FinOps",
+  "controls": [
+    {
+      "id": "CTL-D07-01",
+      "adr_source": ["ADR0102"],
+      "dimension_audit": "D07",
+      "regle": "A minimal tag taxonomy (application, environment, domain, owner) is defined, published, and applied from the creation of any billable resource.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a published tag taxonomy (mandatory keys) and the application of a creation-time control (policy) preventing the provisioning of non-compliant resources.",
+      "preuve_attendue": "Reference to the published tag taxonomy + configuration of the creation-time control policy.",
+      "grille_verdict": "compliant = taxonomy published + active blocking control at creation ; partial = taxonomy published without automated control ; non-compliant = absence of taxonomy observed",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the published tag taxonomy (mandatory keys); attach the reference.",
+        "Provision a non-compliant test resource and verify the blocking by the policy; document the result.",
+        "If a gap is found: publish the taxonomy and activate the blocking control at creation."
+      ],
+      "derogation": null,
+      "standards": ["FinOps Framework — domaine Allocation (tagging)", "ISO 55001:2014 — gestion d'actifs (identification)"]
+    },
+    {
+      "id": "CTL-D07-02",
+      "adr_source": ["ADR0102"],
+      "dimension_audit": "D07",
+      "regle": "The tagging compliance rate of the resource portfolio is measured periodically, with an automatic alert on any non-compliant resource detected.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Run or review the latest tagging compliance report; verify the compliance rate obtained and the presence of an active alert on non-compliant resources.",
+      "preuve_attendue": "Dated tagging compliance report with measured rate and list of non-compliant resources.",
+      "grille_verdict": "compliant = ≥ 98% compliance and active alert ; partial = measurement available without automated alert ; non-compliant = no compliance measurement available",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Extract the latest tagging compliance report for the portfolio; attach the observed rate.",
+        "Verify the alert configuration for non-compliant resources; document its activation.",
+        "If a gap is found: implement the missing periodic measurement and alert."
+      ],
+      "derogation": null,
+      "standards": ["FinOps Framework — domaine Allocation (tagging)"]
+    },
+    {
+      "id": "CTL-D07-03",
+      "adr_source": ["ADR0103", "ADR0105"],
+      "dimension_audit": "D07",
+      "regle": "Every billable resource carries an application tag unambiguously resolved in the service registry, enabling cost tracking by application and by business unit without manual reconstruction.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify that all resources carry a valid application tag resolved in the service registry (CMDB) and that cost can be broken down by application/business unit without manual investigation.",
+      "preuve_attendue": "Application tag ↔ service registry reconciliation report + example of cost breakdown by application.",
+      "grille_verdict": "compliant = 100% resolution and automated breakdown by business unit ; partial = documented manual resolution for gaps ; non-compliant = orphaned resources not detected",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Extract the reconciliation report between application tags and the service registry; attach the resolution rate.",
+        "Simulate resolving an incident from an isolated resource to the owning application; time and document it.",
+        "If a gap is found: fix the orphaned resources and automate the periodic reconciliation."
+      ],
+      "derogation": null,
+      "standards": ["FinOps Framework — domaine Allocation (chargeback)", "ITIL 4 — pratique Service Configuration Management"]
+    },
+    {
+      "id": "CTL-D07-04",
+      "adr_source": ["ADR0107"],
+      "dimension_audit": "D07",
+      "regle": "A budget is declared for each significant scope (application, environment), with an automatic drift alert at progressive thresholds (e.g., 50%/80%/100%).",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a declared budget for each significant scope and the effective configuration of drift alerts at multiple progressive thresholds.",
+      "preuve_attendue": "Budget and alert configuration + alert trigger history.",
+      "grille_verdict": "compliant = budget covering all significant scopes + active multi-threshold alerts ; partial = partial budget or single-threshold alert ; non-compliant = absence of a declared budget",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Inventory the budgets declared per significant scope; attach the configuration.",
+        "Verify the effective triggering of alerts at progressive thresholds (history); document the result.",
+        "If a gap is found: declare the missing budgets and configure the multi-threshold alerts."
+      ],
+      "derogation": null,
+      "standards": ["FinOps Foundation — cycle Inform/Optimize/Operate", "ISO/IEC 38500:2015 — principe d'acquisition"]
+    },
+    {
+      "id": "CTL-D07-05",
+      "adr_source": ["ADR0107"],
+      "dimension_audit": "D07",
+      "regle": "A periodic FinOps review is held, with a dated report and recorded arbitration decisions.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Request the reports of the latest FinOps reviews; verify their regularity and the presence of recorded decisions, beyond a simple dashboard review.",
+      "preuve_attendue": "Dated report of the latest FinOps review + recurring review schedule.",
+      "grille_verdict": "compliant = regular review tracked with recorded decisions ; partial = irregular review or without recorded decisions ; non-compliant = no FinOps review observed",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the reports of the latest FinOps reviews and their schedule; attach the documents.",
+        "Verify the presence of recorded arbitration decisions in the reports; document the finding.",
+        "If a gap is found: establish the missing review cadence and decision-report format."
+      ],
+      "derogation": null,
+      "standards": ["FinOps Foundation — cycle Inform/Optimize/Operate"]
+    },
+    {
+      "id": "CTL-D07-06",
+      "adr_source": ["ADR0107"],
+      "dimension_audit": "D07",
+      "regle": "The current operating cost is known, broken down by resource and by service, and a cost projection at target scale (volume, users) is documented with explicit calculation assumptions.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the export of costs for the last 30-90 days broken down by resource/service and the existence of a quantified projection at target with explicit assumptions (users, requests/day, volume).",
+      "preuve_attendue": "Broken-down cost export + target projection document with calculation assumptions.",
+      "grille_verdict": "compliant = cost known and broken down + documented quantified projection ; partial = cost known without projection (or projection without breakdown) ; non-compliant = cost not measured",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Extract the cost export for the last 30-90 days broken down by resource/service; attach the export.",
+        "Request the target projection document and verify that the calculation assumptions are made explicit; document the finding.",
+        "If a gap is found: produce the missing breakdown and/or projection."
+      ],
+      "derogation": null,
+      "standards": ["FinOps Foundation — cycle Inform/Optimize/Operate", "ISO/IEC 38500:2015 — principe d'acquisition"]
+    },
+    {
+      "id": "CTL-D07-07",
+      "adr_source": ["ADR0107"],
+      "dimension_audit": "D07",
+      "regle": "Relevant cost optimizations are identified, quantified, and prioritized in an action plan: routing to a cost-effective model based on complexity, semantic caching, and context compression for AI inference costs; sizing, reservation, or scheduled shutdown for other resources.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a quantified optimization plan (estimated gain, effort) covering both traditional infrastructure costs and, where applicable, AI inference costs (model routing, semantic caching, prompt compression).",
+      "preuve_attendue": "Dated optimization plan with estimated gains and implementation status.",
+      "grille_verdict": "compliant = quantified optimization plan partially implemented ; partial = optimizations identified but not quantified ; non-compliant = no optimization identified",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the quantified cost optimization plan, including AI inference costs where applicable; attach the document.",
+        "Verify the implementation status of the priority optimizations (model routing, caching, compression); document the progress.",
+        "If a gap is found: identify and quantify the missing optimizations, then prioritize their implementation."
+      ],
+      "derogation": null,
+      "standards": ["FinOps Foundation — cycle Inform/Optimize/Operate"]
+    }
+  ]
+}

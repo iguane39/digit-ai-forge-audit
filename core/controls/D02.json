@@ -1,0 +1,499 @@
+{
+  "dimension": "D02",
+  "label": "Sécurité applicative",
+  "controls": [
+    {
+      "id": "CTL-D02-01",
+      "adr_source": [
+        "ADR0505"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Une cartographie explicite couvre les dix catégories de risque de l'OWASP Top 10 en vigueur, chacune associée à au moins une mesure de mitigation vérifiée et à sa preuve.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Demander la cartographie risque → mitigation → preuve ; vérifier qu'aucune catégorie du Top 10 n'est laissée sans mesure ni preuve associée.",
+      "preuve_attendue": "Tableau de couverture OWASP Top 10 (catégorie, mesure, preuve, date de vérification).",
+      "grille_verdict": "conforme = 10 catégories couvertes avec preuve ; partiel = couverture incomplète ou preuves manquantes ; non conforme = cartographie absente",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la cartographie de couverture OWASP Top 10 ; vérifier son exhaustivité contre l'édition en vigueur.",
+        "Échantillonner 2-3 catégories et vérifier la preuve associée (test, configuration, code).",
+        "Si écart : compléter la cartographie et planifier la vérification des catégories non couvertes."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 2021 — A01 à A10",
+        "OWASP ASVS 5.0 — V1 (Architecture, conception, threat modeling)"
+      ]
+    },
+    {
+      "id": "CTL-D02-02",
+      "adr_source": [
+        "ADR0305"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Toute entrée externe (saisie utilisateur, paramètre d'API, fichier importé) est validée et assainie côté serveur selon un modèle de formats attendus ; la validation côté client ne constitue jamais l'unique barrière.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Identifier les points d'entrée exposés (formulaires, endpoints API, imports de fichiers) ; vérifier la présence d'une validation serveur systématique (type, format, longueur, plage) et l'absence de contournement possible depuis le client.",
+      "preuve_attendue": "Extraits du code ou de la configuration de validation par point d'entrée + résultat d'un test d'entrée malformée rejetée côté serveur.",
+      "grille_verdict": "conforme = validation serveur systématique sur tous les points d'entrée recensés ; partiel = validation partielle ou incohérente ; non conforme = validation absente ou uniquement côté client",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Recenser les points d'entrée exposés et vérifier la validation serveur associée à chacun.",
+        "Soumettre une entrée malformée/malveillante à un point d'entrée représentatif ; vérifier son rejet et sa journalisation.",
+        "Si écart : instrumenter la validation manquante et retirer toute dépendance à la seule validation client."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V5 (Validation, Sanitization, Encoding)",
+        "OWASP Top 10 2021 — A03:2021 Injection"
+      ]
+    },
+    {
+      "id": "CTL-D02-03",
+      "adr_source": [
+        "ADR0209"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Les dépendances directes et transitives du projet sont scannées automatiquement (SCA) à chaque changement significatif ; toute vulnérabilité critique ou haute connue et corrigible fait l'objet d'un plan de remédiation daté.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Exécuter ou consulter le dernier scan SCA du profil technologique ; vérifier l'absence de vulnérabilité critique/haute sans plan de remédiation et la fréquence d'exécution du scan.",
+      "preuve_attendue": "Rapport de scan SCA daté (liste des CVE, sévérité) + plan de remédiation pour les vulnérabilités ouvertes.",
+      "grille_verdict": "conforme = scan récent, aucune CVE critique/haute sans plan daté ; partiel = CVE haute avec plan mais délai dépassé ; non conforme = CVE critique sans remédiation ou scan absent",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Exécuter le scan SCA sur les dépendances directes et transitives ; joindre le rapport.",
+        "Croiser chaque CVE critique/haute avec un plan de remédiation daté et son propriétaire.",
+        "Si écart : mettre à jour ou isoler la dépendance vulnérable et planifier le correctif."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 2021 — A06:2021 Vulnerable and Outdated Components",
+        "NIST SSDF — PS.3",
+        "SLSA — niveau de provenance des builds"
+      ]
+    },
+    {
+      "id": "CTL-D02-04",
+      "adr_source": [
+        "ADR0301"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Chaque point d'entrée exposé applique une politique de limitation de débit (quotas, throttling) proportionnée à l'usage attendu, protégeant contre l'abus et le déni de service applicatif.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Identifier les points d'entrée exposés et leur politique de limitation de débit ; tester le dépassement du quota et vérifier la réponse de rejet contrôlée (code, message, journalisation).",
+      "preuve_attendue": "Configuration des politiques de débit par point d'entrée + résultat d'un test de dépassement de quota.",
+      "grille_verdict": "conforme = limitation active et testée sur tous les points d'entrée exposés ; partiel = limitation partielle ou non testée ; non conforme = absence de limitation de débit",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Recenser les points d'entrée exposés et leur politique de limitation de débit déclarée.",
+        "Déclencher un dépassement de quota en environnement de test ; vérifier le rejet contrôlé.",
+        "Si écart : instrumenter la limitation manquante et définir les seuils par point d'entrée."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V13 (API et services Web)",
+        "NIST SP 800-207"
+      ]
+    },
+    {
+      "id": "CTL-D02-05",
+      "adr_source": [
+        "ADR0204"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Les sessions applicatives sont protégées contre le vol et le rejeu (cookies sécurisés, expiration bornée, régénération de l'identifiant à l'authentification) et toute action modifiant un état est protégée contre la falsification de requête inter-site (CSRF).",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inspecter les attributs des cookies de session (Secure, HttpOnly, SameSite), la durée de vie des sessions et la présence d'un jeton anti-CSRF sur les actions state-changing ; tester une requête forgée sans jeton valide.",
+      "preuve_attendue": "Extraits de configuration des cookies de session + résultat du test de requête CSRF sans jeton (rejetée).",
+      "grille_verdict": "conforme = cookies durcis + jeton CSRF systématique et vérifié ; partiel = durcissement partiel ou jeton non vérifié partout ; non conforme = session non protégée ou CSRF absent",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inspecter les attributs de sécurité des cookies de session et la politique d'expiration.",
+        "Soumettre une requête modifiant un état sans jeton CSRF valide ; vérifier son rejet.",
+        "Si écart : durcir les cookies et généraliser la protection CSRF aux actions concernées."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V3 (Session Management)",
+        "NIST SP 800-63B — gestion de session",
+        "OWASP Top 10 2021 — A01:2021 Broken Access Control"
+      ]
+    },
+    {
+      "id": "CTL-D02-06",
+      "adr_source": [
+        "ADR0303"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Les réponses HTTP portent les en-têtes de sécurité alignés sur l'état de l'art (politique de sécurité de contenu, transport strict, protection anti-sniffing, politique de référent) sur l'ensemble des routes exposées.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Analyser les en-têtes de réponse HTTP sur un échantillon représentatif de routes exposées ; vérifier leur présence et leur configuration non permissive.",
+      "preuve_attendue": "Capture d'analyse des en-têtes de sécurité sur les routes exposées (outil du profil technologique).",
+      "grille_verdict": "conforme = en-têtes recommandés présents et non permissifs sur toutes les routes ; partiel = en-têtes partiels ou permissifs ; non conforme = en-têtes de sécurité absents",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Analyser les en-têtes de sécurité HTTP sur un échantillon de routes exposées ; joindre la capture.",
+        "Vérifier la configuration précise de chaque en-tête (valeurs non permissives).",
+        "Si écart : configurer les en-têtes manquants ou renforcer les valeurs permissives."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V14 (Configuration)",
+        "ISO/IEC 27002:2022 — 8.24"
+      ]
+    },
+    {
+      "id": "CTL-D02-07",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Aucune donnée sensible (secret, donnée personnelle, jeton d'authentification) n'apparaît en clair dans les journaux applicatifs ; un mécanisme de redaction/masquage s'applique avant écriture, quel que soit le niveau de log.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Provoquer un événement journalisé incluant une donnée sensible en environnement de test ; inspecter le journal produit pour vérifier son masquage effectif.",
+      "preuve_attendue": "Extrait de journal montrant une donnée sensible masquée + configuration du mécanisme de redaction.",
+      "grille_verdict": "conforme = redaction systématique vérifiée par test ; partiel = redaction partielle (certains champs/niveaux non couverts) ; non conforme = donnée sensible en clair dans les journaux",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Provoquer en test un événement journalisé portant une donnée sensible connue ; inspecter le journal produit.",
+        "Vérifier la configuration du mécanisme de redaction sur l'ensemble des niveaux et destinations de log.",
+        "Si écart : instrumenter la redaction manquante et purger les journaux historiques concernés."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 2021 — A09:2021 Security Logging and Monitoring Failures",
+        "RGPD — art. 32",
+        "ISO/IEC 27701:2019 — 7.4"
+      ]
+    },
+    {
+      "id": "CTL-D02-08",
+      "adr_source": [
+        "ADR0505"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Un scan statique (SAST) et un scan dynamique (DAST) s'exécutent à chaque changement significatif en intégration continue, avec échec bloquant du pipeline sur toute vulnérabilité critique.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier l'intégration SAST/DAST dans la configuration du pipeline CI et l'historique récent d'exécution ; confirmer le comportement bloquant sur une vulnérabilité critique introduite en test.",
+      "preuve_attendue": "Configuration du pipeline CI (étapes SAST/DAST) + rapport d'exécution récent + preuve de blocage sur vulnérabilité critique.",
+      "grille_verdict": "conforme = SAST et DAST actifs et bloquants en CI ; partiel = un seul des deux scans actif ou non bloquant ; non conforme = aucun scan de sécurité en CI",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la présence et la fréquence d'exécution des étapes SAST/DAST dans le pipeline CI ; joindre la configuration.",
+        "Introduire une vulnérabilité canari et vérifier le blocage du pipeline ; joindre la preuve.",
+        "Si écart : intégrer les scans manquants et configurer le seuil de blocage."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SSDF — PW.7/PW.8",
+        "OWASP SAMM — Verification"
+      ]
+    },
+    {
+      "id": "CTL-D02-09",
+      "adr_source": [
+        "ADR0208"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Un modèle de menaces (threat model) formalisé couvre les flux, actifs et frontières de confiance critiques de l'application, et est revu à chaque évolution architecturale significative.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Demander le modèle de menaces et sa date de dernière revue ; vérifier sa correspondance avec l'architecture réellement déployée.",
+      "preuve_attendue": "Document de threat model daté + compte-rendu de la dernière revue et son déclencheur (évolution architecturale).",
+      "grille_verdict": "conforme = threat model à jour et couvrant l'architecture réelle ; partiel = threat model existant mais obsolète ; non conforme = threat model absent",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander le threat model et vérifier sa date de dernière revue.",
+        "Confronter le threat model à l'architecture réellement déployée ; relever les écarts de couverture.",
+        "Si écart : produire ou mettre à jour le threat model et planifier sa revue périodique."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SSDF — PW.1",
+        "OWASP SAMM — Threat Assessment"
+      ]
+    },
+    {
+      "id": "CTL-D02-10",
+      "adr_source": [
+        "ADR0302"
+      ],
+      "dimension_audit": "D02",
+      "regle": "La configuration de production élimine les réglages par défaut, les comptes de démonstration, le mode debug et tout service ou fonctionnalité non strictement nécessaire, afin de minimiser la surface d'attaque.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Comparer la configuration de production à un référentiel de durcissement (baseline) ; vérifier l'absence de comptes par défaut, de mode debug actif et de services superflus.",
+      "preuve_attendue": "Capture de la configuration de production comparée à la baseline de durcissement + liste des écarts.",
+      "grille_verdict": "conforme = configuration alignée sur la baseline de durcissement, aucun écart ; partiel = écarts mineurs documentés ; non conforme = mode debug actif ou comptes par défaut présents en production",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Comparer la configuration de production à la baseline de durcissement du profil technologique ; relever les écarts.",
+        "Vérifier spécifiquement l'absence de mode debug actif et de comptes par défaut.",
+        "Si écart : appliquer la baseline de durcissement et supprimer les éléments superflus."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 2021 — A05:2021 Security Misconfiguration",
+        "CIS Controls v8 — 4",
+        "ISO/IEC 27002:2022 — 8.9"
+      ]
+    },
+    {
+      "id": "CTL-D02-11",
+      "adr_source": [
+        "ADR0306"
+      ],
+      "dimension_audit": "D02",
+      "regle": "La sortie réseau (egress) est refusée par défaut avec liste explicite de destinations autorisées ; la résolution de noms est gouvernée et journalisée.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inspecter les règles de sortie réseau (refus par défaut, liste d'autorisations) et la configuration de résolution de noms ; vérifier la journalisation des résolutions et des sorties refusées.",
+      "preuve_attendue": "Export des règles de sortie + configuration de résolution de noms + extrait de journal.",
+      "grille_verdict": "conforme = refus par défaut + liste d'autorisations + journalisation actives ; partiel = liste d'autorisations sans journalisation ; non conforme = sortie réseau libre",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Extraire les règles de sortie réseau effectives ; joindre l'export.",
+        "Tester une sortie vers une destination non autorisée : elle doit être refusée et journalisée.",
+        "Si écart : instaurer le refus par défaut et la liste d'autorisations du profil."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SP 800-207",
+        "CIS Controls v8 — 12"
+      ]
+    },
+    {
+      "id": "CTL-D02-12",
+      "adr_source": [
+        "ADR0211"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Les vulnérabilités du socle d'exécution et des dépendances sont inventoriées en continu ; les correctifs critiques sont appliqués dans un délai défini, mesuré et suivi.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'inventaire continu des vulnérabilités (socle + dépendances), la politique de délais par sévérité et les métriques de respect des délais.",
+      "preuve_attendue": "Rapport d'inventaire daté + politique de délais + métrique de correction (ex. délai moyen critique).",
+      "grille_verdict": "conforme = inventaire continu + délais tenus et mesurés ; partiel = inventaire sans suivi de délais ; non conforme = pas d'inventaire du parc en production",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire l'inventaire courant des vulnérabilités et sa fraîcheur ; joindre.",
+        "Vérifier la politique de délais par sévérité et son respect sur les 3 derniers mois.",
+        "Si écart : outiller l'inventaire continu et instaurer la politique de correctifs."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.8",
+        "NIST SSDF — RV.1-RV.3",
+        "CIS Controls v8 — 7"
+      ]
+    },
+    {
+      "id": "CTL-D02-13",
+      "adr_source": [
+        "ADR0212"
+      ],
+      "dimension_audit": "D02",
+      "regle": "Un programme de sécurité gouverné existe : responsabilités nommées, sensibilisation périodique des équipes, métriques de sécurité suivies en revue.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier la désignation des responsabilités sécurité, le plan de sensibilisation et sa dernière exécution, et l'existence de métriques revues périodiquement.",
+      "preuve_attendue": "Organigramme/désignations + trace de sensibilisation + extrait de revue des métriques.",
+      "grille_verdict": "conforme = responsabilités + sensibilisation + métriques actives ; partiel = responsabilités sans métriques ; non conforme = aucune gouvernance sécurité",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identifier les responsables sécurité nommés ; joindre la désignation.",
+        "Collecter le plan/trace de sensibilisation et les métriques suivies.",
+        "Si écart : nommer, planifier la sensibilisation, définir 3 métriques de départ."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP SAMM — Governance (Strategy & Metrics, Education & Guidance)",
+        "NIST SSDF — PO.1/PO.2"
+      ]
+    }
+  ]
+}

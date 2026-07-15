@@ -1,0 +1,35 @@
+{
+  "$comment": "AuditCore template v1",
+  "audit_ref": "AUD-EXEMPLE-2026-07",
+  "generated": "2026-07-11T09:00:00Z",
+  "core_version": "1.0.2",
+  "evidences": [
+    {
+      "id": "EVID-D03-001",
+      "control_ref": "CTL-D03-02",
+      "finding_ref": "CST-D03-04",
+      "path": "evidences/D03/extrait-pipeline-scan-secrets.yml",
+      "line_ref": "12-18",
+      "hash_sha256": "30c95fd38fb62f6f616940ffa2806d15b6f1ac0b50269dc5533dc92e226233e2",
+      "captured_at": "2026-07-08T14:32:00Z",
+      "type": "extrait"
+    },
+    {
+      "id": "EVID-D02-014",
+      "control_ref": "CTL-D02-05",
+      "finding_ref": "CST-D02-11",
+      "path": "evidences/D02/capture-mfa-actif.png",
+      "hash_sha256": "cf9f6b1d83786ae52862fe01d41cf66dfc4cab62b1615ea053c5278c40dc997d",
+      "captured_at": "2026-07-08T15:05:00Z",
+      "type": "capture"
+    },
+    {
+      "id": "EVID-D00-002",
+      "control_ref": "CTL-D00-01",
+      "path": "evidences/D00/cr-comite-validation-cas-usage.pdf",
+      "hash_sha256": "19e48a370bdfe5790d31deb68a9afcd3385fa77805243fb6808f0d42771ee858",
+      "captured_at": "2026-07-07T10:00:00Z",
+      "type": "compte-rendu"
+    }
+  ]
+}

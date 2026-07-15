@@ -1,0 +1,346 @@
+{
+  "dimension": "D16",
+  "label": "Database Schema",
+  "controls": [
+    {
+      "id": "CTL-D16-01",
+      "adr_source": [
+        "ADR0602"
+      ],
+      "dimension_audit": "D16",
+      "regle": "All tables, views and relationships of the database are inventoried and documented (ERD or equivalent), kept up to date with each significant schema change.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Compare the ERD or documented model with the actual schema introspection (information_schema or equivalent) to verify the completeness and freshness of the inventory.",
+      "preuve_attendue": "Up-to-date ERD/CDM/LDM + extract of the actual schema introspection for comparison.",
+      "grille_verdict": "compliant = exhaustive and up-to-date inventory, consistent with the actual schema ; partial = existing inventory with minor discrepancies or outdated ; non-compliant = absence of an inventory or major discrepancies with the actual schema",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Obtain the ERD or the documented data model and the last update date.",
+        "Compare with an introspection of the actual schema (tables, columns, relationships).",
+        "If gap: update the inventory and schedule its synchronization with each migration."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 5 (Data Modeling and Design)",
+        "ISO/IEC 25012:2008 — modèle de qualité des données"
+      ]
+    },
+    {
+      "id": "CTL-D16-02",
+      "adr_source": [
+        "ADR0602"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Each table carries a declared primary key; each logical relationship between tables is implemented by an effective foreign key constraint, with no unconstrained logical reference.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Introspect the actual schema to list the declared primary and foreign keys; search for reference columns (logical identifier) not covered by an integrity constraint.",
+      "preuve_attendue": "Introspection extract (pg_constraint or equivalent) listing declared PK/FK + list of identified unconstrained logical references.",
+      "grille_verdict": "compliant = 100% of tables with a PK and logical relationships covered by FK ; partial = a few unconstrained logical references, documented and justified ; non-compliant = absence of a PK on a table or a significant number of unconstrained logical relationships",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the list of declared primary and foreign keys on the actual schema.",
+        "Search for logical reference columns (for example, an _id suffix) not covered by an FK constraint.",
+        "If gap: add the missing constraints or document and justify the exceptions."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 5 (Data Modeling and Design)",
+        "ISO/IEC 25012:2008 — cohérence"
+      ]
+    },
+    {
+      "id": "CTL-D16-03",
+      "adr_source": [
+        "ADR0602"
+      ],
+      "dimension_audit": "D16",
+      "regle": "The indexes in place are aligned with the queries actually executed in production (filters, joins, frequent sorts); their relevance is verified via the execution plan.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Compare the indexes declared on the schema against the most frequent or most costly queries observed in production, and verify via the execution plan (EXPLAIN) the absence of an avoidable full scan.",
+      "preuve_attendue": "List of declared indexes + execution plans of frequent/costly queries showing their actual use.",
+      "grille_verdict": "compliant = frequent/costly queries covered by a relevant index, verified via the execution plan ; partial = partial coverage or a few avoidable full scans ; non-compliant = absence of an index on major access paths or no verification via the execution plan",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the most frequent or most costly queries in production (slow query log or equivalent).",
+        "Run the execution plan of these queries and verify the actual use of a relevant index.",
+        "If gap: create or adjust the missing indexes and re-verify the execution plan."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010:2011 — efficacité de performance"
+      ]
+    },
+    {
+      "id": "CTL-D16-04",
+      "adr_source": [
+        "ADR0206",
+        "ADR0609"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Each column carrying personal or sensitive data is individually identified and classified, with protection measures proportionate to its classification level.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Review the data dictionary and the actual schema to identify the columns containing personal or sensitive data; verify the declared classification and the actual protection measures (encryption, masking, access control) for a sample.",
+      "preuve_attendue": "Classification of sensitive columns (register or annotated dictionary) + sample of verified protection measures.",
+      "grille_verdict": "compliant = 100% of sensitive columns classified with measures compliant with the declared level ; partial = partial classification or incomplete measures ; non-compliant = personal/sensitive columns not identified",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Review each table in the schema to identify personal or sensitive columns.",
+        "Verify the declared classification and sample the protection measures actually applied.",
+        "If gap: classify the missing columns and apply the proportionate protection measures."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 9 (catégories particulières de données)",
+        "RGPD — art. 32",
+        "ISO/IEC 27002:2022 — 5.12 (classification de l'information)"
+      ]
+    },
+    {
+      "id": "CTL-D16-05",
+      "adr_source": [
+        "ADR0607"
+      ],
+      "dimension_audit": "D16",
+      "regle": "The model declared on the application code side (ORM or equivalent) is aligned with the actual physical schema of the database; any drift is detected before going into production.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Compare the ORM model declarations (tables, columns, types, constraints) with the introspection of the actual physical schema, and verify the existence of an automated check detecting drift before deployment.",
+      "preuve_attendue": "ORM↔actual schema comparison report (last run) + configuration of the drift check in continuous integration, if it exists.",
+      "grille_verdict": "compliant = alignment automatically verified with each deployment, no residual drift ; partial = alignment verified manually or minor drift documented ; non-compliant = drift not detected or not corrected between the ORM and the actual schema",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the declared ORM model and compare it to the introspection of the actual physical schema.",
+        "Verify the existence of an automated regression check on this alignment in continuous integration.",
+        "If gap: correct the observed drift and instrument the missing automated check."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 8 (Data Integration and Interoperability)",
+        "ISO/IEC 25010:2011 — compatibilité"
+      ]
+    },
+    {
+      "id": "CTL-D16-06",
+      "adr_source": [
+        "ADR0606",
+        "ADR0607"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Every database schema change is applied through a versioned migration tool, with a tested rollback script for each migration.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the migration tooling used, the versioned history of applied migrations, and test the rollback of a recent migration in a non-production environment.",
+      "preuve_attendue": "History of versioned migrations (tool, dates, authors) + result of a rollback test in a non-production environment.",
+      "grille_verdict": "compliant = migrations tooled, versioned, rollback successfully tested ; partial = migrations versioned without a tested rollback ; non-compliant = ad hoc manual migrations not versioned",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the history of applied schema migrations and the tooling used.",
+        "Test the rollback of the last migration in a non-production environment.",
+        "If gap: tool the migrations and document/test the rollback procedure."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 4 (Data Architecture)",
+        "SemVer 2.0.0"
+      ]
+    },
+    {
+      "id": "CTL-D16-07",
+      "adr_source": [
+        "ADR0610",
+        "ADR0603"
+      ],
+      "dimension_audit": "D16",
+      "regle": "A data dictionary describing each table and each column (business meaning, type, constraints, sensitivity) is kept up to date and accessible to non-creating teams.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the coverage and freshness of the data dictionary against the actual schema, and its accessibility to a team other than the one that created the schema.",
+      "preuve_attendue": "Extract from the data dictionary + coverage rate of the tables/columns of the actual schema.",
+      "grille_verdict": "compliant = dictionary covering 100% of the tables/columns in production, up to date, accessible ; partial = incomplete coverage or outdated dictionary ; non-compliant = absence of a data dictionary",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the existing data dictionary and its coverage rate against the actual schema.",
+        "Verify the last update date and the accessibility to non-creating teams.",
+        "If gap: complete the dictionary and schedule its update with each migration."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management)",
+        "ISO/IEC 11179 — registres de métadonnées"
+      ]
+    },
+    {
+      "id": "CTL-D16-08",
+      "adr_source": [
+        "ADR0609"
+      ],
+      "dimension_audit": "D16",
+      "regle": "The volume of each significant table is measured and its growth projected; a partitioning or lifecycle strategy is in place beyond the declared volume thresholds.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the current volume measurement and the growth projection of significant tables, and the existence of a partitioning or lifecycle strategy triggered beyond a declared threshold.",
+      "preuve_attendue": "Volume measurements and growth projection per significant table + partitioning or lifecycle configuration if applicable.",
+      "grille_verdict": "compliant = volume measured, projection documented, partitioning/lifecycle strategy in place beyond the threshold ; partial = volume measured without a strategy beyond the threshold ; non-compliant = volume not measured",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the current volume and its growth history for significant tables.",
+        "Verify the existence of a declared threshold triggering partitioning or archiving.",
+        "If gap: measure the missing volume and define the partitioning/lifecycle strategy."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 6 (Data Storage and Operations)",
+        "RGPD — art. 5.1.e (limitation de la conservation)"
+      ]
+    },
+    {
+      "id": "CTL-D16-09",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D16",
+      "regle": "The database is subject to regular backups compliant with a declared RPO, and the restoration procedure is periodically tested with proof of compliance with the RTO.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the declared RPO/RTO for the database, the actual frequency of backups, and the result of the last complete restoration exercise.",
+      "preuve_attendue": "Declared RPO/RTO + backup configuration + report of the last restoration exercise (duration, integrity).",
+      "grille_verdict": "compliant = RPO/RTO declared and met, restoration successfully tested ≤ 12 months ago ; partial = objectives declared without a recent test ; non-compliant = no declared objectives or last test failed and not corrected",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the declared RPO/RTO and the actual backup configuration of the database.",
+        "Verify the date and the result of the last complete restoration exercise.",
+        "If gap: declare the missing objectives and schedule a restoration test."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
+        "RGPD — art. 32.1.c"
+      ]
+    }
+  ]
+}

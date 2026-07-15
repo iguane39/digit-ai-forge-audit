@@ -1,0 +1,153 @@
+{
+ "titre": "Rapport pilote",
+ "tenant": "ACME",
+ "dimensions": [
+  {
+   "id": "D00",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": []
+  },
+  {
+   "id": "D01",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:11"
+   ]
+  },
+  {
+   "id": "D02",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:12"
+   ]
+  },
+  {
+   "id": "D03",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:13"
+   ]
+  },
+  {
+   "id": "D04",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:14"
+   ]
+  },
+  {
+   "id": "D05",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:15"
+   ]
+  },
+  {
+   "id": "D06",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:16"
+   ]
+  },
+  {
+   "id": "D07",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:17"
+   ]
+  },
+  {
+   "id": "D08",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:18"
+   ]
+  },
+  {
+   "id": "D09",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:19"
+   ]
+  },
+  {
+   "id": "D10",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:20"
+   ]
+  },
+  {
+   "id": "D11",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:21"
+   ]
+  },
+  {
+   "id": "D12",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:22"
+   ]
+  },
+  {
+   "id": "D13",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:23"
+   ]
+  },
+  {
+   "id": "D14",
+   "score": 3,
+   "gate1b": "go",
+   "preuves": [
+    "src/x.py:24"
+   ]
+  }
+ ],
+ "regles": [
+  {
+   "id": "C-0207-01",
+   "verdict": "conforme"
+  },
+  {
+   "id": "C-0601-01",
+   "verdict": "sans_objet"
+  }
+ ],
+ "constats": [
+  {
+   "titre": "Secret en clair",
+   "preuves": [
+    {
+     "ref": "config.py:12"
+    }
+   ]
+  }
+ ],
+ "actions": [
+  {
+   "titre": "Purger le secret",
+   "adr": [
+    "ADR0201"
+   ]
+  }
+ ],
+ "synthese": "Contrairement au rapport précédent, {{score.global}} à compléter"
+}

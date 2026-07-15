@@ -1,0 +1,343 @@
+{
+  "dimension": "D03",
+  "label": "IAM & secrets management",
+  "controls": [
+    {
+      "id": "CTL-D03-01",
+      "adr_source": [
+        "ADR0202"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Authentication for all human access is delegated to a central identity provider, with MFA enabled.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the application's authentication configuration: delegation to the central IdP (no local application account outside the procedure), MFA required for all human access.",
+      "preuve_attendue": "Capture of the authentication configuration + IdP MFA policy.",
+      "grille_verdict": "compliant = IdP delegation + MFA proven ; partial = delegation without systematic MFA ; non-compliant = local authentication or no MFA",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inspect the authentication configuration (code + platform console); attach the capture.",
+        "Test access without MFA: it must be denied; document the result.",
+        "If gap: formulate the remediation action (IdP delegation, MFA activation)."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SP 800-63B — AAL2",
+        "ISO/IEC 27002:2022 — 5.17"
+      ]
+    },
+    {
+      "id": "CTL-D03-02",
+      "adr_source": [
+        "ADR0201"
+      ],
+      "dimension_audit": "D03",
+      "regle": "No secret (key, token, password, certificate) resides in the source code, the repository history, the versioned configuration, or the delivered artifacts.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Run the technology profile's secrets scan on the repository's full history; verify the scan's integration in CI with a blocking failure.",
+      "preuve_attendue": "Scan report (0 findings) on the full history + CI pipeline configuration.",
+      "grille_verdict": "compliant = clean scan + active CI gate ; partial = clean scan without a CI gate ; non-compliant = ≥ 1 active secret detected",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Run the secrets scan on the full history; attach the report.",
+        "Verify the pipeline fails when a canary secret is introduced; attach the proof.",
+        "If gap: revoke/rotate the exposed secrets, purge the history, connect the vault."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V2.10",
+        "NIST SSDF — PS.1"
+      ]
+    },
+    {
+      "id": "CTL-D03-03",
+      "adr_source": [
+        "ADR0201"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Application secrets reside in a central vault; rotation ≤ 90 days; access log active.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the application secrets and their location; verify the rotation policy and the activation of the vault's access log.",
+      "preuve_attendue": "Inventory of secrets + capture of the rotation policy + access log excerpt.",
+      "grille_verdict": "compliant = vault + rotation ≤ 90 days + active log ; partial = vault without governed rotation ; non-compliant = secrets outside the vault",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the secrets consumed by the application and their location; attach the inventory.",
+        "Verify the last rotation date of each secret; attach the capture.",
+        "If gap: migrate to the profile's vault and schedule the rotation."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.24"
+      ]
+    },
+    {
+      "id": "CTL-D03-04",
+      "adr_source": [
+        "ADR0201"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Applications authenticate via runtime identity (no static application secret) everywhere the platform allows it.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Identify the inter-service authentications; verify the use of runtime identities rather than static secrets, and justify each exception.",
+      "preuve_attendue": "Map of inter-service authentications with the mechanism used.",
+      "grille_verdict": "compliant = runtime identities used wherever possible, exceptions justified ; partial = mixed with no justification ; non-compliant = static secrets widespread",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Map the service-to-service links and their authentication mode.",
+        "For each remaining static secret, require justification of platform impossibility.",
+        "If gap: switch to the profile's runtime identity."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SP 800-207"
+      ]
+    },
+    {
+      "id": "CTL-D03-05",
+      "adr_source": [
+        "ADR0207"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Authorization is based on documented roles (RBAC); access is reviewed at least every 6 months.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a documented roles/permissions matrix and the trace of the last access review (< 6 months).",
+      "preuve_attendue": "RBAC matrix + dated minutes of the last access review.",
+      "grille_verdict": "compliant = matrix up to date + review < 6 months ; partial = matrix without a recent review ; non-compliant = no role model",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the roles/permissions matrix; verify its correspondence with the actual configuration.",
+        "Verify the date and scope of the last access review.",
+        "If gap: establish the matrix and schedule the periodic review."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.15/5.18",
+        "OWASP ASVS 5.0 — V4"
+      ]
+    },
+    {
+      "id": "CTL-D03-06",
+      "adr_source": [
+        "ADR0205"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Technical accounts are dedicated, not shared, granted minimal privileges, and distinct from human accounts.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the technical accounts used; verify dedication/non-sharing/least privilege and the absence of human use of these accounts.",
+      "preuve_attendue": "Inventory of technical accounts with owner, scope, and privileges.",
+      "grille_verdict": "compliant = dedicated accounts with minimal privileges ; partial = dedicated but over-privileged accounts ; non-compliant = shared accounts",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the technical accounts and cross-check against the usage logs.",
+        "Verify the granted privileges against the actual need.",
+        "If gap: create dedicated accounts and reduce the privileges."
+      ],
+      "derogation": null,
+      "standards": [
+        "CIS Controls v8 — 5",
+        "ISO/IEC 27002:2022 — 8.2"
+      ]
+    },
+    {
+      "id": "CTL-D03-07",
+      "adr_source": [
+        "ADR0203"
+      ],
+      "dimension_audit": "D03",
+      "regle": "External access (partners, service providers) goes through invited federated identities; no local account outside the procedure.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the active external accesses; verify their federation and the existence of a creation/revocation procedure.",
+      "preuve_attendue": "Inventory of external identities + associated management procedure.",
+      "grille_verdict": "compliant = 100% federated with a procedure ; partial = federated without a revocation procedure ; non-compliant = external local accounts",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Extract the list of external identities and their creation method.",
+        "Verify the revocation procedure (service provider's departure).",
+        "If gap: migrate to the profile's invited identity federation."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.18"
+      ]
+    },
+    {
+      "id": "CTL-D03-08",
+      "adr_source": [
+        "ADR0402"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Sensitive operations (authentication, elevation, access to protected data) are logged in a tamper-proof, timestamped manner.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the presence of the sensitive events in the logs, their timestamping, and the write protection (immutability/retention).",
+      "preuve_attendue": "Log excerpts of the sensitive operations + immutability configuration.",
+      "grille_verdict": "compliant = events complete, timestamped, protected ; partial = logged without protection ; non-compliant = sensitive operations not logged",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Replay a sensitive operation in a test environment and find its trace.",
+        "Verify the retention/immutability policy of the audit logs.",
+        "If gap: instrument the missing events and protect the storage."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.15",
+        "NIST SP 800-53 — AU-2/AU-9"
+      ]
+    },
+    {
+      "id": "CTL-D03-09",
+      "adr_source": [
+        "ADR0703"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Public clients (browser application, mobile) carry no static secret; authentication relies on short-lived tokens obtained via a flow adapted to public clients (PKCE or server-side intermediary).",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inspect the delivered client artifacts (bundle, application) for embedded keys/secrets; verify the authentication flow used and the token lifetime.",
+      "preuve_attendue": "Analysis of the client artifact (0 secrets) + description of the observed authentication flow.",
+      "grille_verdict": "compliant = 0 embedded secrets + compliant public client flow ; partial = compliant flow but long-lived tokens ; non-compliant = static secret embedded client-side",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Analyze the delivered bundle/application for secrets (scan + inspection); attach the report.",
+        "Document the public client's actual authentication flow; attach the capture.",
+        "If gap: remove the secret, revoke it, switch to a short-lived token flow (PKCE/server-side intermediary)."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V2.10/V3",
+        "OAuth 2.0 Security BCP (RFC 9700)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,308 @@
+{
+  "dimension": "D14",
+  "label": "Modèles IA & prompts",
+  "controls": [
+    {
+      "id": "CTL-D14-01",
+      "adr_source": [
+        "ADR0601"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Le choix de chaque modèle d'IA utilisé (fournisseur, taille, version) est justifié par des critères documentés (coût, performance, latence, souveraineté) et validé par une autorité désignée avant mise en production.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif",
+      "verification": "Vérifier l'existence d'une note de choix de modèle par cas d'usage IA, listant les alternatives considérées, les critères de sélection et la validation par l'autorité désignée.",
+      "preuve_attendue": "Note de choix de modèle documentée (alternatives, critères, décision) + trace de validation.",
+      "grille_verdict": "conforme = choix documenté et validé pour tous les modèles en production ; partiel = choix documenté sans validation tracée ; non conforme = modèle en production sans justification documentée",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Lister les modèles d'IA utilisés en production et leur cas d'usage associé.",
+        "Demander la note de choix et sa validation pour chaque modèle.",
+        "Si écart : documenter a posteriori le choix et le faire valider par l'autorité désignée."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 6.1 (planification, appréciation des risques IA)",
+        "DAMA-DMBOK2 — Chapitre 3 (Data Governance, par extension à la gouvernance des modèles)"
+      ]
+    },
+    {
+      "id": "CTL-D14-02",
+      "adr_source": [
+        "ADR0607"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Les prompts (système, utilisateur, gabarits) sont versionnés dans un registre dédié, en dehors du code applicatif figé, avec un historique de changements tracé et une vérification avant publication.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que les prompts sont externalisés du code compilé, versionnés (registre, fichiers versionnés ou gestionnaire de prompts) et que chaque changement est tracé avec une revue avant déploiement en production.",
+      "preuve_attendue": "Extrait du registre de prompts avec historique de versions + trace de revue du dernier changement publié.",
+      "grille_verdict": "conforme = prompts versionnés hors code, historique tracé, revue avant publication ; partiel = prompts versionnés sans revue formalisée ; non conforme = prompts en dur dans le code sans versioning",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identifier l'emplacement des prompts (code, fichier de configuration, registre dédié).",
+        "Vérifier l'historique de versions du dernier changement de prompt significatif et sa revue.",
+        "Si écart : externaliser les prompts et mettre en place le versioning et la revue."
+      ],
+      "derogation": null,
+      "standards": [
+        "SemVer 2.0.0 — versionnement sémantique",
+        "ISO/IEC 42001:2023 — 8.1 (contrôle opérationnel)"
+      ]
+    },
+    {
+      "id": "CTL-D14-03",
+      "adr_source": [
+        "ADR0605"
+      ],
+      "dimension_audit": "D14",
+      "regle": "La qualité des réponses de chaque modèle en production est mesurée en continu par un jeu d'évaluation représentatif (canary) et des métriques déclarées, contre des seuils explicites.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier l'existence d'un jeu d'évaluation représentatif du cas d'usage, des métriques de qualité déclarées (exactitude, pertinence, format) avec seuils, et la fréquence d'exécution effective de l'évaluation.",
+      "preuve_attendue": "Jeu d'évaluation (canary) + définition des métriques et seuils + historique des exécutions et résultats.",
+      "grille_verdict": "conforme = évaluation automatisée régulière avec métriques/seuils documentés et respectés ; partiel = évaluation ponctuelle ou seuils non formalisés ; non conforme = absence d'évaluation qualité",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander le jeu d'évaluation représentatif et la définition des métriques/seuils.",
+        "Vérifier la fréquence et les résultats des dernières exécutions d'évaluation.",
+        "Si écart : constituer le jeu d'évaluation et automatiser son exécution périodique."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 9.1 (surveillance, mesure, analyse et évaluation)",
+        "NIST AI RMF 1.0 — fonction Measure"
+      ]
+    },
+    {
+      "id": "CTL-D14-04",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Les entrées et sorties de chaque modèle sont filtrées par des garde-fous (contenus dangereux, données personnelles, tentatives d'injection de prompt) avant transmission à l'utilisateur ou au système en aval.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier la configuration des filtres de contenu (entrée et sortie), tester une tentative d'injection de prompt et une sollicitation de contenu sensible, et confirmer leur blocage ou leur marquage.",
+      "preuve_attendue": "Configuration des filtres de contenu + résultat d'un test d'injection de prompt et de sollicitation de contenu sensible.",
+      "grille_verdict": "conforme = filtrage actif en entrée et en sortie, tests de contournement bloqués ; partiel = filtrage partiel (entrée ou sortie seulement) ; non conforme = absence de garde-fou ou contournement réussi",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inspecter la configuration des garde-fous d'entrée et de sortie du ou des modèles en production.",
+        "Rejouer un test d'injection de prompt et une sollicitation de données personnelles ; vérifier le blocage.",
+        "Si écart : activer ou renforcer les garde-fous manquants et documenter la couverture obtenue."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 for LLM Applications 2025 — LLM01 (Prompt Injection), LLM06 (Sensitive Information Disclosure)",
+        "RGPD — art. 25 (protection des données dès la conception)"
+      ]
+    },
+    {
+      "id": "CTL-D14-05",
+      "adr_source": [
+        "ADR0605"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Le taux d'hallucination (réponses non fondées sur les sources ou incorrectes) de chaque modèle en production est mesuré, borné par un seuil d'acceptabilité déclaré, et fait l'objet d'un plan de réduction en cas de dépassement.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier la méthode de détection des hallucinations (comparaison aux sources, LLM-as-judge, retour utilisateur), le seuil d'acceptabilité déclaré, et l'historique des mesures par rapport à ce seuil.",
+      "preuve_attendue": "Méthode et historique de mesure du taux d'hallucination + seuil déclaré + plan de réduction en cas de dépassement.",
+      "grille_verdict": "conforme = taux mesuré en continu, sous le seuil déclaré, plan de réduction existant en cas de dépassement ; partiel = mesure ponctuelle ou seuil non formalisé ; non conforme = aucune mesure du taux d'hallucination",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la méthode de mesure du taux d'hallucination et son historique récent.",
+        "Comparer le taux mesuré au seuil d'acceptabilité déclaré.",
+        "Si écart : instrumenter la mesure et définir le seuil et le plan de réduction associé."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST AI RMF 1.0 — fonction Measure (fiabilité, exactitude)",
+        "ISO/IEC 42001:2023 — 8.1 (contrôle opérationnel)"
+      ]
+    },
+    {
+      "id": "CTL-D14-06",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Une stratégie de repli (modèle de secours, réponse dégradée, escalade humaine) est définie et testée pour les cas d'indisponibilité, de quota atteint ou de refus de contenu du modèle principal.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la documentation de la stratégie de repli et son déclenchement effectif lors d'un test d'indisponibilité simulée du modèle principal (bascule vers le modèle de secours ou dégradation contrôlée).",
+      "preuve_attendue": "Documentation de la stratégie de repli + résultat d'un test de bascule (indisponibilité simulée).",
+      "grille_verdict": "conforme = stratégie documentée et testée avec succès ≤ 12 mois ; partiel = stratégie documentée sans test récent ; non conforme = absence de stratégie de repli",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la documentation de la stratégie de repli (modèle de secours, dégradation, escalade).",
+        "Simuler une indisponibilité du modèle principal et vérifier le comportement de bascule.",
+        "Si écart : définir la stratégie de repli manquante et planifier un test de bascule."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 8.1 (contrôle opérationnel)",
+        "DORA (Accelerate) — reprise de service (par analogie de résilience)"
+      ]
+    },
+    {
+      "id": "CTL-D14-07",
+      "adr_source": [
+        "ADR0608"
+      ],
+      "dimension_audit": "D14",
+      "regle": "La consommation et le coût d'inférence de chaque modèle en production sont suivis en continu, avec des alertes sur seuil de dérive de consommation.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier l'instrumentation du suivi de consommation (tokens, appels, coût) par modèle et cas d'usage, et l'existence d'alertes configurées sur franchissement de seuil.",
+      "preuve_attendue": "Tableau de bord ou export de consommation/coût d'inférence par modèle + configuration des alertes de seuil.",
+      "grille_verdict": "conforme = suivi continu par modèle avec alertes actives sur seuil ; partiel = suivi existant sans alerte configurée ; non conforme = absence de suivi de consommation",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire le suivi de consommation/coût d'inférence par modèle sur la période récente.",
+        "Vérifier la configuration des alertes de seuil de dérive de consommation.",
+        "Si écart : instrumenter le suivi manquant et configurer les alertes."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 9.1 (surveillance et mesure)"
+      ]
+    },
+    {
+      "id": "CTL-D14-08",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Toute interaction classée comme sensible (contenu à risque, décision impactant une personne, faible confiance du modèle) déclenche une revue humaine avant action ou transmission finale.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier les critères de classification déclenchant une revue humaine, et tester un cas classé sensible pour confirmer l'interruption du flux automatique et l'escalade vers un réviseur humain.",
+      "preuve_attendue": "Critères de classification documentés + trace d'un cas réel ou simulé escaladé à une revue humaine.",
+      "grille_verdict": "conforme = critères documentés et escalade systématique vérifiée ; partiel = critères documentés sans escalade systématique prouvée ; non conforme = absence de mécanisme de revue humaine",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander les critères de classification déclenchant la revue humaine.",
+        "Rejouer un cas sensible simulé et vérifier l'escalade effective vers un réviseur humain.",
+        "Si écart : définir les critères manquants et instrumenter l'escalade."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 8.1 (contrôle opérationnel, supervision humaine)",
+        "RGPD — art. 22 (décision individuelle automatisée)"
+      ]
+    },
+    {
+      "id": "CTL-D14-09",
+      "adr_source": [
+        "ADR0608"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Chaque interaction avec un modèle d'IA (prompt, contexte, réponse, métadonnées de décision) est journalisée de façon exploitable, pour permettre l'audit a posteriori d'une réponse contestée.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Sélectionner une interaction récente et vérifier qu'elle est retrouvable dans les journaux avec le prompt complet, la réponse, le modèle utilisé et l'horodatage.",
+      "preuve_attendue": "Extrait de journal d'une interaction IA récente (prompt, réponse, modèle, horodatage).",
+      "grille_verdict": "conforme = 100 % des interactions journalisées et exploitables pour l'audit ; partiel = journalisation partielle (échantillonnage ou champs manquants) ; non conforme = interactions non journalisées",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Choisir une interaction IA récente et la rechercher dans les journaux applicatifs.",
+        "Vérifier la présence de tous les champs nécessaires à l'audit (prompt, réponse, modèle, horodatage).",
+        "Si écart : compléter l'instrumentation de journalisation manquante."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.15 (journalisation)",
+        "ISO/IEC 42001:2023 — 9.1 (surveillance et mesure)"
+      ]
+    }
+  ]
+}

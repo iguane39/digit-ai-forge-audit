@@ -1,0 +1,500 @@
+{
+  "dimension": "D10",
+  "label": "Observability & logs",
+  "controls": [
+    {
+      "id": "CTL-D10-01",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "All application components emit structured logs (machine-parseable format, timestamp, component identifier) with standardized severity levels consistent across services (debug/info/warn/error/fatal).",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify that each component emits logs in a single structured format and that the severity scale used is identical from one service to another; check for the absence of unstructured free-text output in production.",
+      "preuve_attendue": "Structured log excerpts from at least 3 distinct components + reference of the profile's standardized severity levels.",
+      "grille_verdict": "compliant = structured format and severity scale consistent across all components ; partial = structured on the major components, inconsistent on secondary components ; non-compliant = unstructured free-text logs or inconsistent scale",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract a log sample from each component and verify compliance with the declared structured format.",
+        "Compare the severity levels used across components and flag any scale inconsistency.",
+        "If a gap is found: prioritize migrating the remaining components to the structured format and common scale."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (analysabilité)",
+        "ISO/IEC 27002:2022 — 8.15"
+      ]
+    },
+    {
+      "id": "CTL-D10-02",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Every incoming request is assigned a correlation identifier (or a distributed trace) propagated across all components and services traversed, enabling the complete reconstruction of a transaction's journey end to end.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Replay a transaction on a critical journey traversing several components and verify that the correlation identifier or distributed trace allows the complete journey to be reconstructed, from the entry point to the final response.",
+      "preuve_attendue": "Capture of an end-to-end trace (or chain of logs linked by a unique identifier) on at least one declared critical journey.",
+      "grille_verdict": "compliant = complete and usable end-to-end trace on all declared critical journeys ; partial = correlation present but interrupted at some service hops ; non-compliant = no inter-service correlation",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the declared critical journeys and replay a transaction end to end.",
+        "Verify that the correlation identifier traverses each service hop without interruption.",
+        "If a gap is found: instrument the missing services and document the uncovered journeys."
+      ],
+      "derogation": null,
+      "standards": [
+        "DORA (Accelerate) — MTTR",
+        "ISO/IEC 25010 (analysabilité)"
+      ]
+    },
+    {
+      "id": "CTL-D10-03",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Each component continuously exposes its technical metrics (latency, error rate, throughput, resource saturation) to the profile's monitoring platform, with sufficient history for trend analysis.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the existence and freshness of the technical metrics by component (latency p50/p95/p99, error rate, throughput, saturation) and the depth of history available.",
+      "preuve_attendue": "Capture of the technical metrics exposed by component over a representative period (≥ 30 days if available).",
+      "grille_verdict": "compliant = complete and historized technical metrics on all critical components ; partial = partial metrics or insufficient history ; non-compliant = no technical metric exposed",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inventory the technical metrics exposed by component and their history depth.",
+        "Verify the coverage of the essential signals (latency, errors, throughput, saturation) on the critical components.",
+        "If a gap is found: instrument the missing components and set a minimum retention duration."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (efficacité de performance)",
+        "Google SRE — signaux dorés (latence, trafic, erreurs, saturation)"
+      ]
+    },
+    {
+      "id": "CTL-D10-04",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Significant business activity indicators (volumes processed, functional success rate, usage by feature) are instrumented and exposed on the same footing as technical metrics, with an identified business owner.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of instrumented business metrics, their alignment with the KPIs declared in the functional scope (D00), and the identification of a business owner.",
+      "preuve_attendue": "Capture of the exposed business metrics + mapping to the functional scope's KPIs.",
+      "grille_verdict": "compliant = business metrics instrumented, aligned with the KPIs, and tracked by an identified owner ; partial = metrics present but not linked to the KPIs or without an owner ; non-compliant = no business metric instrumented",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Compare the instrumented business metrics against the list of KPIs declared in the functional scope.",
+        "Verify the identification of a business owner for tracking these indicators.",
+        "If a gap is found: instrument the missing KPIs and designate a tracking owner."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (aptitude fonctionnelle)"
+      ]
+    },
+    {
+      "id": "CTL-D10-05",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Operational dashboards continuously consolidate the application's essential technical and business signals, viewable by the operations teams without needing to involve the development team.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of operational dashboards covering the essential technical and business signals, their accessibility to the operations teams, and their continuous refresh.",
+      "preuve_attendue": "Captures of the operational dashboards in place + list of roles with access to them.",
+      "grille_verdict": "compliant = dashboards covering technical and business signals, accessible to Run, continuously refreshed ; partial = technical dashboards only or access restricted to the development team ; non-compliant = no operational dashboard",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the existing operational dashboards and their coverage (technical, business).",
+        "Verify the effective access of the operations teams without dependency on the development team.",
+        "If a gap is found: complete the missing coverage and grant access to the relevant teams."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des événements"
+      ]
+    },
+    {
+      "id": "CTL-D10-06",
+      "adr_source": [
+        "ADR0401",
+        "ADR0405"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Alerts triggered on critical services are based on declared service level objectives (SLOs) and the associated error budget consumption, rather than on isolated technical thresholds disconnected from the service commitment.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the declaration of SLOs by critical service and the existence of alert rules based on the associated error budget consumption, rather than on raw technical thresholds.",
+      "preuve_attendue": "Declaration of SLOs by critical service + configuration of the error budget alert rules + history of at least one triggered alert.",
+      "grille_verdict": "compliant = SLOs declared and error budget alerting active for all critical services ; partial = SLOs declared without linked alerting ; non-compliant = technical thresholds only, no SLO declared",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the SLOs declared by critical service and verify their consistency with the actual service commitment.",
+        "Verify the configuration of the error budget consumption alert rules and test their triggering.",
+        "If a gap is found: declare the missing SLOs and connect the alerting to the corresponding error budget."
+      ],
+      "derogation": null,
+      "standards": [
+        "SRE (Google) — objectifs de niveau de service et budgets d'erreur",
+        "DORA (Accelerate) — métriques de fiabilité (MTTR)"
+      ]
+    },
+    {
+      "id": "CTL-D10-07",
+      "adr_source": [
+        "ADR0405"
+      ],
+      "dimension_audit": "D10",
+      "regle": "The error budget consumption of each critical service is tracked continuously and triggers a predefined action (change freeze, on-call mobilization) before it is fully exhausted.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the error budget consumption history of the critical services and the existence of a documented action triggered before exhaustion (e.g., deployment freeze).",
+      "preuve_attendue": "Error budget consumption history + trace of at least one action triggered by a consumption threshold.",
+      "grille_verdict": "compliant = budget tracked continuously and documented action triggered before exhaustion, with supporting evidence ; partial = budget tracked without a formalized action ; non-compliant = error budget not tracked",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the error budget consumption history for the last 90 days for each critical service.",
+        "Verify the existence and effective triggering of an action when a consumption threshold is crossed.",
+        "If a gap is found: define the action thresholds and link them to the on-call procedure (D12)."
+      ],
+      "derogation": null,
+      "standards": [
+        "SRE (Google) — budgets d'erreur",
+        "DORA (Accelerate) — MTTR"
+      ]
+    },
+    {
+      "id": "CTL-D10-08",
+      "adr_source": [
+        "ADR0404"
+      ],
+      "dimension_audit": "D10",
+      "regle": "A log retention policy, declared by category and aligned with the applicable legal or contractual obligation, governs purging and archiving; their execution is verifiable through dated evidence.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of a retention policy declared by log category and the evidence of effective purge/archiving execution in accordance with the declared durations.",
+      "preuve_attendue": "Retention policy documented by category + execution report of the latest purge/archiving.",
+      "grille_verdict": "compliant = policy declared by category and purge verified compliant with the durations ; partial = policy declared without recent execution evidence ; non-compliant = indefinite retention or absence of policy",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the retention policy by log category and verify its alignment with the applicable obligation.",
+        "Verify the trace of the latest purge/archiving execution and its compliance with the declared durations.",
+        "If a gap is found: formalize the missing policy and schedule the purge of the categories in overrun."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5, § 1, e)",
+        "ISO/IEC 27002:2022 — 8.15",
+        "ISO/IEC 27002:2022 — 8.10"
+      ]
+    },
+    {
+      "id": "CTL-D10-09",
+      "adr_source": [
+        "ADR0402",
+        "ADR0206"
+      ],
+      "dimension_audit": "D10",
+      "regle": "No sensitive data in clear text (secret, token, password, identifying personal data) reaches the application logs or telemetry: redaction or masking is applied at the source or in the pipeline before any storage.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Run a test transaction injecting known sensitive data (canary secret, test PII) and verify their absence in clear text in the collected logs and telemetry.",
+      "preuve_attendue": "Log scan report (0 sensitive data in clear text detected) + configuration of the redaction/masking rule.",
+      "grille_verdict": "compliant = clean scan on a representative sample + active and tested redaction rule ; partial = redaction active but incomplete on certain fields ; non-compliant = sensitive data found in clear text in the logs or telemetry",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inject a canary secret and a test PII into an application journey, then scan the resulting logs and telemetry.",
+        "Verify the configuration of the redaction/masking rule and its coverage of the known sensitive fields.",
+        "If a gap is found: extend the redaction to the missing fields and purge the occurrences already logged."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.12 (prévention de la fuite de données)",
+        "RGPD — art. 32"
+      ]
+    },
+    {
+      "id": "CTL-D10-10",
+      "adr_source": [
+        "ADR0403"
+      ],
+      "dimension_audit": "D10",
+      "regle": "The health of each critical dependency and exchange flow (latency, error rate, volume, queue depth) is monitored automatically, with thresholds declared per flow enabling detection before end-user impact.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the existence of dedicated monitoring of the critical exchange flows (latency, errors, volume, queue depth) and the declaration of thresholds per flow.",
+      "preuve_attendue": "Monitoring dashboard of the critical flows + declared thresholds + history of a degradation alert.",
+      "grille_verdict": "compliant = critical flows monitored with declared thresholds and tested escalation ; partial = partial monitoring or uncalibrated thresholds ; non-compliant = no dedicated monitoring of dependencies",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the critical dependencies and exchange flows and verify the existence of dedicated monitoring.",
+        "Verify the declaration of thresholds per flow and the history of at least one degradation alert.",
+        "If a gap is found: instrument the unmonitored flows and calibrate the missing thresholds."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 20000-1 (gestion des services)",
+        "ITIL 4 — pratique de gestion des événements"
+      ]
+    },
+    {
+      "id": "CTL-D10-11",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "For any feature based on a generative or predictive artificial intelligence model, the quality of the responses produced is monitored continuously (canary sample, comparison to a reference) in order to detect any drift in the model or prompts.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of continuous monitoring of AI response quality (daily canary, comparison to a reference dataset) and the trace of a drift detection.",
+      "preuve_attendue": "Configuration of the AI quality monitoring + history of quality scores over a representative period + trace of a drift alert if applicable.",
+      "grille_verdict": "compliant = continuous AI quality monitoring with tested drift detection ; partial = one-off evaluation without continuous tracking ; non-compliant = no evaluation of AI response quality",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Verify the existence of a reference dataset and a periodic (canary) run comparing the responses produced.",
+        "Verify the trace of a drift detection (model update, prompt drift) and the associated response.",
+        "If a gap is found: implement the continuous evaluation and define the drift threshold triggering an alert."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (fiabilité)",
+        "ISO/IEC 42001:2023 (surveillance opérationnelle des systèmes de management de l'IA)"
+      ]
+    },
+    {
+      "id": "CTL-D10-12",
+      "adr_source": [
+        "ADR0402"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Security events (authentication, privilege escalation, access to secrets and sensitive data) are logged in a central repository; access to this repository is itself restricted to a dedicated role and logged.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the catalog of security events logged systematically and the restriction/logging of access to the log repository itself.",
+      "preuve_attendue": "Excerpt of the catalog of logged security events + excerpt of the access log for the log repository.",
+      "grille_verdict": "compliant = complete event catalog and repository access restricted and logged ; partial = incomplete catalog or unrestricted access ; non-compliant = security events not distinguished from generic application logs",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the coverage of the catalog of logged security events (authentication, escalation, sensitive access).",
+        "Verify the access restriction to the log repository and the logging of that access.",
+        "If a gap is found: complete the event catalog and restrict access to the dedicated role."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.15",
+        "NIST SP 800-53 — famille AU (Audit and Accountability)",
+        "CIS Controls v8 — 8 (Audit Log Management)"
+      ]
+    },
+    {
+      "id": "CTL-D10-13",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "The volume and cost of telemetry (logs, metrics, traces) are governed by a proportionate sampling, cardinality, and retention policy, with regular budget tracking.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a telemetry sampling/cardinality policy and its alignment with a cost budget tracked periodically.",
+      "preuve_attendue": "Documented sampling/cardinality policy + cost history of the telemetry platform over 90 days.",
+      "grille_verdict": "compliant = policy declared and cost tracked within the allocated budget ; partial = cost tracked without a formalized sampling policy ; non-compliant = telemetry volume neither controlled nor tracked",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the cost history of the telemetry platform over 90 days and compare it to the allocated budget.",
+        "Verify the existence of a sampling or cardinality policy limiting the volume collected.",
+        "If a gap is found: define the sampling policy and the corresponding tracking budget."
+      ],
+      "derogation": null,
+      "standards": [
+        "FinOps Framework — domaine Optimisation",
+        "ISO/IEC 25010 (efficacité de performance)"
+      ]
+    }
+  ]
+}

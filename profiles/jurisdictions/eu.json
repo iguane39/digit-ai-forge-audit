@@ -1,0 +1,23 @@
+{
+  "jurisdiction": "eu",
+  "label": "Union européenne",
+  "regulations": [
+    "RGPD (2016/679)",
+    "AI Act (2024/1689)"
+  ],
+  "controls": [
+    "CTL-D04-01",
+    "CTL-D04-02",
+    "CTL-D04-03",
+    "CTL-D04-04",
+    "CTL-D04-05",
+    "CTL-D04-06",
+    "CTL-D04-07",
+    "CTL-D04-08",
+    "CTL-D04-09",
+    "CTL-D04-10",
+    "CTL-D04-11",
+    "CTL-D04-12"
+  ],
+  "note": "Portée = dimension D04 (obligations créées par la réglementation). Les contrôles universels citant le RGPD comme source restent actifs pour toute juridiction. Tenant hors-UE : `jurisdictions` sans `eu` → ces contrôles passent sans_objet motivé à la fusion."
+}

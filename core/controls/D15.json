@@ -1,0 +1,338 @@
+{
+  "dimension": "D15",
+  "label": "Principes data by design",
+  "controls": [
+    {
+      "id": "CTL-D15-01",
+      "adr_source": [
+        "ADR0601"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design applicable au projet définit un principe d'ownership (responsable métier nommé par domaine de données) ; ce principe est formellement adopté et son application est vérifiable sur le périmètre audité.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes Data by Design du profil définit un principe d'ownership, puis contrôler, pour un échantillon de domaines de données du périmètre, la présence effective d'un responsable nommé conforme à ce principe.",
+      "preuve_attendue": "Extrait du pack de principes (définition du principe d'ownership) + échantillon de domaines de données avec responsable nommé.",
+      "grille_verdict": "conforme = principe défini dans le pack et appliqué sur 100 % de l'échantillon contrôlé ; partiel = principe défini mais application partielle ; non conforme = principe absent du pack ou non appliqué",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes Data by Design du profil couvre l'ownership.",
+        "Échantillonner des domaines de données du périmètre et vérifier la présence d'un responsable nommé.",
+        "Si écart : faire compléter le pack de principes ou faire désigner les responsables manquants."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 3 (Data Governance)",
+        "RGPD — art. 24 (responsabilité du responsable de traitement)"
+      ]
+    },
+    {
+      "id": "CTL-D15-02",
+      "adr_source": [
+        "ADR0602"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design définit un principe de modélisation validée (revue par une autorité data avant mise en production) ; ce principe est appliqué à tout modèle de données livré dans le périmètre audité.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes couvre la validation de la modélisation, puis contrôler qu'un échantillon de modèles de données livrés récemment porte une trace de revue par l'autorité data avant mise en production.",
+      "preuve_attendue": "Extrait du pack (principe de modélisation validée) + comptes rendus de revue pour un échantillon de modèles livrés.",
+      "grille_verdict": "conforme = principe défini et revue tracée pour 100 % de l'échantillon ; partiel = principe défini avec revues partiellement tracées ; non conforme = principe absent ou aucune revue tracée",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes couvre la modélisation validée.",
+        "Échantillonner des modèles de données livrés récemment et vérifier la trace de revue par l'autorité data.",
+        "Si écart : faire compléter le pack ou instaurer la revue de modélisation manquante."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 5 (Data Modeling and Design)",
+        "ISO/IEC 25012:2008 — modèle de qualité des données"
+      ]
+    },
+    {
+      "id": "CTL-D15-03",
+      "adr_source": [
+        "ADR0605"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design définit un principe de qualité mesurée (règles et seuils déclarés, contrôle continu) ; ce principe est appliqué aux domaines de données critiques du périmètre audité.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes couvre la qualité mesurée, puis contrôler qu'un échantillon de domaines critiques applique effectivement des règles de qualité avec seuils et exécution continue.",
+      "preuve_attendue": "Extrait du pack (principe de qualité mesurée) + échantillon de règles/seuils appliqués par domaine critique.",
+      "grille_verdict": "conforme = principe défini et appliqué sur 100 % de l'échantillon critique ; partiel = application partielle ; non conforme = principe absent ou non appliqué",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes couvre la qualité mesurée.",
+        "Échantillonner des domaines critiques et vérifier l'application effective de règles de qualité avec seuils.",
+        "Si écart : faire compléter le pack ou instrumenter les règles de qualité manquantes."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25012:2008 — modèle de qualité des données",
+        "DAMA-DMBOK2 — Chapitre 13 (Data Quality)"
+      ]
+    },
+    {
+      "id": "CTL-D15-04",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design définit un principe de protection des données dès la conception (classification, minimisation, mesures proportionnées) ; ce principe est appliqué à tout domaine de données personnelles ou sensibles du périmètre audité.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes couvre la protection dès la conception, puis contrôler qu'un échantillon de domaines traitant des données personnelles ou sensibles porte une classification et des mesures de protection proportionnées.",
+      "preuve_attendue": "Extrait du pack (principe de privacy by design) + échantillon de classifications et mesures de protection appliquées.",
+      "grille_verdict": "conforme = principe défini et mesures proportionnées appliquées sur 100 % de l'échantillon ; partiel = classification présente sans mesures complètes ; non conforme = principe absent ou données sensibles non classifiées",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes couvre la protection des données dès la conception.",
+        "Échantillonner des domaines traitant des données personnelles/sensibles et vérifier classification et mesures.",
+        "Si écart : faire compléter le pack ou appliquer les mesures de protection manquantes."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 25 (protection des données dès la conception et par défaut)",
+        "ISO/IEC 27701:2019 — §6"
+      ]
+    },
+    {
+      "id": "CTL-D15-05",
+      "adr_source": [
+        "ADR0607"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design définit un principe d'exploitabilité native (tout domaine de données est exposé via un contrat de données publié et intégrable) ; ce principe est appliqué aux domaines destinés au partage transverse.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes couvre l'exploitabilité native, puis contrôler qu'un échantillon de domaines partagés transversalement publie un contrat de données à jour.",
+      "preuve_attendue": "Extrait du pack (principe d'exploitabilité) + échantillon de contrats de données publiés.",
+      "grille_verdict": "conforme = principe défini et contrat publié pour 100 % de l'échantillon partagé ; partiel = contrats partiels ou obsolètes ; non conforme = principe absent ou aucun contrat publié",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes couvre l'exploitabilité native.",
+        "Échantillonner des domaines partagés transversalement et vérifier la publication d'un contrat de données à jour.",
+        "Si écart : faire compléter le pack ou publier les contrats de données manquants."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 8 (Data Integration and Interoperability)",
+        "ISO/IEC 25010:2011 — compatibilité (interopérabilité)"
+      ]
+    },
+    {
+      "id": "CTL-D15-06",
+      "adr_source": [
+        "ADR0608"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design définit un principe d'observabilité (supervision de la fraîcheur, de la volumétrie et du lignage) ; ce principe est appliqué aux domaines de données critiques du périmètre audité.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes couvre l'observabilité data, puis contrôler qu'un échantillon de domaines critiques dispose d'une supervision active (alerting, lignage consultable).",
+      "preuve_attendue": "Extrait du pack (principe d'observabilité) + captures de supervision (alerting, lignage) pour l'échantillon.",
+      "grille_verdict": "conforme = principe défini et supervision active sur 100 % de l'échantillon critique ; partiel = supervision partielle ; non conforme = principe absent ou aucune supervision",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes couvre l'observabilité data.",
+        "Échantillonner des domaines critiques et vérifier l'existence d'une supervision active (alerting, lignage).",
+        "Si écart : faire compléter le pack ou instrumenter la supervision manquante."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management)",
+        "ISO 8000-8 — qualité de l'information : concepts et mesure"
+      ]
+    },
+    {
+      "id": "CTL-D15-07",
+      "adr_source": [
+        "ADR0610"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design définit un principe de connaissance et de catalogage (tout actif en production est décrit et découvrable) ; ce principe est appliqué aux actifs de données en production du périmètre audité.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes couvre le catalogage, puis contrôler la couverture et la fraîcheur des descriptions d'un échantillon d'actifs en production dans le catalogue.",
+      "preuve_attendue": "Extrait du pack (principe de catalogage) + extrait du catalogue montrant couverture et fraîcheur pour l'échantillon.",
+      "grille_verdict": "conforme = principe défini et 100 % de l'échantillon catalogué et à jour ; partiel = couverture incomplète ; non conforme = principe absent ou absence de catalogue",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes couvre le catalogage et la découvrabilité.",
+        "Échantillonner des actifs en production et vérifier leur présence et leur fraîcheur dans le catalogue.",
+        "Si écart : faire compléter le pack ou cataloguer les actifs manquants."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management)",
+        "FAIR Principles (GO FAIR, 2016) — Findable, Accessible, Interoperable, Reusable"
+      ]
+    },
+    {
+      "id": "CTL-D15-08",
+      "adr_source": [
+        "ADR0601"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design définit un principe d'accessibilité gouvernée (habilitations tracées et revues, accès proportionné à la classification) ; ce principe est appliqué aux domaines de données du périmètre audité.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes couvre l'accessibilité gouvernée, puis contrôler qu'un échantillon de domaines dispose d'une matrice d'habilitations tracée et revue périodiquement.",
+      "preuve_attendue": "Extrait du pack (principe d'accessibilité gouvernée) + matrice d'habilitations et date de dernière revue pour l'échantillon.",
+      "grille_verdict": "conforme = principe défini et matrice à jour (revue ≤ 12 mois) pour 100 % de l'échantillon ; partiel = matrice existante sans revue récente ; non conforme = principe absent ou absence de matrice",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes couvre l'accessibilité gouvernée.",
+        "Échantillonner des domaines de données et vérifier l'existence et la fraîcheur de la matrice d'habilitations.",
+        "Si écart : faire compléter le pack ou mettre à jour les matrices d'habilitations manquantes."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.18 (droits d'accès)",
+        "DAMA-DMBOK2 — Chapitre 3 (Data Governance)"
+      ]
+    },
+    {
+      "id": "CTL-D15-09",
+      "adr_source": [
+        "ADR0609",
+        "ADR0611"
+      ],
+      "dimension_audit": "D15",
+      "regle": "Le pack de principes Data by Design définit un principe de soutenabilité (cycle de vie complet géré : rétention, archivage, purge, capacité de restauration prouvée) ; ce principe est appliqué aux domaines de données critiques du périmètre audité.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le pack de principes couvre la soutenabilité du cycle de vie, puis contrôler qu'un échantillon de domaines critiques applique une politique de rétention et dispose d'une restauration testée.",
+      "preuve_attendue": "Extrait du pack (principe de soutenabilité) + politiques de rétention et derniers rapports de test de restauration pour l'échantillon.",
+      "grille_verdict": "conforme = principe défini et cycle de vie géré/prouvé pour 100 % de l'échantillon ; partiel = gestion partielle (rétention sans test de restauration, ou l'inverse) ; non conforme = principe absent ou cycle de vie non géré",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier que le pack de principes couvre la soutenabilité et le cycle de vie des données.",
+        "Échantillonner des domaines critiques et vérifier politique de rétention et test de restauration.",
+        "Si écart : faire compléter le pack ou instaurer la gestion de cycle de vie manquante."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5.1.e (limitation de la conservation)",
+        "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,572 @@
+{
+  "dimension": "D01",
+  "label": "Target architecture",
+  "controls": [
+    {
+      "id": "CTL-D01-01",
+      "adr_source": [
+        "ADR0105"
+      ],
+      "dimension_audit": "D01",
+      "regle": "The application has an up-to-date map of its components, flows, and internal dependencies, referenced in the information system inventory.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of an application map (components, flows, dependencies) and its last update date; verify its consistency with the actually deployed architecture.",
+      "preuve_attendue": "Dated application mapping diagram or document + excerpt from the information system inventory.",
+      "grille_verdict": "compliant = map up to date (< 6 months) and consistent with what is deployed ; partial = map exists but outdated or partially consistent ; non-compliant = no application map",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the application map and verify its last update date.",
+        "Compare the declared map against the actually deployed architecture (sample of components).",
+        "If gap: have the map produced or updated and recorded in the information system inventory."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des configurations de service",
+        "ISO/IEC 20000-1:2018 — 8.1"
+      ]
+    },
+    {
+      "id": "CTL-D01-02",
+      "adr_source": [
+        "ADR0104"
+      ],
+      "dimension_audit": "D01",
+      "regle": "Application components exhibit low coupling and high cohesion; component boundaries are aligned with distinct business responsibilities.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Analyze the breakdown of components (modules, services) and assess their coupling (cross dependencies, state sharing) with respect to the business responsibilities they carry.",
+      "preuve_attendue": "Code or configuration excerpts illustrating component boundaries + diagram of inter-component dependencies.",
+      "grille_verdict": "compliant = low coupling, boundaries aligned with clear business responsibilities ; partial = moderate coupling or partially consistent boundaries ; non-compliant = widespread strong coupling, unidentifiable boundaries",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Analyze inter-component dependencies (imports, calls, database sharing) and map the actual coupling.",
+        "Compare the observed component boundaries against the expected business responsibilities.",
+        "If gap: recommend a decoupling plan prioritized on the most coupled components."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010:2023 — maintenabilité (modularité)",
+        "TOGAF — ADM Phase C (architecture applicative)"
+      ]
+    },
+    {
+      "id": "CTL-D01-03",
+      "adr_source": [
+        "ADR0003"
+      ],
+      "dimension_audit": "D01",
+      "regle": "Architecture choices (components, patterns, services) comply with the internal reference catalog; any deviation is identified and justified.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Compare the components and patterns used against the internal reference catalog (approved services, recommended patterns) and record the deviations.",
+      "preuve_attendue": "Compliance matrix against the reference catalog + documented justification for each identified deviation.",
+      "grille_verdict": "compliant = 100% of choices compliant with the catalog or deviations justified and validated ; partial = deviations identified but not justified/validated ; non-compliant = choices outside the catalog not recorded",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Establish the list of components and patterns used and compare them against the internal reference catalog.",
+        "For each identified deviation, verify the existence of a justification and a validation by the decision-making authority.",
+        "If an unjustified deviation exists: have it migrated to the catalog or initiate the exception validation procedure."
+      ],
+      "derogation": null,
+      "standards": [
+        "TOGAF — ADM Phase G (revue de conformité architecturale)",
+        "ISO/IEC/IEEE 42010:2022 — 5.4 (conformité de la description d'architecture)"
+      ]
+    },
+    {
+      "id": "CTL-D01-04",
+      "adr_source": [
+        "ADR0106"
+      ],
+      "dimension_audit": "D01",
+      "regle": "The application has distinct, segregated environments (development, test, production at a minimum), with a documented promotion chain and an explicit transfer of responsibility.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence and actual segregation of the required environments, and the existence of a documented procedure for promotion between environments with transfer of responsibility.",
+      "preuve_attendue": "Inventory of environments with their segregation + documented promotion procedure.",
+      "grille_verdict": "compliant = segregated environments and a documented, followed promotion procedure ; partial = environments present but segregation or procedure incomplete ; non-compliant = single environment or no segregation",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the existing environments and verify their segregation (access, data, configuration).",
+        "Verify the existence and actual application of a promotion procedure between environments.",
+        "If gap: have the missing environments created and formalize the promotion chain."
+      ],
+      "derogation": null,
+      "standards": [
+        "DORA (Accelerate) — capacité de gestion des environnements de test et de déploiement",
+        "ITIL 4 — pratique de gestion des déploiements"
+      ]
+    },
+    {
+      "id": "CTL-D01-05",
+      "adr_source": [
+        "ADR0509"
+      ],
+      "dimension_audit": "D01",
+      "regle": "Critical architecture components have no unidentified and unmitigated single point of failure (SPOF); resilience mechanisms (redundancy, failover, rollback) are documented and tested.",
+      "criticite": "Fatal",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Identify the architecture's critical components and verify for each the existence of a resilience mechanism (redundancy, failover, rollback strategy) and proof of a recent test of that mechanism.",
+      "preuve_attendue": "Map of critical components with associated resilience mechanism + resilience or rollback test report.",
+      "grille_verdict": "compliant = SPOFs identified and mitigated, resilience mechanisms tested ; partial = SPOFs identified but mitigation not tested ; non-compliant = SPOF not identified or not mitigated on a critical component",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Map the critical components and identify potential single points of failure.",
+        "Verify the existence and recent testing of resilience mechanisms (redundancy, failover, rollback) for each identified SPOF.",
+        "If gap: prioritize the mitigation of critical SPOFs before any industrialization decision."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010:2023 — fiabilité (tolérance aux pannes)",
+        "DORA (Accelerate) — fiabilité et délai de rétablissement"
+      ]
+    },
+    {
+      "id": "CTL-D01-06",
+      "adr_source": [
+        "ADR0003"
+      ],
+      "dimension_audit": "D01",
+      "regle": "Architectural debt (deviations from target principles, technical workarounds) is identified, qualified, and tracked in a prioritized register.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of an architectural debt register, the qualification of each item (impact, effort), and its tracking over time.",
+      "preuve_attendue": "Dated architectural debt register with qualification and remediation status.",
+      "grille_verdict": "compliant = debt recorded, qualified, and tracked with a prioritized remediation plan ; partial = debt identified but not qualified or not tracked ; non-compliant = no identification of architectural debt",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the architectural debt register and verify the qualification (impact, effort) of each item.",
+        "Verify the existence of a prioritized remediation plan and its actual progress.",
+        "If gap: have the unidentified debt recorded and integrate its remediation into the remediation plan."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010:2023 — maintenabilité",
+        "COBIT 2019 — BAI03 (gérer l'identification et la construction des solutions)"
+      ]
+    },
+    {
+      "id": "CTL-D01-07",
+      "adr_source": [
+        "ADR0005"
+      ],
+      "dimension_audit": "D01",
+      "regle": "A target architecture diagram, formalized according to a standardized representation (components, flows, boundaries), is produced, up to date, and accessible to stakeholders.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a formalized architecture diagram (components, flows, boundaries, legend), its last update date, and its accessibility to the relevant stakeholders.",
+      "preuve_attendue": "Dated target architecture diagram + proof of accessibility (shared location, documentation link).",
+      "grille_verdict": "compliant = diagram exists, up to date, accessible, and compliant with the standardized representation ; partial = diagram exists but outdated or non-standardized ; non-compliant = no architecture diagram",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the target architecture diagram and verify its compliance with the expected standardized representation (components, flows, boundaries).",
+        "Verify the last update date and its consistency with the actually deployed architecture.",
+        "If gap: have the diagram produced or updated and made accessible to stakeholders."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC/IEEE 42010:2022 — 5.3 (description d'architecture, vues et points de vue)",
+        "TOGAF — livrables d'architecture (Phases B/C/D)"
+      ]
+    },
+    {
+      "id": "CTL-D01-08",
+      "adr_source": [
+        "ADR0105"
+      ],
+      "dimension_audit": "D01",
+      "regle": "The application's external dependencies (third-party services, shared components, upstream/downstream platforms) are inventoried along with their criticality and management approach.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of an inventory of external dependencies with their criticality level, owner, and management approach (contract, SLA, failover procedure).",
+      "preuve_attendue": "Inventory of external dependencies with criticality, owner, and associated management approach.",
+      "grille_verdict": "compliant = external dependencies inventoried, criticality qualified, and management approach defined ; partial = incomplete inventory or unqualified criticality ; non-compliant = no inventory of external dependencies",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the inventory of external dependencies and verify its completeness by cross-checking against the actual architecture.",
+        "Verify the criticality qualification and the existence of a management approach for each critical dependency.",
+        "If gap: have the inventory completed and define the management approach for uncovered dependencies."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des fournisseurs",
+        "ISO/IEC 20000-1:2018 — 8.3 (gestion des fournisseurs)"
+      ]
+    },
+    {
+      "id": "CTL-D01-09",
+      "adr_source": [
+        "ADR0502"
+      ],
+      "dimension_audit": "D01",
+      "regle": "The architecture's sizing (compute, storage, network resources) is made explicit and justified with regard to a declared target load, with a documented margin.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a documented target load assumption and the justification of the sizing adopted (allocated resources, safety margin) with regard to that load.",
+      "preuve_attendue": "Sizing document with target load assumptions, allocated resources, and retained margin.",
+      "grille_verdict": "compliant = sizing documented, justified by an explicit target load and a reasonable margin ; partial = sizing exists but not justified or target load implicit ; non-compliant = no documented sizing",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the target load assumptions and the associated sizing document.",
+        "Verify the consistency between the allocated resources, the declared target load, and the retained margin.",
+        "If gap: have the load assumptions formalized and adjust the sizing accordingly."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010:2023 — efficacité des ressources",
+        "ITIL 4 — pratique de gestion de la capacité"
+      ]
+    },
+    {
+      "id": "CTL-D01-10",
+      "adr_source": [
+        "ADR0001"
+      ],
+      "dimension_audit": "D01",
+      "regle": "Structuring architecture decisions are tracked in a decision register (context, options considered, choice made, consequences), accessible and up to date.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of an architecture decision register covering the structuring choices, the presence of the expected fields (context, options, choice, consequences), and its update upon major changes; a format check can verify the structure of the entries.",
+      "preuve_attendue": "Architecture decision register with, for a sample, context/options/choice/consequences filled in.",
+      "grille_verdict": "compliant = structuring decisions tracked, complete, and up to date ; partial = register exists but incomplete or outdated ; non-compliant = no traceability of architecture decisions",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the architecture decision register and verify its structure on a sample.",
+        "Compare known structuring decisions (tech lead interviews) against their actual presence in the register.",
+        "If gap: have the missing decisions tracked retroactively and establish the traceability discipline for subsequent ones."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC/IEEE 42010:2022 — 5.5 (justification de décision d'architecture)",
+        "COBIT 2019 — APO03 (gérer l'architecture d'entreprise)"
+      ]
+    },
+    {
+      "id": "CTL-D01-11",
+      "adr_source": [
+        "ADR0101"
+      ],
+      "dimension_audit": "D01",
+      "regle": "The shared platform / application workload zoning is documented in the map and watertight: no application resource resides within the platform zone's perimeter.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Compare the zone map against the actual resource inventory; look for any application resource deployed within the platform's management perimeter.",
+      "preuve_attendue": "Zone map + resource inventory by zone (dated extraction).",
+      "grille_verdict": "compliant = complete and watertight zoning ; partial = zoning documented with tracked exceptions ; non-compliant = untracked mixing between platform and application",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the zone map and the resource inventory; attach both.",
+        "Cross-check the inventory against the declared perimeter of the platform zone; list any deviation.",
+        "If gap: plan the migration of application resources out of the platform zone."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SP 800-207 (segmentation par ressource)",
+        "CIS Controls v8 — 12"
+      ]
+    },
+    {
+      "id": "CTL-D01-12",
+      "adr_source": [
+        "ADR0701"
+      ],
+      "dimension_audit": "D01",
+      "regle": "No significant inter-application exchange bypasses the trusted exchange intermediary (API gateway, event bus); any exception is documented and dated.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the inter-application flows (map + network configuration) and verify that they pass through the recorded trusted intermediary; identify direct links.",
+      "preuve_attendue": "Map of inter-application flows with, for each, the observed passage point.",
+      "grille_verdict": "compliant = 100% of flows via the trusted intermediary or a tracked exception ; partial = a minority of direct links documented after the fact ; non-compliant = untracked direct links",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the list of the application's outbound/inbound integrations; attach the map.",
+        "Verify for each flow the actual passage point (configuration, access logs).",
+        "If gap: switch the flow to the profile's trusted intermediary or document the exception."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V13",
+        "ISO/IEC 27002:2022 — 8.21"
+      ]
+    },
+    {
+      "id": "CTL-D01-13",
+      "adr_source": [
+        "ADR0702"
+      ],
+      "dimension_audit": "D01",
+      "regle": "No inter-organization file exchange transits outside the recorded trusted managed service (no ad hoc sharing: messaging, personal storage, removable media).",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the inbound/outbound file exchanges and their actual channel; look for ad hoc channels in the documentation, configurations, and interviews.",
+      "preuve_attendue": "Inventory of file exchanges with the observed channel for each.",
+      "grille_verdict": "compliant = all exchanges via the recorded managed service ; partial = ad hoc channels identified with a resolution plan ; non-compliant = untracked active ad hoc channels",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "List the file flows and their channel; attach the inventory.",
+        "Verify the managed service's configuration (traceability, encryption, access expiration).",
+        "If gap: migrate the flow to the managed service and close the ad hoc channel."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.21",
+        "DAMA-DMBOK2 — Ch.7 (sécurité des données)"
+      ]
+    },
+    {
+      "id": "CTL-D01-14",
+      "adr_source": [
+        "ADR0707"
+      ],
+      "dimension_audit": "D01",
+      "regle": "Each deprecated API version carries a published and honored retirement deadline; no overdue version remains accessible.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Extract the register of exposed API versions; verify for each deprecated version the existence of a published deadline and the actual inaccessibility of expired versions.",
+      "preuve_attendue": "Version register with status/deadline + access test on expired versions.",
+      "grille_verdict": "compliant = deadlines published and honored ; partial = published deadlines not met, with a plan ; non-compliant = deprecated versions accessible with no deadline",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "api",
+          "web-app"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the register of API versions and their statuses; attach the excerpt.",
+        "Test access to a version announced as retired; attach the result.",
+        "If gap: publish the retirement deadline and cut off access to expired versions."
+      ],
+      "derogation": null,
+      "standards": [
+        "OpenAPI (cycle de vie des contrats)",
+        "SemVer"
+      ]
+    },
+    {
+      "id": "CTL-D01-15",
+      "adr_source": [
+        "ADR0108"
+      ],
+      "dimension_audit": "D01",
+      "regle": "A reversibility plan exists: export of all data and configurations in usable, documented formats, tested at least once.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of the reversibility plan, the documented export formats, and the trace of a complete export test.",
+      "preuve_attendue": "Reversibility plan + inventory of exports (formats) + dated test report.",
+      "grille_verdict": "compliant = plan documented and tested ; partial = plan documented but not tested ; non-compliant = no documented export capability",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the reversibility plan and the export formats; attach.",
+        "Verify the date and scope of the last export test.",
+        "If gap: document the exports and schedule a reversibility test."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010:2023 — portabilité",
+        "ISO/IEC 19941:2017"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,395 @@
+{
+  "dimension": "D12",
+  "label": "Run & Operations",
+  "controls": [
+    {
+      "id": "CTL-D12-01",
+      "adr_source": [
+        "ADR0105"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Routine operational tasks (start/stop, deployment, purge, rotation, scheduled jobs) are described in up-to-date runbooks, executable by a person unfamiliar with the application code.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of runbooks covering the declared routine operational tasks and have a procedure executed by a person outside the development team.",
+      "preuve_attendue": "Documented runbooks for each routine operation + execution report by a third-party person.",
+      "grille_verdict": "compliant = complete runbooks successfully executed by a third-party person ; partial = partial runbooks or requiring assistance from the development team ; non-compliant = routine operations not documented",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the routine operational tasks and verify the existence of a runbook for each.",
+        "Have a representative procedure executed by a person outside the development team.",
+        "If gap: draft the missing runbooks and correct the procedures that required assistance."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des opérations informatiques",
+        "ISO/IEC 20000-1"
+      ]
+    },
+    {
+      "id": "CTL-D12-02",
+      "adr_source": [
+        "ADR0403",
+        "ADR0405",
+        "ADR0103"
+      ],
+      "dimension_audit": "D12",
+      "regle": "A formalized incident procedure covers detection, escalation (including the breakage of an integration pipeline or the breach of an error budget threshold) and on-call mobilization, with a bounded and measured response time.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a documented incident and on-call procedure, covering the detection-escalation-mobilization chain, and measure the response time on a real or simulated incident.",
+      "preuve_attendue": "Documented incident and on-call procedure + response time measurement from an exercise or a real incident.",
+      "grille_verdict": "compliant = documented procedure, operational on-call, response time measured and met ; partial = documented procedure without time measurement ; non-compliant = absence of a formalized incident or on-call procedure",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the existence of the incident procedure and the on-call chain (rotation, contacts, escalation).",
+        "Measure the response time on a simulated exercise or the latest real incident.",
+        "If gap: formalize the missing procedure and schedule a trigger exercise."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des incidents",
+        "SRE (Google) — gestion des incidents",
+        "DORA (Accelerate) — MTTR"
+      ]
+    },
+    {
+      "id": "CTL-D12-03",
+      "adr_source": [
+        "ADR0405"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Each application has a justified criticality classification (e.g. S1 to S4) and a declared service level agreement (SLA) consistent with this criticality.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif",
+      "verification": "Verify the existence of a justified criticality classification and a declared SLA consistent with this classification (service hours, target availability, response times).",
+      "preuve_attendue": "Justified criticality classification sheet + declared SLA document.",
+      "grille_verdict": "compliant = justified classification and consistent SLA formally declared ; partial = declared classification without justification or incomplete SLA ; non-compliant = no classification or SLA declared",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the declared criticality classification and its justification with regard to business impact.",
+        "Verify the consistency of the declared SLA with the chosen classification.",
+        "If gap: establish or correct the classification and align the corresponding SLA."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des niveaux de service",
+        "ISO/IEC 20000-1"
+      ]
+    },
+    {
+      "id": "CTL-D12-04",
+      "adr_source": [
+        "ADR0509"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Incidents are managed using a dedicated tool (tracking, history, actions) and every significant incident is subject to a blameless post-mortem, including a documented rollback exercise where relevant.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the use of an incident management tool and the existence of documented post-mortems for significant incidents over the last 12 months, including the measurement of restoration time.",
+      "preuve_attendue": "Extract from the incident management tool + sample of documented post-mortems with measured restoration time.",
+      "grille_verdict": "compliant = tool in place, systematic post-mortems with measured restoration time ; partial = tool in place, partial or informal post-mortems ; non-compliant = incidents not tracked or no post-mortem performed",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the effective use of the incident management tool over the last 12 months.",
+        "Sample the post-mortems performed and verify the measurement of restoration time and the absence of individual blame.",
+        "If gap: instrument the missing tracking and systematize the post-mortem for every significant incident."
+      ],
+      "derogation": null,
+      "standards": [
+        "DORA (Accelerate) — Time to Restore Service (MTTR)",
+        "SRE (Google) — gestion des incidents",
+        "ISO/IEC 27002:2022 — 5.30"
+      ]
+    },
+    {
+      "id": "CTL-D12-05",
+      "adr_source": [
+        "ADR0004"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Each production asset has a documented responsibility matrix (RACI), with at least two people actually capable of intervening in operations (bus factor ≥ 2), and the matrix is reviewed at least once a year.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a RACI matrix per production asset, the identification of at least two real operators per critical asset, and the date of the matrix's last review.",
+      "preuve_attendue": "Timestamped export of the RACI matrix + report of the last review (< 12 months).",
+      "grille_verdict": "compliant = complete matrix, bus factor ≥ 2 verified and reviewed < 12 months ago ; partial = complete matrix but bus factor = 1 on some assets or overdue review ; non-compliant = at least one asset without an identified owner",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the RACI matrix and verify that no production asset is without an identified Accountable.",
+        "Verify, by sampling, that each critical asset has at least two genuinely operational responders.",
+        "If gap: complete the matrix and organize knowledge transfer to a second responder."
+      ],
+      "derogation": null,
+      "standards": [
+        "COBIT 2019 (composant Structures organisationnelles — RACI par pratique)",
+        "ISO/IEC 38500:2015"
+      ]
+    },
+    {
+      "id": "CTL-D12-06",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D12",
+      "regle": "A tolerated data loss objective (RPO) and restoration time objective (RTO) is declared for each critical asset, and the restoration capability is periodically tested with proof of compliance.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the RPO/RTO declaration per critical asset and the record of the last real restoration exercise, with measurement of the duration and integrity of the restored data.",
+      "preuve_attendue": "RPO/RTO declared per asset + report of the last restoration exercise (duration, observed integrity).",
+      "grille_verdict": "compliant = RPO/RTO declared and restoration successfully tested within the last 12 months ; partial = objectives declared without a recent test ; non-compliant = no declared objectives or last test failed and not corrected",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the RPO/RTO declaration for each critical asset and its consistency with business tolerance.",
+        "Verify the report of the last real restoration exercise (duration achieved, observed integrity).",
+        "If gap: declare the missing objectives and schedule a restoration exercise."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
+        "RGPD — art. 32.1.c",
+        "DORA (Accelerate) — reprise de service"
+      ]
+    },
+    {
+      "id": "CTL-D12-07",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D12",
+      "regle": "A business continuity plan covers major disaster scenarios (site loss, prolonged unavailability of a critical supplier) with defined roles, a crisis communication procedure and periodic testing.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a continuity plan covering the applicable major disaster scenarios, the designation of crisis roles, and the date of the last test or exercise.",
+      "preuve_attendue": "Documented continuity plan + report of the last continuity test or exercise.",
+      "grille_verdict": "compliant = documented plan covering the applicable scenarios and tested within the last 12 months ; partial = documented plan without a recent test ; non-compliant = no formalized continuity plan",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Verify the continuity plan's coverage with regard to the disaster scenarios applicable to the application.",
+        "Verify the designation of crisis roles and the existence of a communication procedure.",
+        "If gap: complete the plan and schedule a test exercise."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO 22301:2019 (management de la continuité d'activité)",
+        "ISO/IEC 27002:2022 — 5.29 (sécurité de l'information pendant une perturbation)"
+      ]
+    },
+    {
+      "id": "CTL-D12-08",
+      "adr_source": [
+        "ADR0207"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Operational access to production (deployment, on-call intervention, emergency access) is named, traced, and the emergency access mode (\"break-glass\") is documented and logged when used.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify that production operational access is named, the existence of a documented emergency access procedure, and the logging of its actual use.",
+      "preuve_attendue": "Inventory of production operational access + emergency access procedure + extract from the usage log of this procedure.",
+      "grille_verdict": "compliant = named access, emergency procedure documented and logged ; partial = named access without a formalized emergency procedure ; non-compliant = shared or untraced access",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inventory the accounts with production operational access and verify that they are named.",
+        "Verify the existence of the emergency access procedure and, if it has been used, the trace left behind.",
+        "If gap: assign names to shared access and formalize the missing emergency procedure."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.2 (droits d'accès privilégiés)",
+        "ITIL 4 — pratique de gestion des accès"
+      ]
+    },
+    {
+      "id": "CTL-D12-09",
+      "adr_source": [
+        "ADR0105"
+      ],
+      "dimension_audit": "D12",
+      "regle": "The transfer of the application to the operations team (RUN) is formalized through a complete application handover file, the registration of the service in the inventory repository, and a traced handover between the owner and the RUN team.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a complete application handover file, the actual registration of the service in the inventory repository, and the record of a formal handover between the owner and the RUN team.",
+      "preuve_attendue": "Application handover file + extract from the inventory repository + dated and signed handover report.",
+      "grille_verdict": "compliant = complete file, service referenced, handover traced and signed ; partial = incomplete file or service not referenced ; non-compliant = no handover file or formalized handover",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the completeness of the application handover file against the expected reference framework.",
+        "Verify the registration of the service in the inventory repository and its freshness.",
+        "If gap: complete the missing file and schedule the formal handover with the RUN team."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique Service Configuration Management",
+        "ISO/IEC 20000-1:2018"
+      ]
+    },
+    {
+      "id": "CTL-D12-10",
+      "adr_source": [
+        "ADR0210"
+      ],
+      "dimension_audit": "D12",
+      "regle": "A security incident response procedure is defined, tested and tooled: detection, qualification, containment, evidence preservation, lessons learned.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the response procedure (roles, channels, steps), the record of an exercise or a handled incident, and the evidence preservation capability (protected logs, freeze).",
+      "preuve_attendue": "Procedure + exercise/incident report + preservation proof (configuration).",
+      "grille_verdict": "compliant = procedure tested with preservable evidence ; partial = procedure not tested ; non-compliant = no response procedure",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Collect the procedure and the last exercise; attach them.",
+        "Verify the link with tamper-proof logging (CTL-D03-08) for the evidence.",
+        "If gap: formalize the procedure, schedule an exercise, tool the preservation."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.24-5.28",
+        "CIS Controls v8 — 17"
+      ]
+    }
+  ]
+}

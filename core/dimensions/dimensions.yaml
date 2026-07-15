@@ -1,0 +1,61 @@
+# AuditCore — dimensions d'audit core (invariant: les 17 dimensions et 6 familles
+# ne sont ni supprimables ni fusionnables par overlay ; relabel cosmétique autorisé).
+# Source : généralisation du référentiel D00-D16 du profil de référence (PLAN/04 §1).
+pack: core-v1
+invariant: true
+families:
+  - { key: fonctionnel, label: "Fonctionnel", label_en: "Functional" }
+  - { key: architecture, label: "Architecture", label_en: "Architecture" }
+  - { key: securite, label: "Sécurité", label_en: "Security" }
+  - { key: donnees-ia, label: "Données & IA", label_en: "Data & AI" }
+  - { key: finops, label: "FinOps", label_en: "FinOps" }
+  - { key: operations, label: "Opérations", label_en: "Operations" }
+scoring:
+  scale: { 1: "Bloquant", 2: "Insuffisant", 3: "Acceptable", 4: "Solide", 5: "État de l'art" }
+  rule: "pas de score sans preuve"          # invariant
+  global: "moyenne pondérée sur les 17 dimensions"
+  blockers: "dimensions notées <= 2 ou criticité Fatal"
+gates:
+  - { key: gate1a, label: "Revue consultative", decision: false }
+  - { key: gate1b, label: "Gate décisionnelle", decision: true, authority_role: decision_authority, verdicts: [nogo, reserve, go] }
+verdict_rule: [conforme, partiel, non_conforme, sans_objet, a_evaluer]
+enforcement_levels: [blocking, required, advisory, recommendation]
+criticites: [Fatal, Bloquant, Majeur, Standard]
+action_tags: [urgent, prio, quick, norm]
+project_types: [web-app, api, data, mobile, ml, infra]
+# applicability: ✓ = plein, partial = sous-ensemble, off = sans objet par défaut (motif auto)
+dimensions:
+  - { id: D00, label: "Périmètre fonctionnel & valeur métier", label_en: "Functional scope & business value", family: fonctionnel, themes: 9,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D01, label: "Architecture cible", label_en: "Target architecture", family: architecture, themes: 10,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D02, label: "Sécurité applicative", label_en: "Application security", family: securite, themes: 10,
+      applicability: { web-app: full, api: full, data: partial, mobile: full, ml: partial, infra: partial } }
+  - { id: D03, label: "IAM & gestion des secrets", label_en: "IAM & secrets management", family: securite, themes: 9,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D04, label: "Conformité réglementaire & IA", label_en: "Regulatory & AI compliance", family: securite, themes: 10,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: partial } }
+  - { id: D05, label: "Données, qualité & restitution", label_en: "Data, quality & reporting", family: donnees-ia, themes: 9,
+      applicability: { web-app: partial, api: partial, data: full, mobile: partial, ml: full, infra: off } }
+  - { id: D06, label: "Performance & charge", label_en: "Performance & load", family: architecture, themes: 8,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: partial } }
+  - { id: D07, label: "Coûts & FinOps", label_en: "Cost & FinOps", family: finops, themes: 7,
+      applicability: { web-app: full, api: full, data: full, mobile: partial, ml: full, infra: full } }
+  - { id: D08, label: "Tests & qualité de code", label_en: "Testing & code quality", family: operations, themes: 6,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D09, label: "CI/CD & DevOps", label_en: "CI/CD & DevOps", family: architecture, themes: 7,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D10, label: "Observabilité & logs", label_en: "Observability & logs", family: operations, themes: 13,
+      applicability: { web-app: full, api: full, data: full, mobile: partial, ml: full, infra: full } }
+  - { id: D11, label: "UX & accessibilité", label_en: "UX & accessibility", family: operations, themes: 8,
+      applicability: { web-app: full, api: off, data: partial, mobile: full, ml: partial, infra: off } }
+  - { id: D12, label: "Run & exploitation", label_en: "Operations & run", family: operations, themes: 9,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D13, label: "Documentation", label_en: "Documentation", family: operations, themes: 9,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D14, label: "Modèles IA & prompts", label_en: "AI models & prompts", family: donnees-ia, themes: 9,
+      applicability: { web-app: off, api: off, data: partial, mobile: off, ml: full, infra: off } }
+  - { id: D15, label: "Principes data by design", label_en: "Data-by-design principles", family: donnees-ia, themes: 9, principles: tenant-pack,
+      applicability: { web-app: partial, api: partial, data: full, mobile: partial, ml: full, infra: off } }
+  - { id: D16, label: "Schéma de base de données", label_en: "Database schema", family: donnees-ia, themes: 9,
+      applicability: { web-app: full, api: full, data: full, mobile: partial, ml: partial, infra: off } }

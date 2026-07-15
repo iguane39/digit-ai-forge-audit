@@ -1,0 +1,291 @@
+{
+  "dimension": "D11",
+  "label": "UX & accessibilité",
+  "controls": [
+    {
+      "id": "CTL-D11-01",
+      "adr_source": [
+        "ADR0901"
+      ],
+      "dimension_audit": "D11",
+      "regle": "Le niveau de conformité aux critères de succès WCAG 2.2 niveau AA (ou au pack de normes locales d'accessibilité applicable) est mesuré par un audit outillé et documenté, avec un plan de remédiation pour tout critère non satisfait.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Exécuter un audit d'accessibilité outillé couvrant l'ensemble des critères de succès WCAG 2.2 niveau AA (ou du pack de normes locales déclaré) sur les parcours principaux, et vérifier l'existence d'un plan de remédiation pour les écarts.",
+      "preuve_attendue": "Rapport d'audit d'accessibilité daté (score par critère de succès) + plan de remédiation des écarts identifiés.",
+      "grille_verdict": "conforme = 100 % des critères AA satisfaits ou dérogation documentée ; partiel = écarts identifiés avec plan de remédiation daté ; non conforme = aucun audit d'accessibilité réalisé ou écarts sans plan de remédiation",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Exécuter (ou faire rejouer) un audit d'accessibilité outillé sur les parcours principaux et collecter le score par critère de succès.",
+        "Vérifier l'existence d'un plan de remédiation daté pour chaque critère non satisfait.",
+        "Si écart : prioriser la remédiation selon la criticité du critère (bloquant pour l'usage vs. confort)."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — niveau AA (ensemble des critères de succès)",
+        "EN 301 549"
+      ]
+    },
+    {
+      "id": "CTL-D11-02",
+      "adr_source": [
+        "ADR0901"
+      ],
+      "dimension_audit": "D11",
+      "regle": "L'intégralité des parcours fonctionnels est opérable au clavier seul, sans piège de focus, avec un indicateur de focus visible à chaque étape.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Parcourir les parcours critiques déclarés en n'utilisant que le clavier (tabulation, entrée, échappement) et vérifier l'absence de piège de focus et la visibilité continue de l'indicateur de focus.",
+      "preuve_attendue": "Enregistrement ou compte-rendu de la navigation clavier sur chaque parcours critique, avec les points de blocage identifiés.",
+      "grille_verdict": "conforme = tous les parcours critiques opérables au clavier, focus toujours visible ; partiel = parcours secondaires non opérables au clavier ; non conforme = piège de focus ou élément inatteignable au clavier sur un parcours critique",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Rejouer chaque parcours critique déclaré en navigation clavier exclusive.",
+        "Vérifier l'absence de piège de focus et la visibilité continue de l'indicateur de focus.",
+        "Si écart : corriger l'ordre de tabulation ou les composants inaccessibles au clavier."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — 2.1.1 (Keyboard)",
+        "WCAG 2.2 — 2.1.2 (No Keyboard Trap)",
+        "WCAG 2.2 — 2.4.7 (Focus Visible)"
+      ]
+    },
+    {
+      "id": "CTL-D11-03",
+      "adr_source": [
+        "ADR0901"
+      ],
+      "dimension_audit": "D11",
+      "regle": "Les contrastes de couleur du texte et des éléments d'interface significatifs respectent les ratios minimaux requis, vérifiés par un outil de mesure de contraste sur l'ensemble des écrans de la charte.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Mesurer le ratio de contraste du texte et des éléments d'interface significatifs (icônes, champs de saisie) sur chaque écran type de la charte graphique, à l'aide d'un outil de mesure de contraste.",
+      "preuve_attendue": "Rapport de mesure de contraste par écran type, avec les ratios obtenus en regard du seuil requis.",
+      "grille_verdict": "conforme = tous les ratios mesurés au-dessus du seuil requis ; partiel = écarts limités à des éléments non essentiels ; non conforme = texte ou élément essentiel sous le seuil requis",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Mesurer le ratio de contraste sur chaque écran type (texte normal, texte large, éléments non textuels).",
+        "Isoler les éléments sous le seuil requis et évaluer leur caractère essentiel au parcours.",
+        "Si écart : ajuster la palette de couleurs de la charte pour les éléments concernés."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — 1.4.3 (Contrast Minimum)",
+        "WCAG 2.2 — 1.4.11 (Non-text Contrast)"
+      ]
+    },
+    {
+      "id": "CTL-D11-04",
+      "adr_source": [
+        "ADR0901"
+      ],
+      "dimension_audit": "D11",
+      "regle": "L'interface s'adapte sans perte de fonctionnalité ni de lisibilité aux largeurs d'écran et modes d'interaction (tactile, souris, clavier) des devices cibles déclarés.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier le rendu et l'opérabilité des parcours principaux sur chaque device cible déclaré (desktop, tablette, mobile), en modes portrait et paysage le cas échéant.",
+      "preuve_attendue": "Captures d'écran des parcours principaux sur chaque device cible + relevé des points de rupture de mise en page.",
+      "grille_verdict": "conforme = parcours principaux opérables et lisibles sur tous les devices cibles ; partiel = rupture de mise en page limitée à des écrans secondaires ; non conforme = parcours critique inopérable sur un device cible déclaré",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Recenser les devices cibles déclarés et vérifier le rendu des parcours principaux sur chacun.",
+        "Identifier les points de rupture de mise en page ou de perte de fonctionnalité.",
+        "Si écart : corriger les points de rupture et étendre les tests aux devices non couverts."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — 1.4.10 (Reflow)",
+        "WCAG 2.2 — 2.5.8 (Target Size Minimum)",
+        "ISO 9241-110"
+      ]
+    },
+    {
+      "id": "CTL-D11-05",
+      "adr_source": [
+        "ADR0805",
+        "ADR0902"
+      ],
+      "dimension_audit": "D11",
+      "regle": "La performance perçue par l'utilisateur (temps de chargement initial, réactivité aux interactions, stabilité visuelle) est mesurée par un outil de mesure de performance web ou mobile générique, sur les parcours principaux.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Exécuter un outil de mesure de performance générique sur les parcours principaux et relever les indicateurs de performance perçue (chargement initial, réactivité, stabilité visuelle) en environnement représentatif.",
+      "preuve_attendue": "Rapport de mesure de performance perçue par parcours, avec les valeurs obtenues en regard des seuils cibles déclarés.",
+      "grille_verdict": "conforme = indicateurs de performance perçue sous les seuils cibles sur tous les parcours principaux ; partiel = dépassement limité à des parcours secondaires ; non conforme = aucune mesure réalisée ou seuils dépassés sur un parcours principal",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Exécuter la mesure de performance perçue sur chaque parcours principal en environnement représentatif de la charge cible.",
+        "Comparer les indicateurs obtenus aux seuils cibles déclarés.",
+        "Si écart : identifier les postes d'optimisation (poids des ressources, temps de réponse serveur) et prioriser leur traitement."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (efficacité de performance)",
+        "ISO 9241-11 (efficience)"
+      ]
+    },
+    {
+      "id": "CTL-D11-06",
+      "adr_source": [
+        "ADR0902"
+      ],
+      "dimension_audit": "D11",
+      "regle": "Chaque parcours fonctionnel critique est testé avec des utilisateurs représentatifs avant mise à disposition élargie, et les frictions constatées font l'objet d'un plan de correction.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence de sessions de test utilisateur sur chaque parcours critique déclaré, avec des participants représentatifs des personas cibles, et l'existence d'un plan de correction des frictions constatées.",
+      "preuve_attendue": "Compte-rendu des sessions de test utilisateur (participants, parcours testés, frictions constatées) + plan de correction daté.",
+      "grille_verdict": "conforme = tous les parcours critiques testés avec utilisateurs représentatifs et plan de correction suivi ; partiel = tests réalisés sur une partie des parcours critiques ; non conforme = aucun test utilisateur réalisé",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile",
+          "data",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Vérifier la couverture des sessions de test utilisateur par rapport aux parcours critiques déclarés en D00.",
+        "Évaluer la représentativité des participants par rapport aux personas cibles.",
+        "Si écart : planifier les sessions de test manquantes et suivre le plan de correction des frictions déjà constatées."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO 9241-11 (efficacité, efficience, satisfaction)",
+        "ISO 9241-210 (conception centrée sur l'humain)"
+      ]
+    },
+    {
+      "id": "CTL-D11-07",
+      "adr_source": [
+        "ADR0902"
+      ],
+      "dimension_audit": "D11",
+      "regle": "Tout message d'erreur présenté à l'utilisateur identifie la nature du problème et propose une action concrète de résolution ou de contournement, sans exposer de détail technique interne.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Provoquer les erreurs utilisateur courantes sur les parcours principaux (saisie invalide, échec réseau, droits insuffisants) et vérifier que chaque message identifie le problème et propose une action concrète.",
+      "preuve_attendue": "Captures des messages d'erreur obtenus pour chaque scénario testé, avec évaluation de leur caractère actionnable.",
+      "grille_verdict": "conforme = tous les messages testés identifient le problème et proposent une action concrète ; partiel = messages génériques sans action proposée sur certains scénarios ; non conforme = message technique brut ou absence de message exposé à l'utilisateur",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile",
+          "api"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Provoquer les scénarios d'erreur courants sur les parcours principaux et collecter les messages présentés.",
+        "Évaluer chaque message selon deux critères : identification du problème, action concrète proposée.",
+        "Si écart : reformuler les messages génériques ou techniques en messages actionnables."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — 3.3.1 (Error Identification)",
+        "WCAG 2.2 — 3.3.3 (Error Suggestion)",
+        "ISO 9241-110"
+      ]
+    },
+    {
+      "id": "CTL-D11-08",
+      "adr_source": [
+        "ADR0902"
+      ],
+      "dimension_audit": "D11",
+      "regle": "Un mécanisme de collecte des retours utilisateurs (satisfaction, friction, suggestion) est en place en continu, et les retours collectés alimentent un backlog d'amélioration priorisé.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence d'un mécanisme de collecte de retours utilisateurs actif en continu et sa traçabilité vers un backlog d'amélioration priorisé.",
+      "preuve_attendue": "Export des retours utilisateurs collectés sur une période représentative + extrait du backlog d'amélioration correspondant.",
+      "grille_verdict": "conforme = mécanisme de collecte actif en continu et retours tracés dans un backlog priorisé ; partiel = collecte ponctuelle sans traçabilité vers un backlog ; non conforme = aucun mécanisme de collecte des retours utilisateurs",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile",
+          "data",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Vérifier l'existence et l'activité continue du mécanisme de collecte de retours utilisateurs.",
+        "Tracer un échantillon de retours collectés jusqu'à leur traitement dans le backlog d'amélioration.",
+        "Si écart : mettre en place le mécanisme de collecte et l'articulation avec le backlog produit."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO 9241-11 (satisfaction)",
+        "ISO 9241-210 (conception centrée sur l'humain)"
+      ]
+    }
+  ]
+}

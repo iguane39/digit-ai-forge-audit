@@ -1,0 +1,67 @@
+{
+  "profile": "elastic",
+  "version": "1.0.0",
+  "description": "Instanciation des contrôles d'observabilité (logs structurés, traces, alertes sur SLO, rétention, redaction — D10), de journal d'audit (D03) et de gestion des incidents (D12) sur une plateforme d'observabilité unifiée bâtie autour d'Elasticsearch/Kibana, avec un schéma de champs commun (Elastic Common Schema).",
+  "bindings": [
+    {
+      "control": "CTL-D10-01",
+      "instanciation": "Tous les composants applicatifs et infrastructures du périmètre envoient leurs journaux au format Elastic Common Schema (ECS) vers la plateforme d'observabilité unifiée, avec des champs normalisés (@timestamp, log.level, service.name, message) et une échelle de sévérité homogène entre services.",
+      "verification_command": "curl -s -u <user>:<pass> 'https://<host>:9200/logs-*/_mapping' | jq '.[].mappings.properties | keys' ; curl -s -u <user>:<pass> 'https://<host>:9200/_ingest/pipeline/ecs-normalize' — vérifier la présence des champs ECS communs et du pipeline d'enrichissement.",
+      "evidence": "Extraits de logs structurés d'au moins 3 composants distincts au format ECS + mapping d'index confirmant les champs communs."
+    },
+    {
+      "control": "CTL-D10-02",
+      "instanciation": "Chaque requête entrante sur un parcours critique porte un identifiant de trace distribuée (trace.id/transaction.id conformes ECS/OpenTelemetry), collecté par l'agent APM et permettant de reconstituer le parcours complet dans la plateforme d'observabilité.",
+      "verification_command": "curl -s -u <user>:<pass> 'https://<host>:9200/traces-apm*/_search?q=trace.id:<id>&sort=@timestamp:asc' — reconstituer la trace bout-en-bout d'une transaction rejouée sur un parcours critique.",
+      "evidence": "Capture d'une trace bout-en-bout (spans ordonnés par service) extraite de l'index traces-apm-* pour un parcours critique."
+    },
+    {
+      "control": "CTL-D10-06",
+      "instanciation": "Les alertes sur les services critiques sont fondées sur des SLO déclarés dans la fonctionnalité SLO d'Elastic Observability et la consommation du budget d'erreur associé, plutôt que sur des seuils techniques bruts isolés.",
+      "verification_command": "curl -s -u <user>:<pass> -H 'kbn-xsrf: true' 'https://<kibana-host>:5601/api/observability/slos' ; curl -s -u <user>:<pass> -H 'kbn-xsrf: true' 'https://<kibana-host>:5601/api/alerting/rules/_find?search=SLO'",
+      "evidence": "Export des SLO déclarés par service critique (budget d'erreur, fenêtre) + historique d'au moins une alerte déclenchée sur franchissement de budget."
+    },
+    {
+      "control": "CTL-D10-08",
+      "instanciation": "Chaque flux de données (index de logs, métriques, traces) est couvert par une politique de cycle de vie (ILM) déclarant les phases hot/warm/cold/delete et la durée de rétention par catégorie, alignée sur l'obligation légale ou contractuelle applicable.",
+      "verification_command": "curl -s -u <user>:<pass> 'https://<host>:9200/_ilm/policy/<policy_name>' | jq ; curl -s -u <user>:<pass> 'https://<host>:9200/_cat/indices?v&h=index,creation.date.string,docs.count'",
+      "evidence": "Politique ILM exportée par catégorie de données + extrait _cat/indices démontrant la purge/rollover conforme aux durées déclarées."
+    },
+    {
+      "control": "CTL-D10-09",
+      "instanciation": "Aucune donnée sensible en clair (secret, jeton, donnée personnelle identifiante) n'atteint les index de logs ou de télémétrie : un pipeline d'ingestion applique un processor de redaction/masquage sur les champs sensibles connus avant indexation.",
+      "verification_command": "curl -s -u <user>:<pass> 'https://<host>:9200/_ingest/pipeline/<pipeline_redact>' | jq '.processors' ; curl -s -u <user>:<pass> -X POST 'https://<host>:9200/_ingest/pipeline/<pipeline_redact>/_simulate' -H 'Content-Type: application/json' -d @doc-canari-test.json",
+      "evidence": "Configuration du pipeline d'ingestion (processor redact) + résultat du test _simulate confirmant l'absence de la donnée sensible en clair dans le document produit."
+    },
+    {
+      "control": "CTL-D10-12",
+      "instanciation": "Les événements de sécurité (authentification, élévation, accès aux secrets) de l'ensemble du périmètre audité sont centralisés dans la plateforme d'observabilité (catégorie ECS event.category: authentication/iam) ; l'accès aux index correspondants est restreint à un rôle dédié et lui-même journalisé.",
+      "verification_command": "curl -s -u <user>:<pass> 'https://<host>:9200/security-*/_search?q=event.category:authentication' ; curl -s -u <user>:<pass> 'https://<host>:9200/_security/role/<role_audit_readers>'",
+      "evidence": "Extrait des événements de sécurité centralisés (event.category ECS) + définition du rôle Elasticsearch restreignant l'accès à ces index."
+    },
+    {
+      "control": "CTL-D10-13",
+      "instanciation": "Le volume et le coût de la télémétrie collectée sont gouvernés par une politique de rollover/downsampling et de niveaux de données (hot/warm/cold/frozen), avec un budget de rétention proportionné suivi périodiquement.",
+      "verification_command": "curl -s -u <user>:<pass> 'https://<host>:9200/_ilm/policy/<policy>' | jq '.policy.phases' ; curl -s -u <user>:<pass> 'https://<host>:9200/<data_stream>/_stats'",
+      "evidence": "Politique d'échantillonnage/downsampling documentée + export du volume de stockage par niveau de données sur 90 jours."
+    },
+    {
+      "control": "CTL-D03-08",
+      "instanciation": "L'accès à la plateforme d'observabilité elle-même (authentification, élévation, consultation des journaux d'autres systèmes) est journalisé de façon inviolable et horodatée via l'audit logging natif d'Elasticsearch/Kibana, protégé par une politique ILM en lecture seule.",
+      "verification_command": "curl -s -u <user>:<pass> 'https://<host>:9200/_cluster/settings?include_defaults=true&filter_path=**.xpack.security.audit' ; curl -s -u <user>:<pass> 'https://<host>:9200/.security_audit_log-*/_search?q=event.action:access_granted'",
+      "evidence": "Configuration confirmant l'activation de l'audit logging Elasticsearch/Kibana + extrait de l'index .security_audit_log-* et politique ILM de protection en écriture."
+    },
+    {
+      "control": "CTL-D12-02",
+      "instanciation": "Une procédure d'incident formalisée relie la détection d'une alerte de la plateforme d'observabilité à l'escalade vers l'astreinte via un connecteur dédié (PagerDuty, Opsgenie ou équivalent), avec un délai de prise en charge borné et mesuré.",
+      "verification_command": "curl -s -u <user>:<pass> -H 'kbn-xsrf: true' 'https://<kibana-host>:5601/api/actions/connectors' ; curl -s -u <user>:<pass> -H 'kbn-xsrf: true' 'https://<kibana-host>:5601/api/alerting/rules/_find'",
+      "evidence": "Procédure d'incident et d'astreinte documentée + export des connecteurs d'alerting configurés + mesure du délai de prise en charge sur un exercice ou incident réel."
+    },
+    {
+      "control": "CTL-D12-04",
+      "instanciation": "Les incidents détectés par la plateforme d'observabilité sont suivis dans l'outil de gestion de cas (Kibana Cases) relié aux alertes déclenchées, et tout incident significatif fait l'objet d'un post-mortem sans blâme incluant la mesure du temps de restauration (MTTR).",
+      "verification_command": "curl -s -u <user>:<pass> -H 'kbn-xsrf: true' 'https://<kibana-host>:5601/api/cases/_find?status=closed'",
+      "evidence": "Extrait de l'outil de gestion de cas (cas clos, alertes rattachées) + échantillon de post-mortems documentés avec MTTR mesuré."
+    }
+  ]
+}

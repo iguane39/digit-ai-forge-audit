@@ -1,0 +1,132 @@
+{
+  "dimension": "D08",
+  "label": "Tests & qualité de code",
+  "controls": [
+    {
+      "id": "CTL-D08-01",
+      "adr_source": ["ADR0504"],
+      "dimension_audit": "D08",
+      "regle": "Toute modification de code, applicatif ou infrastructure as code, est soumise avant fusion à des contrôles automatisés de convention (lint, format, validation de policy) et à une revue par au moins un pair, de façon bloquante.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier la configuration des contrôles automatisés (linter, formatter, validation de policy) déclenchés à chaque proposition de changement, ainsi que l'exigence d'une approbation de revue avant fusion.",
+      "preuve_attendue": "Configuration CI du linter/formatter/policy + configuration de la protection de branche exigeant une revue approuvée.",
+      "grille_verdict": "conforme = contrôles automatisés et revue obligatoires et bloquants ; partiel = l'un des deux seulement ; non conforme = fusion possible sans contrôle ni revue",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Vérifier la configuration du linter/formatter/validation de policy déclenchée à chaque proposition de changement ; joindre la configuration CI.",
+        "Constater sur l'historique des pull requests l'absence de fusion sans approbation de revue ; documenter le résultat.",
+        "Si écart : activer les contrôles automatisés et la protection de branche exigeant la revue."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PW.7", "ISO/IEC 25010:2011 — Maintenabilité (analysabilité)"]
+    },
+    {
+      "id": "CTL-D08-02",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D08",
+      "regle": "Les résultats des scans de sécurité (SAST, secrets, dépendances) exécutés en intégration continue sont tracés par version et intégrés comme critère de qualité du code, au même titre que la couverture de tests et la dette technique.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier que les résultats de scan sont conservés par version (historique) et consultés ou agrégés dans le même tableau de bord ou processus que les autres indicateurs de qualité de code.",
+      "preuve_attendue": "Historique des résultats de scan par version + tableau de bord qualité incluant l'indicateur sécurité.",
+      "grille_verdict": "conforme = résultats tracés par version et intégrés au tableau de bord qualité ; partiel = résultats tracés sans intégration au suivi qualité ; non conforme = résultats non conservés",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Vérifier la conservation historique des résultats de scan par version ; joindre l'extrait.",
+        "Constater l'intégration de l'indicateur sécurité dans le tableau de bord ou processus de qualité de code ; documenter le résultat.",
+        "Si écart : instrumenter la conservation et l'intégration manquantes."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PW.7", "NIST SSDF — PW.8"]
+    },
+    {
+      "id": "CTL-D08-03",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D08",
+      "regle": "La couverture de tests unitaires est mesurée à chaque intégration, avec un seuil minimal défini et vérifié automatiquement.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Exécuter ou consulter le dernier rapport de couverture ; vérifier la présence d'un seuil minimal configuré et le comportement du pipeline en cas de couverture sous le seuil.",
+      "preuve_attendue": "Rapport de couverture par module + configuration du seuil minimal en CI + preuve d'un échec de pipeline sous le seuil.",
+      "grille_verdict": "conforme = couverture mesurée, seuil défini et bloquant ; partiel = couverture mesurée sans seuil bloquant ; non conforme = couverture non mesurée",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Extraire le dernier rapport de couverture de tests par module ; joindre le rapport.",
+        "Vérifier la configuration du seuil minimal en CI et déclencher un test de régression pour constater le blocage ; documenter le résultat.",
+        "Si écart : définir le seuil et activer le blocage manquant."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Maintenabilité (testabilité)", "NIST SSDF — PW.7"]
+    },
+    {
+      "id": "CTL-D08-04",
+      "adr_source": ["ADR0501"],
+      "dimension_audit": "D08",
+      "regle": "Les parcours fonctionnels critiques font l'objet de tests d'intégration (ou de bout en bout) automatisés, exécutés à chaque changement.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Identifier les parcours critiques (déclarés en D00) et vérifier l'existence de tests d'intégration/e2e les couvrant, exécutés automatiquement à chaque changement.",
+      "preuve_attendue": "Liste des parcours critiques avec test associé + rapport d'exécution des tests d'intégration.",
+      "grille_verdict": "conforme = tous les parcours critiques couverts et exécutés automatiquement ; partiel = couverture partielle des parcours critiques ; non conforme = aucun test d'intégration constaté",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Identifier les parcours fonctionnels critiques et rechercher les tests d'intégration/e2e correspondants ; joindre la correspondance.",
+        "Vérifier l'exécution automatique de ces tests à chaque changement ; documenter le résultat.",
+        "Si écart : développer les tests d'intégration manquants sur les parcours non couverts."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Maintenabilité (testabilité)"]
+    },
+    {
+      "id": "CTL-D08-05",
+      "adr_source": ["ADR0503"],
+      "dimension_audit": "D08",
+      "regle": "La complexité cyclomatique et la dette technique (TODO/FIXME, fonctions excessivement longues) sont mesurées périodiquement et suivies dans le temps, avec un seuil d'alerte documenté.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Exécuter ou consulter l'outil d'analyse de complexité (radon, ESLint complexity ou équivalent) ; vérifier le suivi dans le temps et l'existence d'un seuil d'alerte documenté.",
+      "preuve_attendue": "Rapport de complexité daté + historique de tendance + seuil d'alerte documenté.",
+      "grille_verdict": "conforme = mesure périodique suivie dans le temps avec seuil d'alerte ; partiel = mesure ponctuelle sans suivi de tendance ; non conforme = complexité/dette non mesurée",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Exécuter ou consulter l'outil d'analyse de complexité et de dette technique ; joindre le rapport daté.",
+        "Vérifier le suivi de tendance dans le temps et l'existence d'un seuil d'alerte documenté ; documenter le constat.",
+        "Si écart : outiller la mesure périodique et définir le seuil d'alerte manquants."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Maintenabilité (analysabilité, modifiabilité)"]
+    },
+    {
+      "id": "CTL-D08-06",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D08",
+      "regle": "L'intégralité de la suite de tests (unitaires et intégration) est exécutée automatiquement à chaque changement proposé, avec un pipeline bloquant sur tout échec.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier la configuration du pipeline CI déclenchant la suite de tests à chaque changement et le blocage effectif de la fusion ou du déploiement en cas d'échec.",
+      "preuve_attendue": "Configuration du pipeline CI + preuve d'un blocage récent sur échec de test.",
+      "grille_verdict": "conforme = suite complète exécutée et bloquante à 100 % ; partiel = exécutée sans blocage systématique ; non conforme = tests non exécutés en CI",
+      "enforcement": "blocking",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Vérifier la configuration du pipeline déclenchant la suite de tests complète à chaque changement ; joindre la configuration.",
+        "Provoquer un échec de test délibéré en environnement de test et constater le blocage du pipeline ; documenter le résultat.",
+        "Si écart : corriger la configuration pour rendre le pipeline bloquant sur échec."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PW.7", "DORA (Accelerate) — capacité de test continu"]
+    }
+  ]
+}

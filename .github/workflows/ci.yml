@@ -1,0 +1,61 @@
+# AuditCore — CI PRODUIT : gate de merge = lint d'agnosticité (N1/N2 core + N0 repo-wide)
+# + batterie complète 100 % synthétique. Ce dépôt ne connaît aucun tenant réel : la logique
+# de fusion est prouvée par le golden-test ; l'iso-comportement d'un tenant réel se rejoue
+# dans le dépôt de son engagement.
+name: auditcore-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  batterie:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Dépendances outillage
+        run: npm ci || npm install
+
+      - name: Lint agnosticité v2 (N1/N2 normatif + N0 repo-wide, 0 finding exigé)
+        run: node tools/lint-agnostic.mjs
+
+      - name: Validation tenants (exemple + fixture)
+        run: |
+          node tools/validate-config.mjs config/tenants/exemple/tenant.yaml --quiet
+          node tools/validate-config.mjs tests/fixtures/tenant-valid-min.yaml --quiet
+
+      - name: Fixtures invalides rejetées (5/5)
+        run: |
+          for f in tests/fixtures/tenant-invalid-*.yaml; do
+            if node tools/validate-config.mjs "$f" --quiet > /dev/null 2>&1; then
+              echo "REGRESSION: $f accepté"; exit 1
+            fi
+          done
+          echo "5/5 fixtures invalides rejetées"
+
+      - name: Golden-test buckets + juridictions (synthétique)
+        run: node tests/test-golden-buckets.mjs
+
+      - name: Vérificateur de rapport (valide ✔ / invalide ✖)
+        run: |
+          node tools/verifier-rapport.mjs tests/fixtures/rapport-data-valid.json
+          if node tools/verifier-rapport.mjs tests/fixtures/rapport-data-invalid.json > /dev/null 2>&1; then
+            echo "REGRESSION: rapport invalide accepté"; exit 1
+          fi
+
+      - name: Kits marque-blanche (2 tenants fictifs)
+        run: |
+          node tools/build-kit.mjs config/tenants/exemple/tenant.yaml --kind both
+          node tools/build-kit.mjs tests/fixtures/tenant-valid-min.yaml --kind both
+
+      - name: Rendu rapport + catalogue (moteurs M5/M7)
+        run: |
+          node tools/build-rapport.mjs tests/fixtures/rapport-data-valid.json --tenant config/tenants/exemple/tenant.yaml --out /tmp/rapport.html
+          node tools/build-catalogue.mjs config/tenants/exemple/tenant.yaml --out /tmp/catalogue.html
+          grep -q "Toutes les règles" /tmp/rapport.html && grep -q "Catalogue ADR" /tmp/catalogue.html

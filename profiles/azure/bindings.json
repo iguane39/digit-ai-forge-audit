@@ -1,0 +1,1011 @@
+{
+  "profile": "azure",
+  "version": "1.1.0",
+  "description": "Instanciations Azure des contrôles core (+ Terraform/Azure DevOps)",
+  "bindings": [
+    {
+      "control": "CTL-D01-01",
+      "instanciation": "La cartographie applicative s'appuie sur Azure Resource Graph pour l'inventaire exhaustif des ressources et de leurs dépendances, complétée par Application Map (Application Insights) pour la vue des flux runtime entre composants.",
+      "verification_command": "az graph query -q \"Resources | where subscriptionId=='<sub-id>' | project name, type, location, tags\" --first 1000",
+      "evidence": "Export Resource Graph horodaté (JSON/CSV) + capture Application Map + document de cartographie associé."
+    },
+    {
+      "control": "CTL-D01-03",
+      "instanciation": "Le catalogue de référence interne (services et patterns approuvés) est traduit en définitions Azure Policy assignées au Management Group de la Landing Zone ; toute ressource hors catalogue est refusée ou signalée non conforme.",
+      "verification_command": "az policy state list --management-group <mg-id> --filter \"ComplianceState eq 'NonCompliant'\" --query '[].{resource:resourceId,policy:policyDefinitionName}' -o table",
+      "evidence": "Rapport de conformité Azure Policy (0 ressource non conforme ou dérogation documentée) + définitions de policy custom versionnées en Terraform."
+    },
+    {
+      "control": "CTL-D01-04",
+      "instanciation": "Les environnements dev/test/prod sont matérialisés par des abonnements ou resource groups distincts de la Landing Zone Azure ; la promotion entre environnements est exclusivement pilotée par des stages Azure DevOps à approbations obligatoires.",
+      "verification_command": "az group list --query '[].{name:name,tags:tags}' -o table && az pipelines environment list --project <project> --org https://dev.azure.com/<org>",
+      "evidence": "Inventaire des resource groups/abonnements par environnement + capture des environnements Azure DevOps avec checks d'approbation configurés."
+    },
+    {
+      "control": "CTL-D01-05",
+      "instanciation": "Les composants critiques sont déployés sur plusieurs zones de disponibilité Azure (ou en multi-région), et les mécanismes de résilience sont éprouvés par des expériences Azure Chaos Studio (arrêt de zone, injection de latence) exécutées périodiquement.",
+      "verification_command": "az resource list --query '[?zones!=null].{name:name,zones:zones}' -o table && az chaos experiment list -g <rg> -o table",
+      "evidence": "Liste des ressources avec zones de disponibilité configurées + rapport d'exécution de la dernière expérience Azure Chaos Studio."
+    },
+    {
+      "control": "CTL-D01-08",
+      "instanciation": "Les dépendances externes (API tierces, services partagés) sont recensées via les produits/abonnements Azure API Management consommés et taguées par niveau de criticité dans Azure Resource Graph.",
+      "verification_command": "az apim product list --resource-group <rg> --service-name <apim-name> --query '[].{name:name,subscriptionsRequired:subscriptionsRequired}' -o table",
+      "evidence": "Export des produits/abonnements APIM consommés + inventaire Resource Graph filtré sur le tag criticite par dépendance."
+    },
+    {
+      "control": "CTL-D02-02",
+      "instanciation": "Chaque opération d'API exposée applique une policy APIM validate-content / validate-parameters adossée au schéma OpenAPI, rejetant côté gateway toute requête non conforme avant d'atteindre le backend.",
+      "verification_command": "az apim api operation policy show --resource-group <rg> --service-name <apim-name> --api-id <api-id> --operation-id <op-id> --query 'value' -o tsv",
+      "evidence": "Extrait de la policy XML validate-content/validate-parameters + réponse HTTP 400 obtenue sur un appel de test à charge utile malformée."
+    },
+    {
+      "control": "CTL-D02-03",
+      "instanciation": "Le scan de composition logicielle (SCA) s'exécute à chaque pull request via Dependabot (GitHub) ou une tâche Mend/WhiteSource intégrée au pipeline Azure DevOps, avec échec bloquant sur toute CVE critique ou haute.",
+      "verification_command": "gh api repos/<org>/<repo>/dependabot/alerts --jq '.[] | select(.state==\"open\") | select(.security_vulnerability.severity==\"critical\" or .security_vulnerability.severity==\"high\")'",
+      "evidence": "Liste des alertes Dependabot ouvertes de sévérité critique/haute (doit être vide) + configuration YAML de l'étape SCA bloquante du pipeline."
+    },
+    {
+      "control": "CTL-D02-05",
+      "instanciation": "Le durcissement des cookies de session (Secure, HttpOnly, SameSite) et la protection anti-CSRF sont appliqués au niveau de l'App Service/Container App et vérifiés en sortie de la gateway API Management.",
+      "verification_command": "curl -sI https://<apim-name>.azure-api.net/<api>/<route> | grep -iE 'set-cookie|strict-transport-security'",
+      "evidence": "Capture des en-têtes de réponse montrant les attributs Secure/HttpOnly/SameSite + résultat d'un test de requête modifiant un état sans jeton CSRF valide (rejetée)."
+    },
+    {
+      "control": "CTL-D02-07",
+      "instanciation": "La redaction des données sensibles avant écriture dans les journaux est appliquée via une règle de transformation des Diagnostic Settings, avant ingestion dans Log Analytics/Application Insights.",
+      "verification_command": "az monitor log-analytics query --workspace <law-id> --analytics-query 'AppTraces | where Message matches regex \"(?i)(password|secret|token)=\" | take 20'",
+      "evidence": "Résultat de la requête KQL de détection de données sensibles (0 ligne retournée) + configuration de la règle de masquage dans les Diagnostic Settings."
+    },
+    {
+      "control": "CTL-D02-08",
+      "instanciation": "Les scans SAST (CodeQL / Microsoft Defender for DevOps) et DAST (OWASP ZAP) s'exécutent à chaque changement significatif dans le pipeline Azure DevOps, avec un gate bloquant configuré sur toute vulnérabilité critique.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?result=='failed']\" -o table",
+      "evidence": "Historique d'exécution du pipeline avec étapes SAST/DAST + preuve d'un blocage récent sur vulnérabilité critique injectée en test."
+    },
+    {
+      "control": "CTL-D02-10",
+      "instanciation": "La configuration de production est comparée en continu à une baseline de durcissement via Microsoft Defender for Cloud (Secure Score, recommandations CIS) et l'Azure Policy guest configuration.",
+      "verification_command": "az security assessment list --query \"[?status.code=='Unhealthy'].{name:displayName,resource:resourceDetails.Id}\" -o table",
+      "evidence": "Rapport Defender for Cloud (Secure Score, recommandations non résolues) + liste des écarts constatés par rapport à la baseline CIS."
+    },
+    {
+      "control": "CTL-D03-01",
+      "instanciation": "L'authentification de tout accès humain est exclusivement déléguée à Microsoft Entra ID, avec une politique d'accès conditionnel imposant le MFA sur l'accès à l'application.",
+      "verification_command": "az rest --method GET --uri \"https://graph.microsoft.com/v1.0/identity/conditionalAccess/policies\" --query \"value[?state=='enabled']\"",
+      "evidence": "Export de la politique d'accès conditionnel MFA activée + preuve d'un test d'accès refusé sans second facteur."
+    },
+    {
+      "control": "CTL-D03-02",
+      "instanciation": "L'historique complet du dépôt est scanné par GitHub Advanced Security secret scanning (ou gitleaks en étape de pipeline Azure DevOps) à chaque push, avec push protection bloquant l'introduction d'un secret.",
+      "verification_command": "gh api repos/<org>/<repo>/secret-scanning/alerts --jq '.[] | select(.state==\"open\")'",
+      "evidence": "Rapport de scan de secrets (0 alerte ouverte) + configuration de la push protection / du gate CI bloquant."
+    },
+    {
+      "control": "CTL-D03-03",
+      "instanciation": "Tous les secrets applicatifs résident dans Azure Key Vault, avec une politique de rotation automatique configurée à moins de 90 jours et le diagnostic logging activé pour tracer chaque accès.",
+      "verification_command": "az keyvault secret rotation-policy show --vault-name <kv-name> --name <secret-name> && az monitor diagnostic-settings show --resource /subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.KeyVault/vaults/<kv-name> --name <diag-setting-name>",
+      "evidence": "Politique de rotation automatique par secret (≤ 90 jours) + configuration des Diagnostic Settings envoyant les logs d'accès Key Vault vers Log Analytics."
+    },
+    {
+      "control": "CTL-D03-05",
+      "instanciation": "Les autorisations reposent sur les rôles RBAC Azure (intégrés ou custom) assignés au niveau resource group/abonnement, avec une campagne d'Access Review Entra ID planifiée tous les 6 mois.",
+      "verification_command": "az role assignment list --all --query '[].{principal:principalName,role:roleDefinitionName,scope:scope}' -o table",
+      "evidence": "Export complet des attributions de rôles RBAC + compte-rendu de la dernière campagne d'Access Review Entra ID (moins de 6 mois)."
+    },
+    {
+      "control": "CTL-D03-08",
+      "instanciation": "Les opérations sensibles (authentification, élévation de privilège, accès aux secrets) sont journalisées dans Azure Monitor Activity Log et les logs de diagnostic Key Vault, envoyés vers un espace Log Analytics protégé par un verrou de rétention.",
+      "verification_command": "az monitor activity-log list --start-time 2026-06-01 --query \"[?contains(operationName.value,'roleAssignments')]\" -o table",
+      "evidence": "Extrait de l'Activity Log couvrant les opérations sensibles + preuve du verrou d'immuabilité/rétention sur le workspace Log Analytics."
+    },
+    {
+      "control": "CTL-D04-07",
+      "instanciation": "Les régions Azure autorisées sont contraintes par une Azure Policy de type Allowed Locations assignée à la Landing Zone, garantissant qu'aucune ressource ni sauvegarde ne stocke de données hors du périmètre juridictionnel déclaré sans mécanisme d'encadrement documenté.",
+      "verification_command": "az policy assignment list --query \"[?contains(displayName,'location')]\" -o table && az resource list --query \"[?location!='francecentral' && location!='westeurope']\" -o table",
+      "evidence": "Configuration de la policy Allowed Locations assignée + résultat de la requête (0 ressource hors régions autorisées, ou flux documentés avec clauses contractuelles)."
+    },
+    {
+      "control": "CTL-D06-02",
+      "instanciation": "Les dépendances externes consommées via Azure API Management sont soumises à des policies de quota et de limitation de débit (rate-limit-by-key, quota-by-key) déclarées par produit, avec une réponse de dégradation maîtrisée (429 + Retry-After) au-delà du seuil.",
+      "verification_command": "az apim api operation policy show --resource-group <rg> --service-name <apim-name> --api-id <api-id> --operation-id <op-id> --query 'value' -o tsv",
+      "evidence": "Extrait de la policy XML de quota/rate-limit par produit APIM + résultat d'un test de dépassement de quota (HTTP 429 renvoyé)."
+    },
+    {
+      "control": "CTL-D06-04",
+      "instanciation": "Un test de charge Azure Load Testing (script JMeter/Locust) est exécuté en pipeline Azure DevOps avant chaque mise en production majeure, avec des critères d'échec (p95, taux d'erreur) bloquant la release en cas de dépassement.",
+      "verification_command": "az load test-run list --load-test-resource <alt-name> --resource-group <rg> --query '[].{testId:testId,status:status,result:testResult}' -o table",
+      "evidence": "Rapport du dernier test de charge Azure Load Testing (p50/p95/p99, taux d'erreur) + configuration des critères d'échec bloquant le pipeline."
+    },
+    {
+      "control": "CTL-D06-08",
+      "instanciation": "La montée en charge horizontale s'appuie sur les règles de scale Azure Container Apps (KEDA, réplicas min/max déclenchés sur métrique HTTP/CPU), documentée et validée par un test de charge atteignant la cible déclarée.",
+      "verification_command": "az containerapp show --name <app-name> --resource-group <rg> --query 'properties.template.scale'",
+      "evidence": "Configuration des règles d'autoscaling Container Apps (min/max replicas, règles de déclenchement) + rapport du test de charge validant la tenue de la cible."
+    },
+    {
+      "control": "CTL-D07-01",
+      "instanciation": "La taxonomie de tags (application, environnement, domaine, propriétaire) est publiée et imposée par une définition Azure Policy deny/modify assignée au Management Group racine, bloquant tout provisionnement non conforme.",
+      "verification_command": "az policy assignment list --query \"[?contains(displayName,'tag')]\" -o table && az resource list --query \"[?tags.application==null || tags.environnement==null]\" -o table",
+      "evidence": "Configuration de la policy de tagging obligatoire + preuve de refus de création d'une ressource de test non taguée."
+    },
+    {
+      "control": "CTL-D07-04",
+      "instanciation": "Un budget Azure Cost Management est déclaré par abonnement ou resource group applicatif, avec des alertes automatiques configurées à 50 %, 80 % et 100 % de consommation.",
+      "verification_command": "az consumption budget list --query '[].{name:name,amount:amount,notifications:notifications}' -o table",
+      "evidence": "Export des budgets et seuils configurés + historique des notifications d'alerte déclenchées via Azure Monitor Action Group."
+    },
+    {
+      "control": "CTL-D07-06",
+      "instanciation": "Le coût d'exécution est extrait mensuellement via Azure Cost Management (ventilé par tag applicatif et par service) et comparé à une projection documentée fondée sur des hypothèses de charge cible.",
+      "verification_command": "az costmanagement query --type ActualCost --timeframe MonthToDate --scope \"/subscriptions/<sub-id>\" --query 'properties.rows' -o table",
+      "evidence": "Export de coût ventilé par ressource/service sur 90 jours + document de projection à la cible avec hypothèses de calcul."
+    },
+    {
+      "control": "CTL-D08-01",
+      "instanciation": "Chaque changement (code applicatif ou Terraform) est soumis à des policies de branche Azure Repos (build validation lint/format/policy-as-code, statuts requis) et à une revue par au moins un pair, de façon bloquante avant fusion.",
+      "verification_command": "az repos policy list --project <project> --org https://dev.azure.com/<org> --repository-id <repo-id> --query '[].{type:type.displayName,isBlocking:isBlocking,isEnabled:isEnabled}' -o table",
+      "evidence": "Configuration des policies de branche (build validation + minimum reviewers) + historique des pull requests montrant l'absence de fusion sans approbation."
+    },
+    {
+      "control": "CTL-D08-06",
+      "instanciation": "La suite complète de tests unitaires et d'intégration s'exécute comme étape obligatoire du pipeline YAML Azure DevOps à chaque changement, le déploiement étant conditionné à son succès.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --pipeline-ids <id> --query '[].{id:id,result:result,reason:reason}' -o table",
+      "evidence": "Historique d'exécution du pipeline (colonne result) + preuve d'un blocage récent du déploiement suite à un échec de test."
+    },
+    {
+      "control": "CTL-D09-01",
+      "instanciation": "Tout déploiement transite exclusivement par un pipeline Azure DevOps (ou GitHub Actions) connecté à un environnement protégé ; aucun accès de déploiement direct n'est accordé sur les ressources Azure de production.",
+      "verification_command": "az role assignment list --scope /subscriptions/<sub-id>/resourceGroups/<rg> --query \"[?roleDefinitionName=='Contributor' || roleDefinitionName=='Owner']\" -o table",
+      "evidence": "Absence d'attribution Contributor/Owner à des comptes humains sur l'environnement de production + journal d'exécution complet du pipeline (auteur, version, cible, résultat)."
+    },
+    {
+      "control": "CTL-D09-02",
+      "instanciation": "L'intégralité de l'infrastructure est décrite en Terraform, avec un état distant stocké dans un Storage Account Azure (backend azurerm), verrouillé par bail de blob et versionné (versioning + soft delete activés).",
+      "verification_command": "terraform plan -detailed-exitcode -out=tfplan",
+      "evidence": "Sortie terraform plan (exit code 0 = aucune dérive) + configuration du versioning/soft delete du Storage Account hébergeant l'état."
+    },
+    {
+      "control": "CTL-D09-03",
+      "instanciation": "Les scans SAST, de détection de secrets et de dépendances (Microsoft Defender for DevOps, gitleaks, Dependabot) sont intégrés comme étapes bloquantes du pipeline Azure DevOps, avec échec du build sur toute vulnérabilité critique.",
+      "verification_command": "gh api repos/<org>/<repo>/code-scanning/alerts --jq '.[] | select(.state==\"open\") | select(.rule.security_severity_level==\"critical\" or .rule.security_severity_level==\"high\")'",
+      "evidence": "Configuration du pipeline montrant les trois étapes de scan (SAST/secrets/dépendances) + rapport d'alertes ouvertes de sévérité critique/haute (doit être vide)."
+    },
+    {
+      "control": "CTL-D09-07",
+      "instanciation": "Le retour arrière est outillé par le pipeline (réactivation de la révision précédente du Container App), testé périodiquement sans intervention manuelle directe sur la cible.",
+      "verification_command": "az containerapp revision list --name <app-name> --resource-group <rg> --query '[].{name:name,active:properties.active,created:properties.createdTime}' -o table",
+      "evidence": "Historique des révisions Container Apps + rapport du dernier exercice de rollback avec temps de restauration mesuré."
+    },
+    {
+      "control": "CTL-D10-01",
+      "instanciation": "Tous les composants (Container Apps, APIM, Functions) émettent leurs logs au format structuré JSON vers un espace Log Analytics commun, avec une échelle de sévérité normalisée exploitable en KQL.",
+      "verification_command": "az monitor log-analytics query --workspace <law-id> --analytics-query 'ContainerAppConsoleLogs_CL | summarize count() by Log_s | take 20'",
+      "evidence": "Extrait de logs structurés d'au moins 3 composants distincts + référentiel des niveaux de sévérité normalisés du profil."
+    },
+    {
+      "control": "CTL-D10-06",
+      "instanciation": "Les alertes sur les services critiques sont configurées dans Azure Monitor à partir de métriques de disponibilité/erreur consolidées en SLO déclarés, avec déclenchement sur consommation du budget d'erreur plutôt que sur un seuil technique brut.",
+      "verification_command": "az monitor metrics alert list --resource-group <rg> --query '[].{name:name,severity:severity,criteria:criteria}' -o table",
+      "evidence": "Configuration des règles d'alerte Azure Monitor liées au budget d'erreur + historique d'au moins une alerte déclenchée."
+    },
+    {
+      "control": "CTL-D10-08",
+      "instanciation": "La rétention des journaux est configurée table par table sur l'espace Log Analytics (rétention par défaut et rétentions spécifiques par catégorie), avec purge/archivage automatique à l'échéance déclarée.",
+      "verification_command": "az monitor log-analytics workspace show --resource-group <rg> --workspace-name <law-name> --query 'retentionInDays'",
+      "evidence": "Configuration de rétention par catégorie de journal + preuve d'exécution de la purge/archivage automatique."
+    },
+    {
+      "control": "CTL-D10-09",
+      "instanciation": "Une transformation à l'ingestion des Diagnostic Settings masque systématiquement les champs sensibles avant écriture dans Log Analytics/Application Insights ; un test canari valide l'absence de fuite.",
+      "verification_command": "az monitor log-analytics query --workspace <law-id> --analytics-query 'union AppTraces, ContainerAppConsoleLogs_CL | where * matches regex \"(?i)(secret|password)\" | take 20'",
+      "evidence": "Résultat de la requête KQL de recherche de données sensibles (0 ligne retournée) + configuration de la transformation de masquage à l'ingestion."
+    },
+    {
+      "control": "CTL-D10-12",
+      "instanciation": "Les événements de sécurité (authentification, élévation, accès Key Vault) sont centralisés dans un espace Log Analytics dédié ingéré par Microsoft Sentinel, dont l'accès est restreint par RBAC à un rôle SOC dédié et journalisé.",
+      "verification_command": "az role assignment list --scope /subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<law-name> --query '[].{principal:principalName,role:roleDefinitionName}' -o table",
+      "evidence": "Catalogue des règles d'analytique Sentinel couvrant les événements de sécurité + preuve de restriction RBAC sur le workspace de logs."
+    },
+    {
+      "control": "CTL-D12-02",
+      "instanciation": "La détection et l'escalade s'appuient sur les Action Groups Azure Monitor (notification, SMS, webhook vers l'outil d'astreinte) déclenchés par les alertes de métriques/budget d'erreur, avec délai de prise en charge mesuré.",
+      "verification_command": "az monitor action-group show --resource-group <rg> --name <action-group-name> --query '{email:emailReceivers,sms:smsReceivers,webhook:webhookReceivers}'",
+      "evidence": "Configuration de l'Action Group d'astreinte + mesure du délai de prise en charge sur un exercice ou incident réel récent."
+    },
+    {
+      "control": "CTL-D12-05",
+      "instanciation": "La matrice de responsabilité s'appuie sur des groupes Entra ID assignés aux rôles RBAC de chaque ressource de production (au moins deux membres par groupe), revue annuellement lors de la campagne d'Access Review.",
+      "verification_command": "az ad group member list --group <group-name-or-id> --query 'length(@)'",
+      "evidence": "Nombre de membres du groupe Entra ID par ressource critique (≥ 2) + compte-rendu de la dernière campagne d'Access Review (moins de 12 mois)."
+    },
+    {
+      "control": "CTL-D12-06",
+      "instanciation": "Le RPO/RTO de chaque actif critique est couvert par une politique de sauvegarde Azure Backup (ou une réplication Azure Site Recovery), avec un exercice de restauration exécuté et mesuré périodiquement.",
+      "verification_command": "az backup job list --resource-group <rg> --vault-name <vault-name> --query \"[?properties.operation=='Restore'].{status:properties.status,duration:properties.duration}\" -o table",
+      "evidence": "Politique de sauvegarde Azure Backup (RPO configuré) + rapport du dernier job de restauration avec durée et statut."
+    },
+    {
+      "control": "CTL-D12-07",
+      "instanciation": "Le plan de continuité s'appuie sur une architecture multi-région Azure (paired regions) avec un plan de bascule Azure Site Recovery documenté et testé lors d'un exercice de disaster recovery périodique.",
+      "verification_command": "az site-recovery recovery-plan list --resource-group <rg> --vault-name <vault-name> --query '[].{name:name,lastTestFailover:properties.lastTestFailoverTime}' -o table",
+      "evidence": "Plan de continuité documenté référençant le Recovery Plan Azure Site Recovery + compte-rendu du dernier test de bascule (moins de 12 mois)."
+    },
+    {
+      "control": "CTL-D16-02",
+      "instanciation": "L'intégrité référentielle est vérifiée directement sur la base managée (Azure Database for PostgreSQL flexible server ou Azure SQL) par une requête d'introspection du catalogue système recensant les tables sans clé primaire ou les colonnes de référence non contraintes.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname='public' AND NOT EXISTS (SELECT 1 FROM pg_constraint con WHERE con.conrelid=c.oid AND con.contype='p');\"",
+      "evidence": "Résultat de la requête d'introspection (liste des tables sans clé primaire, doit être vide) + export des contraintes de clé étrangère déclarées."
+    },
+    {
+      "control": "CTL-D16-04",
+      "instanciation": "La classification des données sensibles s'appuie sur Data Discovery & Classification d'Azure SQL (ou Microsoft Purview), avec masquage dynamique ou chiffrement Always Encrypted appliqué selon le niveau de classification de chaque colonne.",
+      "verification_command": "az sql db classification list --resource-group <rg> --server <server-name> --name <db-name> --query '[].{schema:schema,table:table,column:column,label:labelName}' -o table",
+      "evidence": "Export de la classification des colonnes sensibles Azure SQL + configuration du masquage dynamique (Dynamic Data Masking) par colonne classifiée."
+    },
+    {
+      "control": "CTL-D16-06",
+      "instanciation": "Les évolutions de schéma sont appliquées par un outil de migration versionné (Flyway/EF Core Migrations) exécuté en étape de pipeline Azure DevOps, avec un script de rollback testé en environnement non productif avant promotion.",
+      "verification_command": "git log --oneline -- migrations/ && az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'migration')]\" -o table",
+      "evidence": "Historique des migrations versionnées dans le dépôt (commits horodatés) + rapport d'exécution du test de rollback en environnement de test."
+    },
+    {
+      "control": "CTL-D16-09",
+      "instanciation": "La base de données bénéficie des sauvegardes automatiques Azure (point-in-time restore) conformes au RPO déclaré, avec un exercice de restauration testé et son résultat mesuré.",
+      "verification_command": "az sql db show --resource-group <rg> --server <server-name> --name <db-name> --query 'earliestRestoreDate'",
+      "evidence": "Configuration de la rétention de sauvegarde (PITR) + rapport du dernier test de restauration (durée, intégrité vérifiée)."
+    },
+    {
+      "control": "CTL-D00-03",
+      "instanciation": "Le référentiel des règles de gestion est maintenu comme document versionné dans le dépôt applicatif (docs/regles-gestion.md), distinct du code, et toute évolution est validée par une pull request approuvée par un représentant métier.",
+      "verification_command": "git log --follow --format=\"%ad %an %s\" --date=short -- docs/regles-gestion.md && gh pr list --search \"regles-gestion in:title\" --state merged",
+      "evidence": "Historique Git du document de règles de gestion + pull requests de validation approuvées par un représentant métier."
+    },
+    {
+      "control": "CTL-D00-06",
+      "instanciation": "Le pilotage produit s'appuie sur le backlog Azure Boards de l'équipe, avec une méthode de priorisation documentée (champ StackRank) et des itérations (sprints) portant les rituels de revue et d'arbitrage.",
+      "verification_command": "az boards work-item list --wiql \"SELECT [System.Id],[System.Title],[System.State] FROM WorkItems WHERE [System.TeamProject]='<project>' ORDER BY [Microsoft.VSTS.Common.StackRank]\" --org https://dev.azure.com/<org>",
+      "evidence": "Extrait du backlog Azure Boards ordonné par priorité + historique des itérations avec éléments clôturés."
+    },
+    {
+      "control": "CTL-D00-09",
+      "instanciation": "Le registre des hypothèses et risques métier est tenu comme document versionné dans le dépôt (docs/risques-metier.md), mis à jour à chaque comité de pilotage, avec un plan de mitigation par risque significatif.",
+      "verification_command": "git log --follow --format=\"%ad %an %s\" --date=short -- docs/risques-metier.md",
+      "evidence": "Historique des mises à jour du registre de risques (dates, auteurs) + plan de mitigation associé aux risques significatifs."
+    },
+    {
+      "control": "CTL-D01-02",
+      "instanciation": "Le couplage inter-composants est évalué à partir de la carte de dépendances runtime d'Application Insights (Application Map), complétée par un rapport d'analyse de dépendances de code publié comme artefact de pipeline Azure DevOps.",
+      "verification_command": "az monitor app-insights component show --app <app-id> -g <rg> --query 'Id' && az pipelines runs artifact list --run-id <run-id> --org https://dev.azure.com/<org> --project <project>",
+      "evidence": "Capture de l'Application Map + rapport d'analyse de couplage (dependency-cruiser ou équivalent) publié en artefact de build."
+    },
+    {
+      "control": "CTL-D01-06",
+      "instanciation": "Le registre de dette architecturale est tenu comme document versionné dans le dépôt (docs/dette-architecturale.md), chaque entrée étant qualifiée (impact, effort) et son statut suivi au fil des pull requests de résorption.",
+      "verification_command": "git log --follow --format=\"%ad %s\" -- docs/dette-architecturale.md",
+      "evidence": "Historique du registre de dette architecturale avec qualification et statut de traitement par entrée."
+    },
+    {
+      "control": "CTL-D01-07",
+      "instanciation": "Le schéma d'architecture cible (composants, flux, frontières) est versionné dans le dépôt (docs/architecture/) et publié sur le wiki Azure DevOps, garantissant son accessibilité aux parties prenantes.",
+      "verification_command": "git log -1 --format=\"%ad\" -- docs/architecture/schema-cible.drawio && az devops wiki page show --wiki <wiki-id> --path /Architecture/Schema-cible --org https://dev.azure.com/<org> --project <project>",
+      "evidence": "Date de dernière mise à jour du schéma versionné + capture de la page wiki correspondante accessible aux parties prenantes."
+    },
+    {
+      "control": "CTL-D01-09",
+      "instanciation": "Le dimensionnement retenu (SKU, réplicas, quotas) est confronté aux recommandations de performance/dimensionnement d'Azure Advisor et à la charge cible déclarée dans le document de dimensionnement versionné.",
+      "verification_command": "az advisor recommendation list --category Performance --query \"[?contains(impactedField,'Microsoft.App')]\" -o table",
+      "evidence": "Recommandations Azure Advisor de performance/dimensionnement + document de dimensionnement avec hypothèses de charge cible et marge retenue."
+    },
+    {
+      "control": "CTL-D01-10",
+      "instanciation": "Les décisions d'architecture sont tracées dans un registre d'ADR versionné (docs/adr/), chaque entrée respectant un gabarit contrôlé automatiquement en pipeline (contexte, options, choix, conséquences).",
+      "verification_command": "git log --follow --oneline -- docs/adr/ && az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'adr-lint')]\" -o table",
+      "evidence": "Historique des ADR versionnés + rapport du job de lint de structure des ADR en pipeline."
+    },
+    {
+      "control": "CTL-D01-11",
+      "instanciation": "Le zonage plateforme/charges applicatives est vérifié en confrontant la cartographie des zones (tag landing-zone) à l'inventaire réel des ressources issu d'Azure Resource Graph, à la recherche de toute ressource applicative dans le resource group de plateforme.",
+      "verification_command": "az graph query -q \"Resources | where resourceGroup =~ '<rg-plateforme>' | where tags['zone'] != 'platform'\" --query 'data'",
+      "evidence": "Résultat de la requête Resource Graph (0 ressource applicative dans la zone plateforme) + cartographie des zones à jour."
+    },
+    {
+      "control": "CTL-D01-12",
+      "instanciation": "Les flux inter-applicatifs sont cartographiés à partir des journaux de flux NSG et des connexions APIM/Event Grid, afin de vérifier qu'aucun échange significatif ne contourne la passerelle ou le bus d'événements déclaré.",
+      "verification_command": "az network watcher flow-log show --resource-group <rg> --name <flow-log-name> --query 'enabled' && az apim api list --resource-group <rg> --service-name <apim-name> -o table",
+      "evidence": "Extrait des flow logs NSG + inventaire des API/événements transitant par APIM/Event Grid, sans liaison directe identifiée."
+    },
+    {
+      "control": "CTL-D01-13",
+      "instanciation": "Les échanges de fichiers inter-organisations transitent exclusivement par le service managé de transfert (Azure Storage SFTP), sans canal ad hoc ; les tentatives d'exfiltration alternatives sont surveillées par Defender for Cloud.",
+      "verification_command": "az storage account show --name <storage-name> --resource-group <rg> --query 'isSftpEnabled' && az security alert list --query \"[?contains(alertType,'DataExfiltration')]\" -o table",
+      "evidence": "Configuration du service de transfert managé activé + absence d'alerte Defender for Cloud d'exfiltration de données non recensée."
+    },
+    {
+      "control": "CTL-D01-14",
+      "instanciation": "Le registre des versions d'API exposées par APIM porte un statut et une échéance de retrait par version dépréciée, l'accès aux versions échues étant testé et refusé.",
+      "verification_command": "az apim api revision list --resource-group <rg> --service-name <apim-name> --api-id <api-id> -o table && curl -s -o /dev/null -w \"%{http_code}\" https://<apim-name>.azure-api.net/<api>/v1/<route>",
+      "evidence": "Registre des révisions/versions APIM avec échéance de retrait + code HTTP confirmant l'inaccessibilité des versions échues."
+    },
+    {
+      "control": "CTL-D01-15",
+      "instanciation": "Le plan de réversibilité s'appuie sur les exports automatisés des données (BACPAC Azure SQL) et des configurations (état Terraform, templates ARM), testés au moins une fois et documentés dans le dépôt.",
+      "verification_command": "az sql db export --resource-group <rg> --server <server-name> --name <db-name> --admin-user <admin> --admin-password <pwd> --storage-key-type StorageAccessKey --storage-key <key> --storage-uri https://<storage>.blob.core.windows.net/exports/<db>.bacpac",
+      "evidence": "Rapport d'exécution du dernier export de données/configuration + plan de réversibilité versionné listant les formats d'export."
+    },
+    {
+      "control": "CTL-D02-01",
+      "instanciation": "La cartographie OWASP Top 10 s'appuie sur les catégories de règles de code scanning (CodeQL/Defender for DevOps) couvrant chaque risque, complétée par les alertes Dependabot pour les composants tiers, avec preuve de vérification par catégorie.",
+      "verification_command": "gh api repos/<org>/<repo>/code-scanning/alerts --jq 'group_by(.rule.tags) | map({tags: .[0].rule.tags, count: length})'",
+      "evidence": "Répartition des alertes de code scanning par catégorie de règle (proxy OWASP Top 10) + tableau de correspondance catégorie/mitigation/preuve."
+    },
+    {
+      "control": "CTL-D02-04",
+      "instanciation": "Chaque opération d'API exposée applique une policy de quota/throttling APIM (rate-limit-by-key, quota-by-key) proportionnée à l'usage attendu, avec réponse 429 et Retry-After au-delà du seuil.",
+      "verification_command": "az apim api operation policy show --resource-group <rg> --service-name <apim-name> --api-id <api-id> --operation-id <op-id> --query 'value' -o tsv",
+      "evidence": "Extrait de la policy XML de limitation de débit par opération + résultat d'un test de dépassement de quota (HTTP 429)."
+    },
+    {
+      "control": "CTL-D02-06",
+      "instanciation": "Les en-têtes de sécurité HTTP (CSP, HSTS, X-Content-Type-Options, Referrer-Policy) sont imposés par une policy APIM set-header appliquée à l'ensemble des routes exposées, vérifiée par échantillonnage.",
+      "verification_command": "curl -sI https://<apim-name>.azure-api.net/<api>/<route> | grep -iE 'content-security-policy|strict-transport-security|x-content-type-options|referrer-policy'",
+      "evidence": "Capture des en-têtes de sécurité sur un échantillon représentatif de routes exposées, conformes à l'état de l'art."
+    },
+    {
+      "control": "CTL-D02-09",
+      "instanciation": "Le modèle de menaces (threat model) est versionné dans le dépôt (docs/threat-model.md) et sa dernière revue est corrélée aux évolutions d'architecture significatives via l'historique Git.",
+      "verification_command": "git log --follow --format=\"%ad %s\" --date=short -- docs/threat-model.md",
+      "evidence": "Historique des révisions du threat model daté + correspondance avec la dernière évolution architecturale significative."
+    },
+    {
+      "control": "CTL-D02-11",
+      "instanciation": "La sortie réseau est refusée par défaut par les règles Azure Firewall/NSG avec liste explicite de FQDN et d'adresses IP autorisés, et la résolution DNS est journalisée via le proxy DNS d'Azure Firewall.",
+      "verification_command": "az network firewall policy rule-collection-group show --resource-group <rg> --policy-name <fw-policy> --name <rcg-name> --query 'properties.ruleCollections' && az monitor log-analytics query --workspace <law-id> --analytics-query 'AzureDiagnostics | where Category==\"AzureFirewallDnsProxy\" | take 20'",
+      "evidence": "Configuration des règles de sortie (refus par défaut + liste d'autorisations) + extrait des journaux de résolution DNS via Azure Firewall."
+    },
+    {
+      "control": "CTL-D02-12",
+      "instanciation": "Les vulnérabilités du socle d'exécution (images de conteneurs) et des dépendances applicatives sont inventoriées en continu par Defender for Cloud et Dependabot, avec un délai de correction par sévérité mesuré à partir des dates d'ouverture/fermeture d'alerte.",
+      "verification_command": "az security assessment list --query \"[?status.code=='Unhealthy' && contains(displayName,'vulnerabilities')]\" -o table",
+      "evidence": "Rapport d'inventaire des vulnérabilités Defender for Cloud daté + métrique de délai moyen de correction par sévérité."
+    },
+    {
+      "control": "CTL-D03-04",
+      "instanciation": "Les authentifications inter-services s'appuient sur les identités managées Microsoft Entra (System/User-Assigned Managed Identity) plutôt que sur des secrets statiques, chaque exception étant documentée et justifiée.",
+      "verification_command": "az ad sp list --filter \"servicePrincipalType eq 'ManagedIdentity'\" --query '[].{name:displayName,appId:appId}' -o table",
+      "evidence": "Inventaire des identités managées utilisées par les ressources applicatives + liste des exceptions documentées utilisant un secret statique."
+    },
+    {
+      "control": "CTL-D03-06",
+      "instanciation": "Les comptes techniques (service principals) sont dédiés par usage, non partagés, à privilèges minimaux, et distincts des comptes utilisateurs humains dans Microsoft Entra ID.",
+      "verification_command": "az ad sp list --query '[].{name:displayName,appId:appId}' -o table && az role assignment list --all --query \"[?principalType=='ServicePrincipal']\" -o table",
+      "evidence": "Inventaire des comptes techniques (service principals) avec propriétaire, périmètre RBAC et absence de partage entre applications."
+    },
+    {
+      "control": "CTL-D03-07",
+      "instanciation": "Les accès externes (partenaires, prestataires) sont fédérés via Microsoft Entra B2B (comptes invités), sans création de compte local hors procédure.",
+      "verification_command": "az ad user list --query \"[?userType=='Guest'].{name:displayName,mail:mail,createdDateTime:createdDateTime}\" -o table",
+      "evidence": "Inventaire des identités invitées B2B actives + procédure documentée de création/révocation des accès externes."
+    },
+    {
+      "control": "CTL-D03-09",
+      "instanciation": "Les clients publics (SPA, mobile) utilisent le flux Authorization Code avec PKCE via Microsoft Entra ID (MSAL), sans secret client embarqué, et les jetons d'accès ont une durée de vie courte configurée dans la politique de session.",
+      "verification_command": "az ad app show --id <app-id> --query '{publicClient:isFallbackPublicClient, redirectUris:publicClient.redirectUris}' && gitleaks detect --source ./dist --no-git",
+      "evidence": "Configuration de l'application Entra ID en client public PKCE + rapport gitleaks (0 secret détecté) sur l'artefact client livré."
+    },
+    {
+      "control": "CTL-D04-01",
+      "instanciation": "Le registre des traitements est corrélé aux actifs de données classifiés dans Microsoft Purview, chaque traitement identifié portant sa finalité et sa base légale documentées dans le registre versionné du dépôt de conformité.",
+      "verification_command": "az purview account show --name <purview-account> --resource-group <rg> --query 'id' && git log -1 --format=\"%ad\" -- docs/conformite/registre-traitements.md",
+      "evidence": "Extrait du catalogue Purview des actifs de données personnelles + registre des traitements versionné avec base légale par traitement."
+    },
+    {
+      "control": "CTL-D04-03",
+      "instanciation": "La fiche de classification du système d'IA selon la grille de risque (AI Act) est versionnée dans le dépôt de conformité, corrélée à la configuration effective des filtres de contenu du déploiement Azure OpenAI.",
+      "verification_command": "git log -1 --format=\"%ad %s\" -- docs/conformite/classification-ia.md && az cognitiveservices account show --name <aoai-name> --resource-group <rg> --query 'properties.contentFilters'",
+      "evidence": "Fiche de classification IA versionnée et datée + configuration des filtres de contenu du déploiement Azure OpenAI cohérente avec le niveau de risque retenu."
+    },
+    {
+      "control": "CTL-D04-04",
+      "instanciation": "L'information des personnes sur le traitement et l'usage de l'IA est intégrée au parcours utilisateur (bandeau de transparence) exposé par l'application, vérifiable par un test d'accès direct à la page.",
+      "verification_command": "curl -s https://<app-url>/mentions-legales | grep -iE 'traitement automatis|intelligence artificielle|donnees personnelles'",
+      "evidence": "Capture du parcours utilisateur montrant la mention de transparence + réponse HTTP confirmant l'accessibilité de la page d'information."
+    },
+    {
+      "control": "CTL-D04-05",
+      "instanciation": "Les champs de données collectés par l'application sont confrontés au strict besoin de la finalité déclarée par une requête d'introspection du schéma de la base managée, tout champ excédentaire devant être justifié.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT table_name, column_name FROM information_schema.columns WHERE table_schema='public';\"",
+      "evidence": "Extrait du schéma réel des données collectées + cartographie finalité par champ, avec justification des champs additionnels."
+    },
+    {
+      "control": "CTL-D04-06",
+      "instanciation": "Les droits des personnes (accès, rectification, effacement, opposition, portabilité) sont outillés par une Azure Function déclenchée par API, tracée dans Log Analytics et respectant le délai légal de traitement.",
+      "verification_command": "curl -X POST https://<function-app>.azurewebsites.net/api/dsr-request --data '{\"type\":\"access\",\"subject\":\"<test-id>\"}' && az monitor log-analytics query --workspace <law-id> --analytics-query 'FunctionAppLogs | where FunctionName==\"dsr-request\" | take 20'",
+      "evidence": "Trace d'exécution d'une demande de droit (Azure Function) + délai de traitement mesuré dans les journaux Log Analytics."
+    },
+    {
+      "control": "CTL-D04-08",
+      "instanciation": "Chaque catégorie de données personnelles porte une politique de conservation appliquée par une règle de cycle de vie Azure Storage (lifecycle management) ou une tâche planifiée de purge en base, avec preuve d'exécution.",
+      "verification_command": "az storage account management-policy show --account-name <storage-name> --resource-group <rg> --query 'policy.rules'",
+      "evidence": "Politique de cycle de vie (lifecycle management) par catégorie de données + journal d'exécution de la dernière purge automatisée."
+    },
+    {
+      "control": "CTL-D04-10",
+      "instanciation": "La documentation technique du modèle (architecture, limites, métriques) et la gouvernance des données d'entraînement sont publiées comme fiche modèle (model card) versionnée dans le registre Azure Machine Learning.",
+      "verification_command": "az ml model show --name <model-name> --version <version> --workspace-name <aml-workspace> --resource-group <rg> --query '{description:description,tags:tags}'",
+      "evidence": "Fiche modèle (model card) issue du registre Azure Machine Learning + document de gouvernance des données d'entraînement/validation."
+    },
+    {
+      "control": "CTL-D04-11",
+      "instanciation": "La qualification réglementaire du système d'IA et l'analyse d'impact sont documentées dans le dépôt de conformité, tandis que la supervision humaine désignée est journalisée automatiquement via un événement personnalisé Application Insights à chaque validation.",
+      "verification_command": "az monitor app-insights query --app <app-id> --analytics-query 'customEvents | where name==\"human_oversight_review\" | take 20'",
+      "evidence": "Journal des événements de supervision humaine (horodatage, réviseur) + qualification réglementaire et analyse d'impact documentées."
+    },
+    {
+      "control": "CTL-D04-12",
+      "instanciation": "La procédure de notification des violations de données s'appuie sur les incidents qualifiés dans Microsoft Sentinel, avec un registre des violations versionné et un exercice de notification testé dans le délai réglementaire.",
+      "verification_command": "az sentinel incident list --resource-group <rg> --workspace-name <law-name> --query \"[?contains(tags,'data-breach')].{title:title,createdTime:properties.createdTimeUtc,status:properties.status}\" -o table",
+      "evidence": "Incident Sentinel qualifié comme violation de données + registre des violations versionné + preuve de notification dans le délai réglementaire."
+    },
+    {
+      "control": "CTL-D05-01",
+      "instanciation": "Chaque source et pipeline de données est inventorié dans le catalogue Microsoft Purview avec un Data Owner nommé en attribut, recoupé avec les linked services Azure Data Factory réellement configurés.",
+      "verification_command": "az purview account show --name <purview-account> --resource-group <rg> --query 'id' && az datafactory linked-service list --factory-name <adf-name> --resource-group <rg> -o table",
+      "evidence": "Extrait du catalogue Purview (sources avec Data Owner nommé) + inventaire des linked services Azure Data Factory réellement configurés."
+    },
+    {
+      "control": "CTL-D05-02",
+      "instanciation": "La convention de nommage des actifs data est documentée et versionnée, et son respect est vérifié par un contrôle automatisé exécuté à chaque publication en pipeline Azure Data Factory/Azure DevOps.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'naming-lint')]\" -o table",
+      "evidence": "Convention de nommage versionnée dans le dépôt + rapport du dernier contrôle de conformité des noms d'actifs en pipeline."
+    },
+    {
+      "control": "CTL-D05-03",
+      "instanciation": "Les référentiels critiques partagés entre domaines portent une golden source déclarée dans le glossaire métier Microsoft Purview, avec détection des sources concurrentes non déclarées par recoupement du catalogue.",
+      "verification_command": "az rest --method GET --uri \"https://<purview-account>.purview.azure.com/catalog/api/atlas/v2/search/basic\" --uri-parameters query=golden-source",
+      "evidence": "Extrait du glossaire Purview identifiant la golden source par référentiel critique + résultat de la revue de détection de sources concurrentes."
+    },
+    {
+      "control": "CTL-D05-04",
+      "instanciation": "La qualité de chaque actif de données critique (complétude, unicité, fraîcheur, dérive) est mesurée en continu par une activité de validation qualité Azure Data Factory exécutée à chaque cycle, avec seuils déclarés et alerte en cas de franchissement.",
+      "verification_command": "az datafactory pipeline-run query-by-factory --factory-name <adf-name> --resource-group <rg> --last-updated-after 2026-06-01T00:00:00Z --last-updated-before 2026-07-11T00:00:00Z --filters operand=PipelineName operator=Equals values=DataQualityCheck",
+      "evidence": "Historique des exécutions du pipeline de contrôle qualité (Data Factory) + seuils déclarés et alertes déclenchées, incluant les indicateurs de dérive."
+    },
+    {
+      "control": "CTL-D05-05",
+      "instanciation": "Les pipelines de données sont structurés en couches (raw/curated/consumable) matérialisées par des conteneurs distincts Azure Data Lake Storage, documentées et rejouables de façon idempotente via les pipelines Azure Data Factory.",
+      "verification_command": "az storage container list --account-name <adls-name> --query \"[?contains(name,'raw') || contains(name,'curated') || contains(name,'consumable')]\" -o table",
+      "evidence": "Inventaire des conteneurs ADLS par couche + contrats documentés entre couches et preuve de rejeu idempotent (log d'exécution)."
+    },
+    {
+      "control": "CTL-D05-06",
+      "instanciation": "Chaque échange de données inter-équipes est régi par un contrat de données versionné (schéma JSON/Avro dans le dépôt), vérifié par un job de compatibilité en pipeline avant toute publication d'un changement de structure.",
+      "verification_command": "git log --follow --oneline -- contracts/ && az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'schema-compat')]\" -o table",
+      "evidence": "Historique des contrats de données versionnés + rapport du job de vérification de compatibilité du dernier changement publié."
+    },
+    {
+      "control": "CTL-D05-07",
+      "instanciation": "Le lignage de bout en bout de chaque actif de données critique est tracé automatiquement par Microsoft Purview (scan Azure Data Factory/Synapse) et consultable depuis le catalogue.",
+      "verification_command": "az rest --method GET --uri \"https://<purview-account>.purview.azure.com/catalog/api/atlas/v2/lineage/<asset-guid>\"",
+      "evidence": "Capture du graphe de lignage Purview d'un actif critique, de la source à la consommation finale."
+    },
+    {
+      "control": "CTL-D05-08",
+      "instanciation": "Chaque actif de données critique porte une politique de rétention appliquée par les règles de cycle de vie Azure Storage (lifecycle management), avec purge/archivage automatique vérifié.",
+      "verification_command": "az storage account management-policy show --account-name <adls-name> --resource-group <rg> --query 'policy.rules'",
+      "evidence": "Registre des politiques de rétention par actif + rapport d'exécution des purges/archivages programmés (lifecycle management)."
+    },
+    {
+      "control": "CTL-D05-09",
+      "instanciation": "Chaque actif de données critique est sauvegardé conformément à un RPO déclaré via la redondance géographique du compte de stockage ou Azure Backup, avec un exercice de restauration testé périodiquement.",
+      "verification_command": "az storage account show --name <adls-name> --query 'geoReplicationStats' && az backup job list --resource-group <rg> --vault-name <vault-name> --query \"[?properties.operation=='Restore']\" -o table",
+      "evidence": "Configuration de la redondance/RPO du compte de stockage + rapport du dernier job de restauration testé."
+    },
+    {
+      "control": "CTL-D05-10",
+      "instanciation": "Le modèle sémantique de restitution est documenté et validé par l'équipe data avant publication dans Power BI, les mesures étant inventoriées via l'API pour détecter toute redéfinition en doublon entre rapports.",
+      "verification_command": "az rest --method GET --uri \"https://api.powerbi.com/v1.0/myorg/groups/<workspace-id>/datasets\" --resource https://analysis.windows.net/powerbi/api",
+      "evidence": "Inventaire des jeux de données/mesures Power BI via l'API + documentation du modèle sémantique et trace de validation."
+    },
+    {
+      "control": "CTL-D05-11",
+      "instanciation": "La couche de restitution Power BI s'alimente exclusivement des sources de données gouvernées recensées dans Purview ; les connexions de chaque dataset sont inventoriées pour détecter toute extraction parallèle non recensée.",
+      "verification_command": "az rest --method GET --uri \"https://api.powerbi.com/v1.0/myorg/groups/<workspace-id>/datasets/<dataset-id>/datasources\" --resource https://analysis.windows.net/powerbi/api",
+      "evidence": "Inventaire des sources de données par dataset Power BI, confronté à la liste des sources gouvernées Purview."
+    },
+    {
+      "control": "CTL-D05-12",
+      "instanciation": "La logique de transformation significative est versionnée dans les pipelines Azure Data Factory/dbt (dépôt Git), et non recréée dans les mesures Power BI, vérifiée par comparaison avec la complexité DAX embarquée.",
+      "verification_command": "git log --follow --oneline -- transforms/ && az rest --method GET --uri \"https://api.powerbi.com/v1.0/myorg/groups/<workspace-id>/datasets/<dataset-id>\" --resource https://analysis.windows.net/powerbi/api",
+      "evidence": "Historique des transformations versionnées (pipeline/dbt) + inventaire des mesures Power BI, avec part de logique métier localisée en restitution."
+    },
+    {
+      "control": "CTL-D05-13",
+      "instanciation": "Une dimension de temps partagée (table dim_date) est matérialisée dans l'entrepôt Azure SQL/Synapse et référencée par chaque modèle sémantique Power BI exposé, sans calendrier recalculé localement.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT COUNT(*) FROM information_schema.tables WHERE table_name='dim_date';\"",
+      "evidence": "Preuve d'existence de la dimension de temps centrale + liste des modèles Power BI la référençant."
+    },
+    {
+      "control": "CTL-D05-14",
+      "instanciation": "Le mode de connexion (Import/DirectQuery/Live) de chaque rapport Power BI est choisi selon un profil de besoin documenté (fraîcheur, volumétrie), vérifié par requête de l'API Power BI sur un échantillon de rapports.",
+      "verification_command": "az rest --method GET --uri \"https://api.powerbi.com/v1.0/myorg/groups/<workspace-id>/datasets/<dataset-id>\" --resource https://analysis.windows.net/powerbi/api --query 'targetStorageMode'",
+      "evidence": "Règle de choix documentée + mode de connexion constaté par dataset échantillonné, confronté au besoin déclaré."
+    },
+    {
+      "control": "CTL-D05-15",
+      "instanciation": "Chaque rapport Power BI publié porte un statut de gouvernance (certifié/promu/aucun) attribué via la fonctionnalité d'endorsement, revu par l'autorité de certification data désignée.",
+      "verification_command": "az rest --method GET --uri \"https://api.powerbi.com/v1.0/myorg/admin/reports\" --resource https://analysis.windows.net/powerbi/api --query \"[].{name:name,endorsement:endorsementDetails.endorsement}\"",
+      "evidence": "Inventaire des rapports Power BI avec statut d'endorsement + compte-rendu de la dernière revue de certification."
+    },
+    {
+      "control": "CTL-D05-16",
+      "instanciation": "La résidence des données est déclarée par classification Purview et appliquée par une Azure Policy Allowed Locations restreignant le déploiement des ressources de stockage/calcul aux régions autorisées.",
+      "verification_command": "az policy assignment list --query \"[?contains(displayName,'location')]\" -o table && az resource list --query \"[?location!='francecentral' && location!='westeurope']\" -o table",
+      "evidence": "Table de correspondance classification → résidence déclarée dans Purview + preuve de localisation réelle conforme des ressources de stockage."
+    },
+    {
+      "control": "CTL-D06-01",
+      "instanciation": "Les intégrations asynchrones Azure Service Bus garantissent l'idempotence par un identifiant unique de message et une politique de retry bornée (maxDeliveryCount), avec une file de rejet (dead-letter) dédiée aux échecs répétés.",
+      "verification_command": "az servicebus queue show --resource-group <rg> --namespace-name <sb-namespace> --name <queue-name> --query '{maxDeliveryCount:maxDeliveryCount,deadLetteringOnMessageExpiration:deadLetteringOnMessageExpiration}'",
+      "evidence": "Configuration de la politique de retry et de la file de rejet Service Bus + exemple de rejeu d'un message sans duplication d'effet."
+    },
+    {
+      "control": "CTL-D06-03",
+      "instanciation": "Les objectifs de latence p50/p95/p99 par parcours critique sont déclarés et mesurés en continu via Application Insights, comparés systématiquement à la cible déclarée dans le tableau de bord.",
+      "verification_command": "az monitor app-insights query --app <app-id> --analytics-query 'requests | summarize p50=percentile(duration,50), p95=percentile(duration,95), p99=percentile(duration,99) by name | take 20'",
+      "evidence": "Export des métriques p50/p95/p99 par parcours critique sur 7-30 jours + document des objectifs de latence déclarés."
+    },
+    {
+      "control": "CTL-D06-05",
+      "instanciation": "Une stratégie de cache Azure Cache for Redis (ou cache APIM) est appliquée sur les points de contention identifiés, avec politique d'invalidation (TTL, clé) explicitement configurée.",
+      "verification_command": "az redis show --name <redis-name> --resource-group <rg> --query '{sku:sku,redisConfiguration:redisConfiguration}'",
+      "evidence": "Configuration du cache Redis/APIM (TTL, politique d'éviction) + justification documentée des points de contention couverts."
+    },
+    {
+      "control": "CTL-D06-06",
+      "instanciation": "Chaque endpoint retournant une collection applique une pagination systématique (curseur ou offset/limit) bornée par une taille de page maximale imposée par la policy APIM ou le code applicatif.",
+      "verification_command": "curl -s \"https://<apim-name>.azure-api.net/<api>/items?limit=1000000\" -o /dev/null -w \"%{http_code} %{size_download}\"",
+      "evidence": "Liste des endpoints de collection avec paramètres de pagination + résultat du test montrant le plafonnement effectif de la taille de page."
+    },
+    {
+      "control": "CTL-D06-07",
+      "instanciation": "Les connexions vers les dépendances à état (Azure Database for PostgreSQL, Redis) sont gérées par un pool dimensionné (PgBouncer intégré), dont l'utilisation est supervisée sous charge.",
+      "verification_command": "az postgres flexible-server parameter show --resource-group <rg> --server-name <server-name> --name pgbouncer.enabled && az monitor metrics list --resource <server-id> --metric active_connections -o table",
+      "evidence": "Configuration du pooling de connexions (PgBouncer) + métriques d'utilisation du pool sous charge, sans épuisement constaté."
+    },
+    {
+      "control": "CTL-D07-02",
+      "instanciation": "Le taux de conformité de tagging du portefeuille est mesuré via une requête Resource Graph périodique, avec une alerte Azure Monitor déclenchée automatiquement sur toute ressource non conforme détectée.",
+      "verification_command": "az graph query -q \"Resources | summarize total=count(), conformes=countif(isnotnull(tags['application'])) | project taux=(conformes*100.0/total)\"",
+      "evidence": "Rapport de conformité de tagging daté (taux mesuré) + configuration de l'alerte Azure Monitor sur ressources non conformes."
+    },
+    {
+      "control": "CTL-D07-03",
+      "instanciation": "Chaque ressource facturable porte un tag applicatif résolu dans le référentiel de services (CMDB), permettant une ventilation de coût par application via Azure Cost Management sans reconstruction manuelle.",
+      "verification_command": "az costmanagement query --type ActualCost --timeframe MonthToDate --scope \"/subscriptions/<sub-id>\" --query 'properties.rows' -o table",
+      "evidence": "Rapport de réconciliation tag applicatif ↔ CMDB + export de ventilation de coût par application/unité métier."
+    },
+    {
+      "control": "CTL-D07-05",
+      "instanciation": "La revue FinOps périodique est tenue et documentée sur une page du wiki Azure DevOps (versionnée via l'historique Git sous-jacent), avec décisions d'arbitrage consignées à chaque session.",
+      "verification_command": "az devops wiki page show --wiki <wiki-id> --path /FinOps/Revue-mensuelle --org https://dev.azure.com/<org> --project <project> --query 'gitItemPath'",
+      "evidence": "Historique des pages wiki de revue FinOps (dates, décisions actées) + calendrier de récurrence de la revue."
+    },
+    {
+      "control": "CTL-D07-07",
+      "instanciation": "Le plan d'optimisation des coûts (infrastructure et inférence IA) s'appuie sur les recommandations chiffrées d'Azure Advisor et d'Azure Cost Management, priorisées dans un document versionné du dépôt.",
+      "verification_command": "az advisor recommendation list --category Cost --query '[].{impact:impact,savings:extendedProperties.savingsAmount}' -o table",
+      "evidence": "Recommandations de coût Azure Advisor chiffrées + plan d'optimisation versionné avec statut de mise en œuvre (dont routage modèle/cache sémantique IA)."
+    },
+    {
+      "control": "CTL-D08-02",
+      "instanciation": "Les résultats des scans de sécurité (SAST, secrets, dépendances) exécutés en pipeline Azure DevOps sont conservés par version et consultés dans le même tableau de bord de qualité que la couverture de tests et la dette technique.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --pipeline-ids <id> --query '[].{id:id,result:result,queueTime:queueTime}' -o table",
+      "evidence": "Historique des exécutions du pipeline avec résultats de scan par version + tableau de bord qualité incluant l'indicateur sécurité."
+    },
+    {
+      "control": "CTL-D08-03",
+      "instanciation": "La couverture de tests unitaires est mesurée à chaque build via la tâche PublishCodeCoverageResults du pipeline Azure DevOps, avec un seuil minimal configuré faisant échouer le pipeline en cas de non-respect.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --pipeline-ids <id> --query \"[?result=='failed']\" -o table",
+      "evidence": "Rapport de couverture de code par module (build la plus récente) + preuve d'un échec de pipeline sous le seuil minimal configuré."
+    },
+    {
+      "control": "CTL-D08-04",
+      "instanciation": "Les parcours fonctionnels critiques déclarés en D00 font l'objet de tests d'intégration/e2e automatisés (Playwright/Cypress), exécutés à chaque changement dans une étape dédiée du pipeline Azure DevOps.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'e2e-tests')]\" -o table",
+      "evidence": "Liste des parcours critiques avec test e2e associé + rapport d'exécution des tests d'intégration/e2e par build."
+    },
+    {
+      "control": "CTL-D08-05",
+      "instanciation": "La complexité cyclomatique et la dette technique (TODO/FIXME, duplication) sont mesurées à chaque build par une analyse SonarCloud intégrée au pipeline Azure DevOps, avec un quality gate documenté comme seuil d'alerte.",
+      "verification_command": "curl -s -u <sonar-token>: \"https://sonarcloud.io/api/measures/component?component=<project-key>&metricKeys=complexity,code_smells,duplicated_lines_density\"",
+      "evidence": "Rapport de complexité/dette technique SonarCloud daté + historique de tendance et seuil de quality gate documenté."
+    },
+    {
+      "control": "CTL-D09-04",
+      "instanciation": "La stratégie de déploiement canary est mise en œuvre par pondération de trafic entre révisions Azure Container Apps, la promotion entre environnements ne pouvant se faire que via des étapes de pipeline à approbation tracée.",
+      "verification_command": "az containerapp revision list --name <app-name> --resource-group <rg> --query '[].{name:name,active:properties.active,trafficWeight:properties.trafficWeight}' -o table",
+      "evidence": "Répartition du trafic entre révisions Container Apps (canary) + journal des approbations de promotion inter-environnements du pipeline."
+    },
+    {
+      "control": "CTL-D09-05",
+      "instanciation": "Chaque artefact publié applique un schéma de versionnement sémantique vérifié automatiquement en pipeline, avec des notes de release générées et publiées à chaque tag.",
+      "verification_command": "gh api repos/<org>/<repo>/releases --jq '.[] | {tag: .tag_name, published: .published_at}'",
+      "evidence": "Historique des releases avec tags sémantiques et notes de release associées + configuration du contrôle de format de version en pipeline."
+    },
+    {
+      "control": "CTL-D09-06",
+      "instanciation": "Le dépôt applique une protection de branche sur main (interdiction de push direct, statuts de vérification requis, revue par les pairs obligatoire) avant toute fusion.",
+      "verification_command": "gh api repos/<org>/<repo>/branches/main/protection --jq '{required_reviews: .required_pull_request_reviews.required_approving_review_count, restrictions: .restrictions}'",
+      "evidence": "Configuration de la protection de branche (statuts requis + revues minimales) + historique des pull requests montrant l'absence de push direct."
+    },
+    {
+      "control": "CTL-D10-02",
+      "instanciation": "Chaque requête entrante porte un identifiant de corrélation (operation_Id) propagé par Application Insights à travers tous les composants traversés, permettant de reconstituer le parcours complet d'une transaction.",
+      "verification_command": "az monitor app-insights query --app <app-id> --analytics-query 'union requests, dependencies, traces | where operation_Id==\"<sample-op-id>\" | order by timestamp asc'",
+      "evidence": "Capture d'une trace bout-en-bout reconstituée par operation_Id sur un parcours critique déclaré."
+    },
+    {
+      "control": "CTL-D10-03",
+      "instanciation": "Chaque composant expose en continu ses métriques techniques (latence, taux d'erreur, débit, saturation) vers Azure Monitor, avec un historique d'au moins 30 jours disponible pour l'analyse de tendance.",
+      "verification_command": "az monitor metrics list --resource <resource-id> --metric \"Http5xx,ResponseTime,Requests\" --start-time 2026-06-11T00:00:00Z --end-time 2026-07-11T00:00:00Z -o table",
+      "evidence": "Export des métriques techniques par composant sur 30 jours (latence, erreurs, débit, saturation)."
+    },
+    {
+      "control": "CTL-D10-04",
+      "instanciation": "Les indicateurs d'activité métier (volumes traités, taux de succès fonctionnel) sont instrumentés via des événements personnalisés Application Insights, avec un propriétaire métier identifié dans la documentation associée.",
+      "verification_command": "az monitor app-insights query --app <app-id> --analytics-query 'customEvents | summarize count() by name | take 20'",
+      "evidence": "Capture des métriques métier exposées (customEvents) + correspondance documentée avec les KPIs du périmètre fonctionnel et leur propriétaire."
+    },
+    {
+      "control": "CTL-D10-05",
+      "instanciation": "Des tableaux de bord opérationnels (Azure Monitor Workbooks) consolident en continu les signaux techniques et métier essentiels, partagés en lecture au rôle RBAC de l'équipe d'exploitation.",
+      "verification_command": "az monitor workbook list --resource-group <rg> --category workbook -o table && az role assignment list --scope <workbook-resource-id> -o table",
+      "evidence": "Captures des Workbooks opérationnels en place + liste des rôles RBAC (équipe d'exploitation) y ayant accès en lecture."
+    },
+    {
+      "control": "CTL-D10-07",
+      "instanciation": "La consommation du budget d'erreur de chaque service critique est suivie via une règle d'alerte Azure Monitor sur le taux de combustion (burn rate), déclenchant le gel des déploiements via l'Action Group avant épuisement complet.",
+      "verification_command": "az monitor metrics alert list --resource-group <rg> --query \"[?contains(name,'error-budget-burn')]\" -o table",
+      "evidence": "Configuration de l'alerte de burn rate du budget d'erreur + trace d'une action de gel des déploiements déclenchée par le franchissement du seuil."
+    },
+    {
+      "control": "CTL-D10-10",
+      "instanciation": "La santé des flux d'échange critiques (profondeur de file Service Bus, latence des appels dépendants) est supervisée par des règles de métriques Azure Monitor avec seuils déclarés par flux, permettant une détection avant impact utilisateur.",
+      "verification_command": "az monitor metrics list --resource <servicebus-queue-id> --metric \"ActiveMessages,DeadletteredMessages\" -o table",
+      "evidence": "Tableau de bord de supervision des flux critiques (profondeur de file, erreurs) + seuils déclarés et historique d'une alerte de dégradation."
+    },
+    {
+      "control": "CTL-D10-11",
+      "instanciation": "La qualité des réponses du modèle IA en production est monitorée en continu par un échantillon canari évalué automatiquement, dont le score est publié comme métrique personnalisée Application Insights permettant de détecter une dérive.",
+      "verification_command": "az monitor app-insights query --app <app-id> --analytics-query 'customMetrics | where name==\"llm_quality_score\" | summarize avg(value) by bin(timestamp,1d)'",
+      "evidence": "Historique des scores de qualité IA (customMetrics) sur une période représentative + trace d'une alerte de dérive le cas échéant."
+    },
+    {
+      "control": "CTL-D10-13",
+      "instanciation": "Le volume et le coût de la télémétrie sont gouvernés par une politique d'échantillonnage Application Insights et un plafond quotidien (daily cap) sur l'espace Log Analytics, suivis via Azure Cost Management.",
+      "verification_command": "az monitor app-insights component show --app <app-id> -g <rg> --query 'samplingPercentage' && az monitor log-analytics workspace show --resource-group <rg> --workspace-name <law-name> --query 'workspaceCapping'",
+      "evidence": "Configuration de l'échantillonnage et du plafond quotidien Log Analytics + historique de coût de la plateforme de télémétrie sur 90 jours."
+    },
+    {
+      "control": "CTL-D11-01",
+      "instanciation": "Un audit d'accessibilité outillé (axe-core/Pa11y) couvrant les critères WCAG 2.2 AA s'exécute sur les parcours principaux comme étape du pipeline Azure DevOps, publiant un rapport et un plan de remédiation pour tout écart.",
+      "verification_command": "az pipelines runs artifact list --run-id <run-id> --org https://dev.azure.com/<org> --project <project> --artifact-name a11y-report",
+      "evidence": "Rapport d'audit d'accessibilité (score par critère WCAG) publié en artefact de pipeline + plan de remédiation versionné pour les écarts."
+    },
+    {
+      "control": "CTL-D11-02",
+      "instanciation": "La navigation clavier complète des parcours critiques (absence de piège de focus, indicateur visible) est vérifiée par une suite de tests Playwright dédiée, exécutée en pipeline Azure DevOps à chaque changement d'interface.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'a11y-keyboard')]\" -o table",
+      "evidence": "Rapport d'exécution des tests de navigation clavier par parcours critique + liste des points de blocage identifiés."
+    },
+    {
+      "control": "CTL-D11-03",
+      "instanciation": "Les ratios de contraste de couleur sont mesurés par le module de contraste axe-core sur l'ensemble des écrans de la charte, exécuté en pipeline et bloquant en cas de non-conformité.",
+      "verification_command": "az pipelines runs artifact list --run-id <run-id> --org https://dev.azure.com/<org> --project <project> --artifact-name contrast-report",
+      "evidence": "Rapport de mesure de contraste par écran type (artefact de pipeline) avec les ratios obtenus en regard du seuil requis."
+    },
+    {
+      "control": "CTL-D11-04",
+      "instanciation": "Le rendu responsive des parcours principaux est vérifié sur chaque device cible déclaré par une suite de tests Playwright multi-viewport exécutée en pipeline Azure DevOps.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'responsive-tests')]\" -o table",
+      "evidence": "Captures d'écran des parcours principaux par device cible (artefact de pipeline) + relevé des points de rupture de mise en page."
+    },
+    {
+      "control": "CTL-D11-05",
+      "instanciation": "La performance perçue (chargement initial, réactivité, stabilité visuelle) est mesurée par Lighthouse CI exécuté sur les parcours principaux à chaque déploiement en pipeline Azure DevOps.",
+      "verification_command": "az pipelines runs artifact list --run-id <run-id> --org https://dev.azure.com/<org> --project <project> --artifact-name lighthouse-report",
+      "evidence": "Rapport Lighthouse CI par parcours (artefact de pipeline) avec les indicateurs de performance perçue en regard des seuils cibles déclarés."
+    },
+    {
+      "control": "CTL-D11-06",
+      "instanciation": "Les sessions de test utilisateur sur les parcours critiques sont documentées sur le wiki Azure DevOps (versionné), avec les frictions constatées transformées en éléments de backlog Azure Boards priorisés.",
+      "verification_command": "az devops wiki page show --wiki <wiki-id> --path /UX/Tests-utilisateurs --org https://dev.azure.com/<org> --project <project> && az boards work-item list --wiql \"SELECT [System.Id] FROM WorkItems WHERE [System.Tags] CONTAINS 'friction-ux'\" --org https://dev.azure.com/<org>",
+      "evidence": "Compte-rendu des sessions de test utilisateur (page wiki datée) + éléments de backlog Azure Boards liés au plan de correction des frictions."
+    },
+    {
+      "control": "CTL-D11-07",
+      "instanciation": "Les messages d'erreur utilisateur (saisie invalide, échec réseau, droits insuffisants) sont vérifiés par des scénarios de test Playwright dédiés, exécutés en pipeline et confirmant leur caractère actionnable sans détail technique exposé.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'error-messages-tests')]\" -o table",
+      "evidence": "Captures des messages d'erreur obtenus pour chaque scénario testé (artefact de pipeline), avec évaluation de leur caractère actionnable."
+    },
+    {
+      "control": "CTL-D11-08",
+      "instanciation": "Le mécanisme de collecte de retours utilisateurs (widget intégré) alimente automatiquement un backlog Azure Boards priorisé, via un connecteur créant un work item par retour reçu.",
+      "verification_command": "az boards work-item list --wiql \"SELECT [System.Id],[System.Title] FROM WorkItems WHERE [System.Tags] CONTAINS 'retour-utilisateur' ORDER BY [System.CreatedDate] DESC\" --org https://dev.azure.com/<org>",
+      "evidence": "Export des retours utilisateurs collectés sur une période représentative + extrait du backlog Azure Boards correspondant."
+    },
+    {
+      "control": "CTL-D12-01",
+      "instanciation": "Les runbooks d'exploitation courante (démarrage/arrêt, déploiement, purge, rotation) sont versionnés sur le wiki Azure DevOps, et leur exécutabilité par un tiers est vérifiée par un test réalisé par une personne hors équipe de développement.",
+      "verification_command": "az devops wiki page show --wiki <wiki-id> --path /Exploitation/Runbooks --org https://dev.azure.com/<org> --project <project>",
+      "evidence": "Runbooks versionnés sur le wiki Azure DevOps pour chaque opération courante + compte-rendu d'exécution par une personne tierce."
+    },
+    {
+      "control": "CTL-D12-03",
+      "instanciation": "La classification de criticité (S1-S4) est portée par un tag Azure Resource Graph sur les ressources de production, cohérente avec le SLA déclaré dans le document de service versionné.",
+      "verification_command": "az graph query -q \"Resources | where tags['criticite'] != '' | project name, criticite=tags['criticite']\"",
+      "evidence": "Extrait Resource Graph de la classification de criticité par ressource + document de SLA déclaré cohérent avec cette classification."
+    },
+    {
+      "control": "CTL-D12-04",
+      "instanciation": "Les incidents sont gérés via des work items Azure Boards de type Incident, et tout incident significatif fait l'objet d'un post-mortem sans blâme versionné sur le wiki, avec temps de restauration mesuré.",
+      "verification_command": "az boards work-item list --wiql \"SELECT [System.Id],[System.Title],[System.State] FROM WorkItems WHERE [System.WorkItemType]='Incident' ORDER BY [System.CreatedDate] DESC\" --org https://dev.azure.com/<org>",
+      "evidence": "Extrait des work items Incident Azure Boards + échantillon de post-mortems versionnés sur le wiki avec temps de restauration mesuré."
+    },
+    {
+      "control": "CTL-D12-08",
+      "instanciation": "Les accès d'exploitation en production sont nominatifs via Microsoft Entra PIM (assignations éligibles), et le mode d'accès d'urgence (break-glass) est documenté et journalisé dans l'Activity Log à chaque activation.",
+      "verification_command": "az rest --method GET --uri \"https://graph.microsoft.com/v1.0/roleManagement/directory/roleEligibilityScheduleInstances\" && az monitor activity-log list --start-time 2026-06-01 --query \"[?contains(caller,'breakglass')]\" -o table",
+      "evidence": "Export des attributions PIM éligibles nominatives + extrait de l'Activity Log documentant l'usage du compte d'accès d'urgence."
+    },
+    {
+      "control": "CTL-D12-09",
+      "instanciation": "Le transfert vers l'équipe RUN est formalisé par un dossier de reprise applicative versionné, l'enregistrement du service dans Azure Resource Graph (tag service-catalog-id) et une passation tracée sur le wiki Azure DevOps.",
+      "verification_command": "az graph query -q \"Resources | where tags['service-catalog-id'] != ''\" && az devops wiki page show --wiki <wiki-id> --path /RUN/Passation --org https://dev.azure.com/<org> --project <project>",
+      "evidence": "Dossier de reprise applicative versionné + extrait Resource Graph de l'enregistrement au référentiel de services + compte-rendu de passation daté sur le wiki."
+    },
+    {
+      "control": "CTL-D12-10",
+      "instanciation": "La procédure de réponse à incident de sécurité s'appuie sur les playbooks Microsoft Sentinel (Logic Apps SOAR), testée par un exercice simulé, avec préservation de la preuve garantie par le stockage immuable des journaux.",
+      "verification_command": "az sentinel incident list --resource-group <rg> --workspace-name <law-name> -o table && az storage account blob-service-properties show --account-name <storage-name> --query 'immutableStorageWithVersioning'",
+      "evidence": "Playbook Sentinel/Logic Apps de réponse à incident + compte-rendu d'exercice + configuration du stockage immuable préservant la preuve."
+    },
+    {
+      "control": "CTL-D13-01",
+      "instanciation": "Le README opérationnel (objet, prérequis, commandes de démarrage/test/déploiement, contacts) est versionné à la racine du dépôt et sa fraîcheur est corrélée aux évolutions structurantes du projet.",
+      "verification_command": "git log -1 --format=\"%ad %an\" --date=short -- README.md",
+      "evidence": "Contenu du README versionné + date de dernière mise à jour cohérente avec la dernière évolution structurante."
+    },
+    {
+      "control": "CTL-D13-02",
+      "instanciation": "Le contrat d'interface OpenAPI de chaque API exposée est publié depuis la définition APIM, versionné, et vérifié en continu (diff de schéma) par une étape du pipeline Azure DevOps.",
+      "verification_command": "az apim api export --resource-group <rg> --service-name <apim-name> --api-id <api-id> --export-format OpenApiJson --file-path openapi-export.json",
+      "evidence": "Spécification OpenAPI exportée d'APIM versionnée + rapport du job de vérification de conformité contrat/implémentation en pipeline."
+    },
+    {
+      "control": "CTL-D13-03",
+      "instanciation": "Le registre d'ADR (docs/adr/) respecte un gabarit d'identifiant et de frontmatter contrôlé par un script de lint exécuté en pipeline, et l'historique Git garantit qu'aucune décision acceptée n'est réécrite sur le fond sans ADR de remplacement.",
+      "verification_command": "git log --follow -p -- docs/adr/ | grep -c \"^status: accepted\"",
+      "evidence": "Sortie du vérificateur de format des ADR en pipeline + historique Git démontrant l'absence de réécriture d'une décision acceptée."
+    },
+    {
+      "control": "CTL-D13-04",
+      "instanciation": "La documentation technique d'architecture et le registre des écarts par rapport à la cible sont versionnés dans le dépôt (docs/architecture/, docs/ecarts.md) et leur fraîcheur est vérifiée par l'historique Git.",
+      "verification_command": "git log -1 --format=\"%ad\" -- docs/architecture/ docs/ecarts.md",
+      "evidence": "Schémas et documents d'architecture technique versionnés + registre des écarts avec statut de remédiation et date de dernière mise à jour."
+    },
+    {
+      "control": "CTL-D13-05",
+      "instanciation": "La documentation utilisateur est publiée depuis le dépôt de documentation (site statique déployé via Azure Static Web Apps), sa fraîcheur étant vérifiée par l'historique Git et son accessibilité par un test HTTP.",
+      "verification_command": "git log -1 --format=\"%ad\" -- docs-site/ && curl -s -o /dev/null -w \"%{http_code}\" https://<static-web-app>.azurestaticapps.net/docs",
+      "evidence": "Date de dernière mise à jour de la documentation utilisateur + code HTTP 200 confirmant son accessibilité depuis le portail applicatif."
+    },
+    {
+      "control": "CTL-D13-06",
+      "instanciation": "Le guide d'onboarding développeur est versionné dans le dépôt (docs/onboarding.md) et sa capacité à rendre un nouveau développeur autonome est vérifiée par un test réalisé par une personne extérieure au projet.",
+      "verification_command": "git log -1 --format=\"%ad\" -- docs/onboarding.md",
+      "evidence": "Guide d'onboarding versionné et à jour + compte-rendu d'un onboarding test (durée, sollicitations nécessaires)."
+    },
+    {
+      "control": "CTL-D13-07",
+      "instanciation": "Le dictionnaire de données est publié et maintenu dans le catalogue Microsoft Purview, recherchable par signification métier au-delà de la seule structure technique.",
+      "verification_command": "az rest --method GET --uri \"https://<purview-account>.purview.azure.com/catalog/api/atlas/v2/search/basic\" --uri-parameters query=dictionnaire",
+      "evidence": "Extrait du catalogue Purview montrant la couverture et la fraîcheur des descriptions du dictionnaire de données."
+    },
+    {
+      "control": "CTL-D13-08",
+      "instanciation": "La documentation de conformité applicable (registre des traitements, AIPD, classifications) est centralisée dans le dépôt de conformité (docs/conformite/), référencée depuis le README, et sa mise à jour est vérifiée par l'historique Git après chaque évolution significative.",
+      "verification_command": "git log --follow --format=\"%ad %s\" -- docs/conformite/",
+      "evidence": "Inventaire versionné de la documentation de conformité + historique Git montrant sa mise à jour après la dernière évolution significative."
+    },
+    {
+      "control": "CTL-D13-09",
+      "instanciation": "L'ensemble de la documentation projet (README, doc API, doc technique, ADR) est versionné dans le dépôt, revu par pull request comme le code, et publié automatiquement sur le site de documentation par une étape dédiée du pipeline Azure DevOps.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'docs-publish')]\" -o table",
+      "evidence": "Historique des pull requests de documentation + configuration de la publication automatisée en pipeline et horodatage de la dernière synchronisation."
+    },
+    {
+      "control": "CTL-D14-01",
+      "instanciation": "Le choix de chaque modèle IA (fournisseur, taille, version) est justifié dans une note versionnée du dépôt de conformité, corrélée au déploiement réellement actif dans Azure AI Foundry.",
+      "verification_command": "az cognitiveservices account deployment list --name <aoai-name> --resource-group <rg> --query '[].{model:properties.model.name,version:properties.model.version}' -o table",
+      "evidence": "Déploiement de modèle actif dans Azure AI Foundry + note de choix versionnée (alternatives, critères, validation) cohérente avec le modèle déployé."
+    },
+    {
+      "control": "CTL-D14-02",
+      "instanciation": "Les prompts (système, utilisateur, gabarits) sont externalisés du code et versionnés dans un registre dédié du dépôt (prompts/), chaque changement étant revu par pull request avant déploiement en production.",
+      "verification_command": "git log --follow --format=\"%ad %an %s\" -- prompts/",
+      "evidence": "Historique du registre de prompts versionné + pull requests de revue pour le dernier changement publié."
+    },
+    {
+      "control": "CTL-D14-03",
+      "instanciation": "La qualité des réponses du modèle en production est mesurée en continu par un jeu d'évaluation canari exécuté via Azure AI Foundry Evaluation, avec des métriques de qualité comparées à des seuils explicites.",
+      "verification_command": "az rest --method GET --uri \"https://<aoai-name>.openai.azure.com/openai/evaluations\" --resource https://cognitiveservices.azure.com",
+      "evidence": "Jeu d'évaluation canari + historique des scores de qualité produits par Azure AI Foundry Evaluation, comparés aux seuils déclarés."
+    },
+    {
+      "control": "CTL-D14-04",
+      "instanciation": "Les entrées et sorties de chaque modèle sont filtrées par Azure AI Content Safety (contenu dangereux, données personnelles, injection de prompt) avant transmission, testé par une sollicitation malveillante bloquée.",
+      "verification_command": "az cognitiveservices account show --name <aoai-name> --resource-group <rg> --query 'properties.contentFilters' && curl -s -X POST \"https://<aoai-name>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=2024-06-01\" -H \"api-key: <key>\" -d @prompt-injection-test.json",
+      "evidence": "Configuration des filtres de contenu Azure AI Content Safety + résultat d'un test d'injection de prompt confirmant le blocage."
+    },
+    {
+      "control": "CTL-D14-05",
+      "instanciation": "Le taux d'hallucination du modèle en production est mesuré par une métrique de groundedness (Azure AI Foundry Evaluation), bornée par un seuil déclaré, avec un plan de réduction documenté en cas de dépassement.",
+      "verification_command": "az rest --method GET --uri \"https://<aoai-name>.openai.azure.com/openai/evaluations/groundedness\" --resource https://cognitiveservices.azure.com",
+      "evidence": "Historique des mesures de groundedness/hallucination + seuil d'acceptabilité déclaré et plan de réduction en cas de dépassement."
+    },
+    {
+      "control": "CTL-D14-06",
+      "instanciation": "La stratégie de repli (modèle de secours, dégradation contrôlée) est configurée par une policy de backend circuit-breaker APIM basculant vers un déploiement Azure OpenAI secondaire, testée par simulation d'indisponibilité.",
+      "verification_command": "az apim backend show --resource-group <rg> --service-name <apim-name> --backend-id <backend-id> --query 'properties.circuitBreaker'",
+      "evidence": "Configuration du circuit-breaker/backend de secours APIM + résultat d'un test de bascule (indisponibilité simulée du modèle principal)."
+    },
+    {
+      "control": "CTL-D14-07",
+      "instanciation": "La consommation et le coût d'inférence de chaque modèle sont suivis via Azure Cost Management filtré sur la ressource Cognitive Services, avec une alerte budgétaire configurée sur seuil de dérive.",
+      "verification_command": "az costmanagement query --type ActualCost --timeframe MonthToDate --scope \"/subscriptions/<sub-id>\" --query \"properties.rows[?contains(@,'CognitiveServices')]\"",
+      "evidence": "Export de consommation/coût d'inférence par modèle + configuration de l'alerte budgétaire Azure Cost Management sur seuil de dérive."
+    },
+    {
+      "control": "CTL-D14-08",
+      "instanciation": "Toute interaction classée sensible déclenche une revue humaine avant action, via une étape d'approbation Azure Logic Apps interrompant le flux automatique et journalisant l'escalade vers un réviseur.",
+      "verification_command": "az logic-app workflow show --resource-group <rg> --name <logic-app-name> --query 'definition.actions.HumanApproval'",
+      "evidence": "Configuration de l'étape d'approbation humaine Logic Apps + trace d'un cas réel ou simulé escaladé à une revue humaine."
+    },
+    {
+      "control": "CTL-D14-09",
+      "instanciation": "Chaque interaction avec un modèle d'IA (prompt, contexte, réponse, métadonnées) est journalisée dans une table personnalisée Log Analytics, exploitable pour l'audit a posteriori d'une réponse contestée.",
+      "verification_command": "az monitor log-analytics query --workspace <law-id> --analytics-query 'AIInteractions_CL | project TimeGenerated, Prompt_s, Response_s, Model_s | take 20'",
+      "evidence": "Extrait de journal d'une interaction IA récente (prompt, réponse, modèle, horodatage) issu de Log Analytics."
+    },
+    {
+      "control": "CTL-D15-01",
+      "instanciation": "Le pack de principes Data by Design définit l'ownership comme principe obligatoire, vérifié par échantillonnage de l'attribut propriétaire sur les domaines de données du catalogue Microsoft Purview.",
+      "verification_command": "az rest --method GET --uri \"https://<purview-account>.purview.azure.com/catalog/api/atlas/v2/search/basic\" --uri-parameters query=owner",
+      "evidence": "Extrait du pack de principes (ownership) versionné + échantillon de domaines Purview avec propriétaire nommé renseigné."
+    },
+    {
+      "control": "CTL-D15-02",
+      "instanciation": "Le pack de principes définit la modélisation validée comme obligatoire ; un échantillon de modèles de données livrés récemment est confronté à l'historique des pull requests de revue par l'autorité data avant mise en production.",
+      "verification_command": "gh pr list --search \"data-model in:title\" --state merged --json number,reviews",
+      "evidence": "Extrait du pack (principe de modélisation validée) + pull requests de revue par l'autorité data pour l'échantillon de modèles livrés."
+    },
+    {
+      "control": "CTL-D15-03",
+      "instanciation": "Le pack de principes définit la qualité mesurée comme obligatoire pour les domaines critiques ; un échantillon est confronté aux règles de qualité Azure Data Factory exécutées en continu avec seuils déclarés.",
+      "verification_command": "az datafactory pipeline-run query-by-factory --factory-name <adf-name> --resource-group <rg> --last-updated-after 2026-06-01T00:00:00Z --last-updated-before 2026-07-11T00:00:00Z --filters operand=PipelineName operator=Equals values=DataQualityCheck",
+      "evidence": "Extrait du pack (principe de qualité mesurée) + historique d'exécution des règles de qualité pour l'échantillon de domaines critiques."
+    },
+    {
+      "control": "CTL-D15-04",
+      "instanciation": "Le pack de principes définit la protection dès la conception comme obligatoire ; un échantillon de domaines traitant des données personnelles est confronté aux labels de classification Microsoft Purview Information Protection appliqués.",
+      "verification_command": "az rest --method GET --uri \"https://<purview-account>.purview.azure.com/catalog/api/atlas/v2/search/basic\" --uri-parameters query=classification=PII",
+      "evidence": "Extrait du pack (principe de privacy by design) + labels de classification Purview appliqués à l'échantillon de domaines sensibles."
+    },
+    {
+      "control": "CTL-D15-05",
+      "instanciation": "Le pack de principes définit l'exploitabilité native comme obligatoire ; un échantillon de domaines partagés transversalement est confronté à la publication effective d'un contrat de données versionné (produit APIM/schema registry).",
+      "verification_command": "az apim product list --resource-group <rg> --service-name <apim-name> --query \"[?contains(displayName,'data-domain')]\" -o table",
+      "evidence": "Extrait du pack (principe d'exploitabilité) + contrats de données publiés (produits APIM/schema registry) pour l'échantillon de domaines partagés."
+    },
+    {
+      "control": "CTL-D15-06",
+      "instanciation": "Le pack de principes définit l'observabilité comme obligatoire pour les domaines critiques ; un échantillon est confronté au lignage Purview consultable et aux alertes de fraîcheur Azure Monitor configurées.",
+      "verification_command": "az rest --method GET --uri \"https://<purview-account>.purview.azure.com/catalog/api/atlas/v2/lineage/<asset-guid>\" && az monitor metrics alert list --resource-group <rg> --query \"[?contains(name,'freshness')]\" -o table",
+      "evidence": "Extrait du pack (principe d'observabilité) + captures de lignage Purview et alertes de fraîcheur pour l'échantillon de domaines critiques."
+    },
+    {
+      "control": "CTL-D15-07",
+      "instanciation": "Le pack de principes définit le catalogage comme obligatoire ; le taux de couverture des descriptions d'actifs en production dans Microsoft Purview est mesuré sur un échantillon représentatif.",
+      "verification_command": "az rest --method GET --uri \"https://<purview-account>.purview.azure.com/catalog/api/atlas/v2/search/basic\" --uri-parameters query=* limit=100",
+      "evidence": "Extrait du pack (principe de catalogage) + taux de couverture et fraîcheur des descriptions d'actifs dans le catalogue Purview."
+    },
+    {
+      "control": "CTL-D15-08",
+      "instanciation": "Le pack de principes définit l'accessibilité gouvernée comme obligatoire ; un échantillon de domaines de données est confronté à la matrice d'habilitations RBAC et à la date de dernière revue d'accès.",
+      "verification_command": "az role assignment list --scope /subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.Storage/storageAccounts/<adls-name> --query '[].{principal:principalName,role:roleDefinitionName}' -o table",
+      "evidence": "Extrait du pack (principe d'accessibilité gouvernée) + matrice d'habilitations RBAC et date de dernière revue pour l'échantillon de domaines."
+    },
+    {
+      "control": "CTL-D15-09",
+      "instanciation": "Le pack de principes définit la soutenabilité du cycle de vie comme obligatoire pour les domaines critiques ; un échantillon est confronté à la politique de rétention Azure Storage et au dernier test de restauration.",
+      "verification_command": "az storage account management-policy show --account-name <adls-name> --resource-group <rg> --query 'policy.rules' && az backup job list --resource-group <rg> --vault-name <vault-name> --query \"[?properties.operation=='Restore']\" -o table",
+      "evidence": "Extrait du pack (principe de soutenabilité) + politique de rétention et rapport du dernier test de restauration pour l'échantillon de domaines critiques."
+    },
+    {
+      "control": "CTL-D16-01",
+      "instanciation": "L'ERD documenté est confronté à l'introspection réelle du schéma de la base managée (information_schema), garantissant l'exhaustivité et la fraîcheur de l'inventaire des tables, vues et relations.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT table_name FROM information_schema.tables WHERE table_schema='public';\"",
+      "evidence": "Extrait d'introspection du schéma réel + ERD/MCD versionné, avec écarts éventuels identifiés."
+    },
+    {
+      "control": "CTL-D16-03",
+      "instanciation": "Les index déclarés sur le schéma sont confrontés aux requêtes les plus fréquentes/coûteuses observées en production, vérifiés par plan d'exécution EXPLAIN sur la base Azure Database for PostgreSQL.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"EXPLAIN ANALYZE SELECT * FROM <table> WHERE <filtre_frequent>;\"",
+      "evidence": "Plans d'exécution des requêtes fréquentes/coûteuses montrant l'utilisation effective des index + liste des index déclarés."
+    },
+    {
+      "control": "CTL-D16-05",
+      "instanciation": "L'alignement entre le modèle ORM et le schéma physique réel est vérifié par une étape de détection de dérive (migration diff) en pipeline Azure DevOps, bloquant le déploiement en cas d'écart non résolu.",
+      "verification_command": "az pipelines runs list --org https://dev.azure.com/<org> --project <project> --query \"[?contains(templateParameters.stage,'schema-drift-check')]\" -o table",
+      "evidence": "Rapport de comparaison ORM ↔ schéma réel (dernière exécution) + configuration du contrôle de dérive bloquant en pipeline."
+    },
+    {
+      "control": "CTL-D16-07",
+      "instanciation": "Le dictionnaire de données par table/colonne est maintenu via les propriétés étendues SQL ou le catalogue Purview, consultable par les équipes non créatrices du schéma.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT c.table_name, c.column_name, pgd.description FROM information_schema.columns c LEFT JOIN pg_catalog.pg_description pgd ON pgd.objsubid=c.ordinal_position;\"",
+      "evidence": "Extrait du dictionnaire de données (descriptions par table/colonne) + taux de couverture des tables/colonnes du schéma réel."
+    },
+    {
+      "control": "CTL-D16-08",
+      "instanciation": "La volumétrie de chaque table significative est mesurée et sa croissance projetée à partir des statistiques de la base managée, avec un partitionnement déclenché au-delà des seuils déclarés.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT relname, pg_total_relation_size(relid) AS taille FROM pg_catalog.pg_statio_user_tables ORDER BY taille DESC LIMIT 20;\"",
+      "evidence": "Mesures de volumétrie et projection de croissance par table significative + configuration de partitionnement au-delà du seuil déclaré."
+    }
+  ],
+  "manual": [
+    {
+      "control": "CTL-D00-01",
+      "reason": "Le cas d'usage métier et sa validation par le sponsor relèvent d'une décision de gouvernance métier tracée par signature ou e-mail, non vérifiable par une commande technique."
+    },
+    {
+      "control": "CTL-D00-02",
+      "reason": "Les personas utilisateurs sont un livrable de recherche UX documentaire, sans équivalent technique vérifiable par commande Azure."
+    },
+    {
+      "control": "CTL-D00-04",
+      "reason": "Les KPIs métier (baseline, cible) sont définis et mesurés dans des outils métier propres à chaque application, hors du périmètre d'une commande Azure générique."
+    },
+    {
+      "control": "CTL-D00-05",
+      "reason": "Le périmètre hors-champ fonctionnel et sa communication aux parties prenantes sont un livrable documentaire et organisationnel, non automatisable."
+    },
+    {
+      "control": "CTL-D00-07",
+      "reason": "Le bilan de valeur (adoption, gains, ROI) résulte d'une analyse métier a posteriori, non vérifiable par une commande technique."
+    },
+    {
+      "control": "CTL-D00-08",
+      "reason": "La validation des parcours critiques par des utilisateurs représentatifs est un exercice de recherche utilisateur humain, non automatisable par une commande Azure."
+    },
+    {
+      "control": "CTL-D02-13",
+      "reason": "La désignation des responsables sécurité et le programme de sensibilisation des équipes sont des décisions de gouvernance RH/organisationnelle, non vérifiables par une commande technique."
+    },
+    {
+      "control": "CTL-D04-02",
+      "reason": "L'AIPD est une analyse juridique documentaire validée par signature du délégué à la protection des données, non vérifiable par une commande technique automatisée."
+    },
+    {
+      "control": "CTL-D04-09",
+      "reason": "La désignation du délégué à la protection des données (DPO) est une nomination organisationnelle formelle, non vérifiable par une commande technique."
+    }
+  ],
+  "coverage": {
+    "total_core": 169,
+    "bound": 160,
+    "manual": 9,
+    "unbound": 0
+  }
+}

@@ -1,0 +1,11 @@
+# AuditCore — dépôt produit
+node_modules/
+
+# Sorties régénérables (RAF-028) : les kits OFFICIELS d'un engagement vivent
+# dans l'espace du tenant (son dossier de livrables), jamais ici.
+deliverables/generated/
+
+# Sous-produits de fusion/test locaux
+config/merged.json
+tests/fixtures/merged.json
+tests/fixtures/theme/

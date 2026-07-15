@@ -1,0 +1,97 @@
+{
+  "profile": "databricks-lakehouse",
+  "version": "1.0.0",
+  "description": "Instanciation des contrôles de gouvernance des données (qualité, lignage, contrats — D05 ; principes Data by Design — D15 ; schéma et catalogue — D16) sur un lakehouse Databricks gouverné par un catalogue central (Unity Catalog), structuré en couches de raffinement bronze/argent/or, avec des déploiements déclaratifs via Databricks Asset Bundles.",
+  "bindings": [
+    {
+      "control": "CTL-D05-01",
+      "instanciation": "Chaque catalogue et schéma Unity Catalog du lakehouse (bronze, argent, or) porte un propriétaire (Owner) nommé, responsable de l'arbitrage des accès et de la qualité des tables qu'il contient ; le registre des Data Owners est aligné avec les propriétaires effectivement déclarés dans le metastore.",
+      "verification_command": "SQL : DESCRIBE CATALOG EXTENDED <catalogue> ; DESCRIBE SCHEMA EXTENDED <catalogue>.<schema> — relever le champ Owner ; CLI : databricks catalogs get <catalogue> --output json | jq '.owner'",
+      "evidence": "Export du registre des Data Owners + capture des champs Owner de chaque catalogue/schéma Unity Catalog, avec date de dernière revue."
+    },
+    {
+      "control": "CTL-D05-04",
+      "instanciation": "Les tables critiques, notamment celles de la couche or, sont couvertes par des règles de qualité automatisées (complétude, unicité, fraîcheur, dérive statistique) exécutées via Lakehouse Monitoring ou des expectations Delta Live Tables, contre des seuils explicitement déclarés.",
+      "verification_command": "SQL : SELECT * FROM <catalogue>.<schema>.<table>_profile_metrics ORDER BY window_start DESC LIMIT 20 ; SELECT * FROM <catalogue>.<schema>.<table>_drift_metrics ; vérifier les clauses CONSTRAINT ... EXPECT dans la définition du pipeline DLT.",
+      "evidence": "Catalogue des règles de qualité et seuils déclarés + export des métriques de profiling/dérive Lakehouse Monitoring sur les tables critiques."
+    },
+    {
+      "control": "CTL-D05-05",
+      "instanciation": "Les pipelines de données sont structurés en trois couches de raffinement progressif — bronze (brute), argent (nettoyée/conforme), or (consommable) — chacune matérialisée dans un schéma Unity Catalog dédié, avec un contrat documenté d'entrée/sortie entre couches et un rejeu idempotent via MERGE INTO ou OVERWRITE déterministe.",
+      "verification_command": "SQL : SELECT schema_name FROM system.information_schema.schemata WHERE catalog_name = <catalogue> — confirmer la présence des schémas bronze/argent/or ; DESCRIBE HISTORY <catalogue>.argent.<table> — vérifier la nature des opérations (MERGE/OVERWRITE) et leur rejouabilité ; CLI : databricks pipelines get --pipeline-id <id>",
+      "evidence": "Schéma d'architecture des couches bronze/argent/or + contrats d'entrée/sortie documentés + extrait de DESCRIBE HISTORY démontrant un rejeu sans effet de bord."
+    },
+    {
+      "control": "CTL-D05-06",
+      "instanciation": "Chaque table or exposée à des consommateurs externes au domaine (autre direction métier, partenaire) est publiée via un partage Delta Sharing versionné, dont tout changement de structure est vérifié pour compatibilité ascendante avant publication.",
+      "verification_command": "CLI : databricks shares get <nom_partage> --output json ; SQL : SELECT table_name, column_name, data_type FROM system.information_schema.columns WHERE table_catalog = <catalogue> AND table_schema = 'or' ORDER BY table_name, ordinal_position — comparer entre deux versions du pipeline CI.",
+      "evidence": "Registre des partages Delta Sharing avec historique de versions + rapport de vérification de compatibilité du dernier changement de schéma publié."
+    },
+    {
+      "control": "CTL-D05-07",
+      "instanciation": "Le lignage de bout en bout de chaque table critique de la couche or est tracé automatiquement par Unity Catalog, de la source brute jusqu'au tableau de bord ou modèle consommateur final, et consultable sans instrumentation manuelle additionnelle.",
+      "verification_command": "SQL : SELECT * FROM system.access.table_lineage WHERE target_table_full_name = '<catalogue>.or.<table>' ORDER BY event_time DESC ; SELECT * FROM system.access.column_lineage WHERE target_table_full_name = '<catalogue>.or.<table>'",
+      "evidence": "Capture du graphe de lignage Unity Catalog (system.access.table_lineage / Catalog Explorer) d'une table or critique, de la source à la consommation."
+    },
+    {
+      "control": "CTL-D05-09",
+      "instanciation": "Chaque table critique du lakehouse est couverte par un objectif de perte de données (RPO) déclaré ; la fréquence de versionnement Delta et la politique de clone/export associée respectent cet objectif, et un exercice de restauration (RESTORE TABLE ou Deep Clone) est testé périodiquement.",
+      "verification_command": "SQL : DESCRIBE HISTORY <catalogue>.<schema>.<table> LIMIT 50 — vérifier la fréquence des versions ; RESTORE TABLE <catalogue>.<schema>.<table> TO VERSION AS OF <n> exécuté en environnement non productif pour valider la restauration.",
+      "evidence": "RPO déclaré par table critique + rapport du dernier exercice RESTORE/Deep Clone (durée, intégrité constatée)."
+    },
+    {
+      "control": "CTL-D15-01",
+      "instanciation": "Le pack de principes Data by Design du profil lakehouse définit l'ownership comme principe structurant ; son application est vérifiée en contrôlant qu'un échantillon de domaines (catalogues Unity Catalog) porte un Owner nommé, distinct d'un compte de service générique.",
+      "verification_command": "SQL : SELECT catalog_name, schema_name FROM system.information_schema.schemata WHERE catalog_name IN (<échantillon>) ; SHOW GRANTS ON CATALOG <catalogue> — vérifier le principal Owner sur l'échantillon.",
+      "evidence": "Extrait du pack de principes (ownership) + échantillon de catalogues/schémas avec Owner nommé vérifié."
+    },
+    {
+      "control": "CTL-D15-04",
+      "instanciation": "Le pack de principes impose la classification et la protection dès la conception des données personnelles ou sensibles ; sur un échantillon de tables des couches argent/or, les colonnes concernées portent un tag de classification Unity Catalog et sont protégées par un masque dynamique (column mask) ou un filtre de ligne (row filter).",
+      "verification_command": "SQL : SELECT * FROM system.information_schema.column_tags WHERE tag_name IN ('PII','sensitivity') AND table_catalog = <catalogue> ; SELECT * FROM system.information_schema.column_masks WHERE table_catalog = <catalogue>",
+      "evidence": "Extrait du pack (protection dès la conception) + échantillon de colonnes classifiées avec masque/filtre appliqué vérifié via information_schema."
+    },
+    {
+      "control": "CTL-D15-06",
+      "instanciation": "Le pack de principes impose l'observabilité des domaines de données critiques (fraîcheur, volumétrie, lignage) ; les tables or du périmètre audité sont supervisées par des tableaux de bord Lakehouse Monitoring actifs, avec lignage Unity Catalog consultable en continu.",
+      "verification_command": "SQL : SELECT * FROM <catalogue>.or.<table>_profile_metrics ORDER BY window_start DESC LIMIT 5 ; SELECT MAX(event_time) FROM system.access.table_lineage WHERE target_table_full_name = '<catalogue>.or.<table>'",
+      "evidence": "Extrait du pack (observabilité) + captures des tableaux de bord de monitoring et de la fraîcheur du lignage pour l'échantillon critique."
+    },
+    {
+      "control": "CTL-D15-08",
+      "instanciation": "Le pack de principes impose une accessibilité gouvernée aux données ; les habilitations Unity Catalog (GRANT SELECT/MODIFY) sur les catalogues/schémas du périmètre sont tracées et font l'objet d'une revue périodique documentée.",
+      "verification_command": "SQL : SHOW GRANTS ON SCHEMA <catalogue>.<schema> ; SELECT * FROM system.access.audit WHERE action_name IN ('grantPrivilege','revokePrivilege') ORDER BY event_time DESC LIMIT 20",
+      "evidence": "Matrice d'habilitations Unity Catalog exportée (SHOW GRANTS) + compte-rendu de la dernière revue d'accès (< 12 mois) + extrait system.access.audit."
+    },
+    {
+      "control": "CTL-D16-01",
+      "instanciation": "L'inventaire complet des tables, vues et relations du lakehouse (bronze/argent/or) est documenté (diagramme d'entités ou catalogue de schémas) et confronté à l'introspection réelle du metastore Unity Catalog pour vérifier son exhaustivité et sa fraîcheur.",
+      "verification_command": "SQL : SELECT table_catalog, table_schema, table_name, table_type FROM system.information_schema.tables WHERE table_catalog = <catalogue> ORDER BY table_schema, table_name",
+      "evidence": "Modèle documenté (ERD ou catalogue de schémas) + extrait system.information_schema.tables pour comparaison, avec écarts relevés."
+    },
+    {
+      "control": "CTL-D16-02",
+      "instanciation": "Chaque table du lakehouse déclare une clé primaire informative, et chaque relation logique entre tables de la couche or (jointures de dimension/fait) est couverte par une contrainte de clé étrangère informative Unity Catalog, sans référence logique non contrainte.",
+      "verification_command": "SQL : SELECT * FROM system.information_schema.table_constraints WHERE constraint_type IN ('PRIMARY KEY','FOREIGN KEY') AND table_catalog = <catalogue> ; DESCRIBE TABLE EXTENDED <catalogue>.or.<table>",
+      "evidence": "Extrait system.information_schema.table_constraints (PK/FK déclarées) + liste des colonnes de référence (suffixe _id) non couvertes par une contrainte, avec justification si exception."
+    },
+    {
+      "control": "CTL-D16-05",
+      "instanciation": "Le schéma déclaré dans le code des pipelines Delta Live Tables (ou modèles dbt) est aligné avec le schéma physique réel des tables Unity Catalog ; toute dérive de schéma est détectée par l'enforcement Delta avant qu'elle n'atteigne la couche or.",
+      "verification_command": "CLI : databricks bundle validate ; SQL : DESCRIBE TABLE EXTENDED <catalogue>.<schema>.<table> comparé à la définition de schéma déclarée dans le code DLT ; DESCRIBE HISTORY <table> — rechercher les opérations de type schemaChange non planifiées.",
+      "evidence": "Rapport de comparaison schéma déclaré (DLT/dbt) ↔ schéma physique réel (DESCRIBE TABLE EXTENDED) + configuration de l'enforcement de schéma en intégration continue."
+    },
+    {
+      "control": "CTL-D16-06",
+      "instanciation": "Toute évolution du schéma ou de la configuration du lakehouse est appliquée par des Databricks Asset Bundles versionnés (databricks.yml) ; chaque déploiement dispose d'une procédure de retour arrière testée (destroy/redeploy de la version précédente ou RESTORE TABLE).",
+      "verification_command": "CLI : databricks bundle deploy --target staging ; databricks bundle destroy --target staging (test de rollback en environnement non productif) ; databricks bundle summary --target staging pour l'historique versionné.",
+      "evidence": "Historique des déploiements de bundles versionnés (databricks bundle summary) + résultat d'un test de destroy/redeploy en environnement non productif."
+    },
+    {
+      "control": "CTL-D16-07",
+      "instanciation": "Un dictionnaire de données consultable décrit chaque table et chaque colonne du lakehouse (sens métier, sensibilité) via les commentaires et tags Unity Catalog, maintenu à jour et accessible aux équipes non créatrices du schéma.",
+      "verification_command": "SQL : SELECT table_schema, table_name, column_name, comment FROM system.information_schema.columns WHERE table_catalog = <catalogue> ; DESCRIBE TABLE EXTENDED <catalogue>.<schema>.<table>",
+      "evidence": "Taux de couverture des colonnes commentées/taguées (system.information_schema.columns) + preuve d'accès en lecture au catalogue pour une équipe non créatrice."
+    }
+  ]
+}

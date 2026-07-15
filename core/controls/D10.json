@@ -1,0 +1,500 @@
+{
+  "dimension": "D10",
+  "label": "Observabilité & logs",
+  "controls": [
+    {
+      "id": "CTL-D10-01",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Tous les composants applicatifs émettent des logs structurés (format exploitable par une machine, horodatage, identifiant de composant) avec des niveaux de sévérité normalisés et cohérents entre services (debug/info/warn/error/fatal).",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier que chaque composant émet des logs dans un format structuré unique et que l'échelle de sévérité utilisée est identique d'un service à l'autre ; contrôler l'absence de sorties texte libre non structurées en production.",
+      "preuve_attendue": "Extraits de logs structurés d'au moins 3 composants distincts + référentiel des niveaux de sévérité normalisés du profil.",
+      "grille_verdict": "conforme = format structuré et échelle de sévérité homogènes sur tous les composants ; partiel = structuré sur les composants majeurs, hétérogène sur les composants secondaires ; non conforme = logs texte libre non structurés ou échelle incohérente",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire un échantillon de logs de chaque composant et vérifier la conformité au format structuré déclaré.",
+        "Comparer les niveaux de sévérité utilisés entre composants et signaler toute incohérence d'échelle.",
+        "Si écart : prioriser la migration des composants restants vers le format structuré et l'échelle commune."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (analysabilité)",
+        "ISO/IEC 27002:2022 — 8.15"
+      ]
+    },
+    {
+      "id": "CTL-D10-02",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Chaque requête entrante se voit attribuer un identifiant de corrélation (ou une trace distribuée) propagé à travers tous les composants et services traversés, permettant de reconstituer le parcours complet d'une transaction bout en bout.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Rejouer une transaction sur un parcours critique traversant plusieurs composants et vérifier que l'identifiant de corrélation ou la trace distribuée permet de reconstituer le parcours complet, du point d'entrée à la réponse finale.",
+      "preuve_attendue": "Capture d'une trace bout-en-bout (ou chaîne de logs reliés par un identifiant unique) sur au moins un parcours critique déclaré.",
+      "grille_verdict": "conforme = trace bout-en-bout complète et exploitable sur tous les parcours critiques déclarés ; partiel = corrélation présente mais interrompue à certains sauts de service ; non conforme = aucune corrélation inter-services",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identifier les parcours critiques déclarés et rejouer une transaction de bout en bout.",
+        "Vérifier que l'identifiant de corrélation traverse chaque saut de service sans rupture.",
+        "Si écart : instrumenter les services manquants et documenter les parcours non couverts."
+      ],
+      "derogation": null,
+      "standards": [
+        "DORA (Accelerate) — MTTR",
+        "ISO/IEC 25010 (analysabilité)"
+      ]
+    },
+    {
+      "id": "CTL-D10-03",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Chaque composant expose en continu ses métriques techniques (latence, taux d'erreur, débit, saturation des ressources) vers la plateforme de supervision du profil, avec un historique suffisant pour l'analyse de tendance.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier l'existence et la fraîcheur des métriques techniques par composant (latence p50/p95/p99, taux d'erreur, débit, saturation) et la profondeur d'historique disponible.",
+      "preuve_attendue": "Capture des métriques techniques exposées par composant sur une période représentative (≥ 30 jours si disponible).",
+      "grille_verdict": "conforme = métriques techniques complètes et historisées sur tous les composants critiques ; partiel = métriques partielles ou historique insuffisant ; non conforme = aucune métrique technique exposée",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inventorier les métriques techniques exposées par composant et leur profondeur d'historique.",
+        "Vérifier la couverture des signaux essentiels (latence, erreurs, débit, saturation) sur les composants critiques.",
+        "Si écart : instrumenter les composants manquants et fixer une durée d'historisation minimale."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (efficacité de performance)",
+        "Google SRE — signaux dorés (latence, trafic, erreurs, saturation)"
+      ]
+    },
+    {
+      "id": "CTL-D10-04",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Les indicateurs d'activité métier significatifs (volumes traités, taux de succès fonctionnel, usage par fonctionnalité) sont instrumentés et exposés au même titre que les métriques techniques, avec un propriétaire métier identifié.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence de métriques métier instrumentées, leur alignement avec les KPIs déclarés en périmètre fonctionnel (D00) et l'identification d'un propriétaire métier.",
+      "preuve_attendue": "Capture des métriques métier exposées + correspondance avec les KPIs du périmètre fonctionnel.",
+      "grille_verdict": "conforme = métriques métier instrumentées, alignées aux KPIs et suivies par un propriétaire identifié ; partiel = métriques présentes mais non reliées aux KPIs ou sans propriétaire ; non conforme = aucune métrique métier instrumentée",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Confronter les métriques métier instrumentées à la liste des KPIs déclarés en périmètre fonctionnel.",
+        "Vérifier l'identification d'un propriétaire métier pour le suivi de ces indicateurs.",
+        "Si écart : instrumenter les KPIs manquants et désigner un propriétaire de suivi."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (aptitude fonctionnelle)"
+      ]
+    },
+    {
+      "id": "CTL-D10-05",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Des tableaux de bord opérationnels consolident en continu les signaux techniques et métier essentiels de l'application, consultables par les équipes d'exploitation sans sollicitation de l'équipe de développement.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence de tableaux de bord opérationnels couvrant les signaux techniques et métier essentiels, leur accessibilité aux équipes d'exploitation et leur actualisation en continu.",
+      "preuve_attendue": "Captures des tableaux de bord opérationnels en place + liste des rôles y ayant accès.",
+      "grille_verdict": "conforme = dashboards couvrant signaux techniques et métier, accessibles au Run, actualisés en continu ; partiel = dashboards techniques seuls ou accès restreint à l'équipe de développement ; non conforme = aucun dashboard opérationnel",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Recenser les tableaux de bord opérationnels existants et leur couverture (technique, métier).",
+        "Vérifier l'accès effectif des équipes d'exploitation sans dépendance à l'équipe de développement.",
+        "Si écart : compléter la couverture manquante et ouvrir l'accès aux équipes concernées."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des événements"
+      ]
+    },
+    {
+      "id": "CTL-D10-06",
+      "adr_source": [
+        "ADR0401",
+        "ADR0405"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Les alertes déclenchées sur les services critiques sont fondées sur des objectifs de niveau de service (SLO) déclarés et la consommation du budget d'erreur associé, plutôt que sur des seuils techniques isolés et déconnectés de l'engagement de service.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier la déclaration de SLO par service critique et l'existence de règles d'alerte fondées sur la consommation du budget d'erreur associé, plutôt que sur des seuils techniques bruts.",
+      "preuve_attendue": "Déclaration des SLO par service critique + configuration des règles d'alerte sur budget d'erreur + historique d'au moins une alerte déclenchée.",
+      "grille_verdict": "conforme = SLO déclarés et alerting sur budget d'erreur actifs pour tous les services critiques ; partiel = SLO déclarés sans alerting relié ; non conforme = seuils techniques seuls, aucun SLO déclaré",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Recenser les SLO déclarés par service critique et vérifier leur cohérence avec l'engagement de service réel.",
+        "Vérifier la configuration des règles d'alerte sur consommation du budget d'erreur et tester leur déclenchement.",
+        "Si écart : déclarer les SLO manquants et brancher l'alerting sur le budget d'erreur correspondant."
+      ],
+      "derogation": null,
+      "standards": [
+        "SRE (Google) — objectifs de niveau de service et budgets d'erreur",
+        "DORA (Accelerate) — métriques de fiabilité (MTTR)"
+      ]
+    },
+    {
+      "id": "CTL-D10-07",
+      "adr_source": [
+        "ADR0405"
+      ],
+      "dimension_audit": "D10",
+      "regle": "La consommation du budget d'erreur de chaque service critique est suivie en continu et déclenche une action prédéfinie (gel des changements, mobilisation de l'astreinte) avant son épuisement complet.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'historique de consommation du budget d'erreur des services critiques et l'existence d'une action documentée déclenchée avant épuisement (ex. gel des déploiements).",
+      "preuve_attendue": "Historique de consommation du budget d'erreur + trace d'au moins une action déclenchée par un seuil de consommation.",
+      "grille_verdict": "conforme = budget suivi en continu et action documentée déclenchée avant épuisement, preuve à l'appui ; partiel = budget suivi sans action formalisée ; non conforme = budget d'erreur non suivi",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire l'historique de consommation du budget d'erreur des 90 derniers jours pour chaque service critique.",
+        "Vérifier l'existence et le déclenchement effectif d'une action au franchissement d'un seuil de consommation.",
+        "Si écart : définir les seuils d'action et les relier à la procédure d'astreinte (D12)."
+      ],
+      "derogation": null,
+      "standards": [
+        "SRE (Google) — budgets d'erreur",
+        "DORA (Accelerate) — MTTR"
+      ]
+    },
+    {
+      "id": "CTL-D10-08",
+      "adr_source": [
+        "ADR0404"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Une politique de rétention des journaux, déclarée par catégorie et alignée sur l'obligation légale ou contractuelle applicable, gouverne la purge et l'archivage ; leur exécution est vérifiable par une preuve datée.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'existence d'une politique de rétention déclarée par catégorie de journal et la preuve d'exécution effective de la purge/archivage conformément aux durées déclarées.",
+      "preuve_attendue": "Politique de rétention documentée par catégorie + rapport d'exécution de la dernière purge/archivage.",
+      "grille_verdict": "conforme = politique déclarée par catégorie et purge vérifiée conforme aux durées ; partiel = politique déclarée sans preuve d'exécution récente ; non conforme = conservation indéfinie ou absence de politique",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la politique de rétention par catégorie de journal et vérifier son alignement sur l'obligation applicable.",
+        "Vérifier la trace de la dernière exécution de purge/archivage et sa conformité aux durées déclarées.",
+        "Si écart : formaliser la politique manquante et planifier la purge des catégories en dépassement."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5, § 1, e)",
+        "ISO/IEC 27002:2022 — 8.15",
+        "ISO/IEC 27002:2022 — 8.10"
+      ]
+    },
+    {
+      "id": "CTL-D10-09",
+      "adr_source": [
+        "ADR0402",
+        "ADR0206"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Aucune donnée sensible en clair (secret, jeton, mot de passe, donnée personnelle identifiante) n'atteint les journaux applicatifs ou la télémétrie : une redaction ou un masquage est appliqué à la source ou en pipeline avant tout stockage.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Exécuter une transaction de test injectant des données sensibles connues (secret canari, PII de test) et vérifier leur absence en clair dans les journaux et la télémétrie collectés.",
+      "preuve_attendue": "Rapport de scan des journaux (0 donnée sensible en clair détectée) + configuration de la règle de redaction/masquage.",
+      "grille_verdict": "conforme = scan vierge sur échantillon représentatif + règle de redaction active et testée ; partiel = redaction active mais lacunaire sur certains champs ; non conforme = donnée sensible retrouvée en clair dans les journaux ou la télémétrie",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Injecter un secret canari et une PII de test dans un parcours applicatif, puis scanner les journaux et la télémétrie produits.",
+        "Vérifier la configuration de la règle de redaction/masquage et sa couverture des champs sensibles connus.",
+        "Si écart : étendre la redaction aux champs manquants et purger les occurrences déjà journalisées."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.12 (prévention de la fuite de données)",
+        "RGPD — art. 32"
+      ]
+    },
+    {
+      "id": "CTL-D10-10",
+      "adr_source": [
+        "ADR0403"
+      ],
+      "dimension_audit": "D10",
+      "regle": "La santé de chaque dépendance et flux d'échange critique (latence, taux d'erreur, volumétrie, profondeur de file) est supervisée automatiquement, avec des seuils déclarés par flux permettant une détection avant l'impact utilisateur final.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Vérifier l'existence d'une supervision dédiée des flux d'échange critiques (latence, erreurs, volumétrie, profondeur de file) et la déclaration de seuils par flux.",
+      "preuve_attendue": "Tableau de bord de supervision des flux critiques + seuils déclarés + historique d'une alerte de dégradation.",
+      "grille_verdict": "conforme = flux critiques supervisés avec seuils déclarés et escalade testée ; partiel = supervision partielle ou seuils non calibrés ; non conforme = aucune supervision dédiée des dépendances",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Recenser les dépendances et flux d'échange critiques et vérifier l'existence d'une supervision dédiée.",
+        "Vérifier la déclaration des seuils par flux et l'historique d'au moins une alerte de dégradation.",
+        "Si écart : instrumenter les flux non supervisés et calibrer les seuils manquants."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 20000-1 (gestion des services)",
+        "ITIL 4 — pratique de gestion des événements"
+      ]
+    },
+    {
+      "id": "CTL-D10-11",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Pour toute fonctionnalité fondée sur un modèle d'intelligence artificielle générative ou prédictive, la qualité des réponses produites est monitorée en continu (échantillon canari, comparaison à une référence) afin de détecter toute dérive du modèle ou des prompts.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'existence d'un monitoring continu de la qualité des réponses IA (canari quotidien, comparaison à un jeu de référence) et la trace d'une détection de dérive.",
+      "preuve_attendue": "Configuration du monitoring qualité IA + historique des scores de qualité sur une période représentative + trace d'une alerte de dérive le cas échéant.",
+      "grille_verdict": "conforme = monitoring qualité IA continu avec détection de dérive testée ; partiel = évaluation ponctuelle sans suivi continu ; non conforme = aucune évaluation de la qualité des réponses IA",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Vérifier l'existence d'un jeu de référence et d'une exécution périodique (canari) comparant les réponses produites.",
+        "Vérifier la trace d'une détection de dérive (mise à jour de modèle, dérive de prompt) et la réaction associée.",
+        "Si écart : mettre en place l'évaluation continue et définir le seuil de dérive déclenchant une alerte."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (fiabilité)",
+        "ISO/IEC 42001:2023 (surveillance opérationnelle des systèmes de management de l'IA)"
+      ]
+    },
+    {
+      "id": "CTL-D10-12",
+      "adr_source": [
+        "ADR0402"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Les événements de sécurité (authentification, élévation de privilège, accès aux secrets et aux données sensibles) sont journalisés dans un référentiel central ; l'accès à ce référentiel est lui-même restreint à un rôle dédié et journalisé.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier le catalogue des événements de sécurité journalisés systématiquement et la restriction/journalisation de l'accès au référentiel de journaux lui-même.",
+      "preuve_attendue": "Extrait du catalogue d'événements de sécurité journalisés + extrait du journal d'accès au référentiel de journaux.",
+      "grille_verdict": "conforme = catalogue d'événements complet et accès au référentiel restreint et journalisé ; partiel = catalogue incomplet ou accès non restreint ; non conforme = événements de sécurité non distingués des journaux applicatifs génériques",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la couverture du catalogue d'événements de sécurité journalisés (authentification, élévation, accès sensible).",
+        "Vérifier la restriction d'accès au référentiel de journaux et la journalisation de cet accès.",
+        "Si écart : compléter le catalogue d'événements et restreindre l'accès au rôle dédié."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.15",
+        "NIST SP 800-53 — famille AU (Audit and Accountability)",
+        "CIS Controls v8 — 8 (Audit Log Management)"
+      ]
+    },
+    {
+      "id": "CTL-D10-13",
+      "adr_source": [
+        "ADR0401"
+      ],
+      "dimension_audit": "D10",
+      "regle": "Le volume et le coût de la télémétrie (journaux, métriques, traces) sont gouvernés par une politique d'échantillonnage, de cardinalité et de rétention proportionnée, avec un suivi budgétaire régulier.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence d'une politique d'échantillonnage/cardinalité de la télémétrie et son alignement avec un budget de coût suivi périodiquement.",
+      "preuve_attendue": "Politique d'échantillonnage/cardinalité documentée + historique de coût de la plateforme de télémétrie sur 90 jours.",
+      "grille_verdict": "conforme = politique déclarée et coût suivi dans le budget alloué ; partiel = coût suivi sans politique d'échantillonnage formalisée ; non conforme = volume de télémétrie non maîtrisé ni suivi",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire l'historique de coût de la plateforme de télémétrie sur 90 jours et le comparer au budget alloué.",
+        "Vérifier l'existence d'une politique d'échantillonnage ou de cardinalité limitant le volume collecté.",
+        "Si écart : définir la politique d'échantillonnage et le budget de suivi correspondant."
+      ],
+      "derogation": null,
+      "standards": [
+        "FinOps Framework — domaine Optimisation",
+        "ISO/IEC 25010 (efficacité de performance)"
+      ]
+    }
+  ]
+}

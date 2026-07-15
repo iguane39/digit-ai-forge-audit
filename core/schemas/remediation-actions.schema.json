@@ -1,0 +1,63 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "auditcore/remediation-actions.schema.json",
+  "title": "AuditCore remediation-actions.yaml (contrat forge — PLAN/06 §2)",
+  "type": "object",
+  "required": ["audit_ref", "core_version", "project", "actions"],
+  "properties": {
+    "audit_ref": { "type": "string" },
+    "core_version": { "type": "string" },
+    "project": {
+      "type": "object",
+      "required": ["repo"],
+      "properties": {
+        "repo": { "type": "string" },
+        "stack_profile": { "enum": ["curated", "resolved", "none"] }
+      }
+    },
+    "actions": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "control_ref", "severity", "priority", "activation", "verification"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^REM-D(0[0-9]|1[0-6])-[0-9]{3}$" },
+          "title": { "type": "string" },
+          "finding_ref": { "type": "string" },
+          "control_ref": { "type": "string" },
+          "adr_ref": { "type": "array", "items": { "type": "string" } },
+          "severity": { "enum": ["Fatal", "Bloquant", "Majeur", "Standard"] },
+          "priority": { "enum": ["urgent", "prio", "quick", "norm"] },
+          "effort": { "type": "string" },
+          "activation": {
+            "type": "object",
+            "required": ["mode", "reason"],
+            "properties": {
+              "mode": { "enum": ["forge-auto", "forge-assisted", "manual"] },
+              "reason": { "type": "string", "minLength": 5 },
+              "owner_role": { "type": "string", "description": "requis si mode=manual" }
+            },
+            "if": { "properties": { "mode": { "const": "manual" } } },
+            "then": { "required": ["mode", "reason", "owner_role"] }
+          },
+          "story": {
+            "type": "object",
+            "required": ["epic", "title", "acceptance"],
+            "properties": {
+              "epic": { "type": "string" },
+              "title": { "type": "string" },
+              "acceptance": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+            }
+          },
+          "verification": {
+            "type": "object",
+            "required": ["evidence_expected"],
+            "properties": { "command": { "type": "string" }, "evidence_expected": { "type": "string" } }
+          },
+          "preconditions": { "type": "array", "items": { "type": "string" } },
+          "out_of_scope_files": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

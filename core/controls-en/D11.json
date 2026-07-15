@@ -1,0 +1,291 @@
+{
+  "dimension": "D11",
+  "label": "UX & accessibility",
+  "controls": [
+    {
+      "id": "CTL-D11-01",
+      "adr_source": [
+        "ADR0901"
+      ],
+      "dimension_audit": "D11",
+      "regle": "The level of compliance with the WCAG 2.2 level AA success criteria (or the applicable local accessibility standards package) is measured through a tooled and documented audit, with a remediation plan for any unmet criterion.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Run a tooled accessibility audit covering the full set of WCAG 2.2 level AA success criteria (or the declared local standards package) on the main journeys, and verify the existence of a remediation plan for the gaps.",
+      "preuve_attendue": "Dated accessibility audit report (score per success criterion) + remediation plan for the identified gaps.",
+      "grille_verdict": "compliant = 100% of the AA criteria met or documented waiver ; partial = gaps identified with a dated remediation plan ; non-compliant = no accessibility audit performed or gaps without a remediation plan",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Run (or have replayed) a tooled accessibility audit on the main journeys and collect the score per success criterion.",
+        "Verify the existence of a dated remediation plan for each unmet criterion.",
+        "If a gap is found: prioritize the remediation according to the criterion's criticality (blocking for use vs. comfort)."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — niveau AA (ensemble des critères de succès)",
+        "EN 301 549"
+      ]
+    },
+    {
+      "id": "CTL-D11-02",
+      "adr_source": [
+        "ADR0901"
+      ],
+      "dimension_audit": "D11",
+      "regle": "All functional journeys are fully operable with the keyboard alone, without a focus trap, with a visible focus indicator at every step.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Walk through the declared critical journeys using only the keyboard (tab, enter, escape) and verify the absence of a focus trap and the continuous visibility of the focus indicator.",
+      "preuve_attendue": "Recording or report of the keyboard navigation on each critical journey, with the blocking points identified.",
+      "grille_verdict": "compliant = all critical journeys operable with the keyboard, focus always visible ; partial = secondary journeys not operable with the keyboard ; non-compliant = focus trap or element unreachable by keyboard on a critical journey",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Replay each declared critical journey using keyboard-only navigation.",
+        "Verify the absence of a focus trap and the continuous visibility of the focus indicator.",
+        "If a gap is found: fix the tab order or the components inaccessible by keyboard."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — 2.1.1 (Keyboard)",
+        "WCAG 2.2 — 2.1.2 (No Keyboard Trap)",
+        "WCAG 2.2 — 2.4.7 (Focus Visible)"
+      ]
+    },
+    {
+      "id": "CTL-D11-03",
+      "adr_source": [
+        "ADR0901"
+      ],
+      "dimension_audit": "D11",
+      "regle": "The color contrasts of text and significant interface elements meet the required minimum ratios, verified with a contrast measurement tool across the full set of screens in the style guide.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Measure the contrast ratio of text and significant interface elements (icons, input fields) on each representative screen of the style guide, using a contrast measurement tool.",
+      "preuve_attendue": "Contrast measurement report per representative screen, with the ratios obtained against the required threshold.",
+      "grille_verdict": "compliant = all ratios measured above the required threshold ; partial = gaps limited to non-essential elements ; non-compliant = essential text or element below the required threshold",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Measure the contrast ratio on each representative screen (normal text, large text, non-text elements).",
+        "Isolate the elements below the required threshold and assess how essential they are to the journey.",
+        "If a gap is found: adjust the style guide's color palette for the affected elements."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — 1.4.3 (Contrast Minimum)",
+        "WCAG 2.2 — 1.4.11 (Non-text Contrast)"
+      ]
+    },
+    {
+      "id": "CTL-D11-04",
+      "adr_source": [
+        "ADR0901"
+      ],
+      "dimension_audit": "D11",
+      "regle": "The interface adapts without loss of functionality or readability to the screen widths and interaction modes (touch, mouse, keyboard) of the declared target devices.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the rendering and operability of the main journeys on each declared target device (desktop, tablet, mobile), in portrait and landscape modes where applicable.",
+      "preuve_attendue": "Screenshots of the main journeys on each target device + record of the layout breakpoints.",
+      "grille_verdict": "compliant = main journeys operable and readable on all target devices ; partial = layout breakage limited to secondary screens ; non-compliant = critical journey inoperable on a declared target device",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the declared target devices and verify the rendering of the main journeys on each.",
+        "Identify the layout breakpoints or points of functionality loss.",
+        "If a gap is found: fix the breakpoints and extend the tests to the uncovered devices."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — 1.4.10 (Reflow)",
+        "WCAG 2.2 — 2.5.8 (Target Size Minimum)",
+        "ISO 9241-110"
+      ]
+    },
+    {
+      "id": "CTL-D11-05",
+      "adr_source": [
+        "ADR0805",
+        "ADR0902"
+      ],
+      "dimension_audit": "D11",
+      "regle": "The performance perceived by the user (initial load time, responsiveness to interactions, visual stability) is measured with a generic web or mobile performance measurement tool, on the main journeys.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Run a generic performance measurement tool on the main journeys and record the perceived performance indicators (initial load, responsiveness, visual stability) in a representative environment.",
+      "preuve_attendue": "Perceived performance measurement report per journey, with the values obtained against the declared target thresholds.",
+      "grille_verdict": "compliant = perceived performance indicators under the target thresholds on all main journeys ; partial = overrun limited to secondary journeys ; non-compliant = no measurement performed or thresholds exceeded on a main journey",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Run the perceived performance measurement on each main journey in an environment representative of the target load.",
+        "Compare the indicators obtained to the declared target thresholds.",
+        "If a gap is found: identify the optimization areas (resource weight, server response time) and prioritize addressing them."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010 (efficacité de performance)",
+        "ISO 9241-11 (efficience)"
+      ]
+    },
+    {
+      "id": "CTL-D11-06",
+      "adr_source": [
+        "ADR0902"
+      ],
+      "dimension_audit": "D11",
+      "regle": "Every critical functional journey is tested with representative users before broad rollout, and the observed friction points are subject to a correction plan.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of user test sessions on each declared critical journey, with participants representative of the target personas, and the existence of a correction plan for the observed friction points.",
+      "preuve_attendue": "Report of the user test sessions (participants, journeys tested, friction points observed) + dated correction plan.",
+      "grille_verdict": "compliant = all critical journeys tested with representative users and correction plan tracked ; partial = tests performed on part of the critical journeys ; non-compliant = no user test performed",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile",
+          "data",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Verify the coverage of the user test sessions against the critical journeys declared in D00.",
+        "Assess the representativeness of the participants against the target personas.",
+        "If a gap is found: schedule the missing test sessions and track the correction plan for the friction points already observed."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO 9241-11 (efficacité, efficience, satisfaction)",
+        "ISO 9241-210 (conception centrée sur l'humain)"
+      ]
+    },
+    {
+      "id": "CTL-D11-07",
+      "adr_source": [
+        "ADR0902"
+      ],
+      "dimension_audit": "D11",
+      "regle": "Every error message presented to the user identifies the nature of the problem and proposes a concrete resolution or workaround action, without exposing internal technical detail.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Trigger the common user errors on the main journeys (invalid input, network failure, insufficient rights) and verify that each message identifies the problem and proposes a concrete action.",
+      "preuve_attendue": "Captures of the error messages obtained for each scenario tested, with an assessment of how actionable they are.",
+      "grille_verdict": "compliant = all messages tested identify the problem and propose a concrete action ; partial = generic messages without a proposed action on certain scenarios ; non-compliant = raw technical message or absence of a message shown to the user",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile",
+          "api"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Trigger the common error scenarios on the main journeys and collect the messages shown.",
+        "Assess each message against two criteria: problem identification, concrete action proposed.",
+        "If a gap is found: rephrase the generic or technical messages into actionable messages."
+      ],
+      "derogation": null,
+      "standards": [
+        "WCAG 2.2 — 3.3.1 (Error Identification)",
+        "WCAG 2.2 — 3.3.3 (Error Suggestion)",
+        "ISO 9241-110"
+      ]
+    },
+    {
+      "id": "CTL-D11-08",
+      "adr_source": [
+        "ADR0902"
+      ],
+      "dimension_audit": "D11",
+      "regle": "A mechanism for collecting user feedback (satisfaction, friction, suggestion) is in place on an ongoing basis, and the feedback collected feeds a prioritized improvement backlog.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of a user feedback collection mechanism active on an ongoing basis and its traceability to a prioritized improvement backlog.",
+      "preuve_attendue": "Export of the user feedback collected over a representative period + excerpt of the corresponding improvement backlog.",
+      "grille_verdict": "compliant = collection mechanism active on an ongoing basis and feedback tracked in a prioritized backlog ; partial = one-off collection without traceability to a backlog ; non-compliant = no user feedback collection mechanism",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile",
+          "data",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Verify the existence and ongoing activity of the user feedback collection mechanism.",
+        "Trace a sample of collected feedback through to its handling in the improvement backlog.",
+        "If a gap is found: implement the collection mechanism and its connection with the product backlog."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO 9241-11 (satisfaction)",
+        "ISO 9241-210 (conception centrée sur l'humain)"
+      ]
+    }
+  ]
+}

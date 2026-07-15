@@ -1,0 +1,71 @@
+{
+  "$comment": "AuditCore template v1",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "auditcore/manifeste-preuves.schema.json",
+  "title": "AuditCore manifeste-preuves.json (index machine des preuves — PLAN/05 §2)",
+  "type": "object",
+  "required": ["audit_ref", "generated", "evidences"],
+  "properties": {
+    "audit_ref": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Référence du rapport d'audit source, ex. {{tenant.short_code}}-AUD-{{date}}"
+    },
+    "generated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Horodatage de génération du manifeste"
+    },
+    "core_version": {
+      "type": "string",
+      "description": "Version du core au moment de l'audit (traçabilité, optionnel)"
+    },
+    "evidences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "control_ref", "path", "hash_sha256", "captured_at", "type"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^EVID-D(0[0-9]|1[0-6])-[0-9]{3}$",
+            "description": "Unicité vérifiée par le vérificateur de rapport, pas par ce schéma"
+          },
+          "control_ref": {
+            "type": "string",
+            "pattern": "^(CTL-D(0[0-9]|1[0-6])-[0-9]{2}|C-[0-9]{4}-[0-9]{2})$",
+            "description": "Contrôle évalué (control.schema.json#id)"
+          },
+          "finding_ref": {
+            "type": "string",
+            "pattern": "^CST-D(0[0-9]|1[0-6])-[0-9]{2,3}$",
+            "description": "Constat de la matrice de traçabilité ; optionnel si la preuve n'est rattachée à aucun constat précis"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Chemin relatif au workspace d'audit, ou URL si preuve hébergée hors dépôt"
+          },
+          "line_ref": {
+            "type": "string",
+            "pattern": "^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$",
+            "description": "Ligne(s)/plage(s) dans le fichier de path (invariant « preuves fichier:ligne ») ; absent si non applicable"
+          },
+          "hash_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "description": "Empreinte du fichier de preuve à la capture — garantit la non-altération avant re-audit"
+          },
+          "captured_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "enum": ["scan", "capture", "extrait", "compte-rendu", "config"]
+          }
+        }
+      }
+    }
+  }
+}

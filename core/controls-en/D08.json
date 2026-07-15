@@ -1,0 +1,132 @@
+{
+  "dimension": "D08",
+  "label": "Tests & code quality",
+  "controls": [
+    {
+      "id": "CTL-D08-01",
+      "adr_source": ["ADR0504"],
+      "dimension_audit": "D08",
+      "regle": "Every code change, whether application code or infrastructure as code, is subject before merge to automated convention checks (lint, format, policy validation) and a review by at least one peer, in a blocking manner.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the configuration of the automated checks (linter, formatter, policy validation) triggered on every proposed change, as well as the requirement for a review approval before merge.",
+      "preuve_attendue": "CI configuration of the linter/formatter/policy + branch protection configuration requiring an approved review.",
+      "grille_verdict": "compliant = automated checks and review mandatory and blocking ; partial = only one of the two ; non-compliant = merge possible without check or review",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Verify the linter/formatter/policy validation configuration triggered on every proposed change; attach the CI configuration.",
+        "Confirm from the pull request history the absence of merges without a review approval; document the result.",
+        "If a gap is found: activate the automated checks and the branch protection requiring review."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PW.7", "ISO/IEC 25010:2011 — Maintenabilité (analysabilité)"]
+    },
+    {
+      "id": "CTL-D08-02",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D08",
+      "regle": "The results of security scans (SAST, secrets, dependencies) run in continuous integration are tracked by version and integrated as a code quality criterion, on the same footing as test coverage and technical debt.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Verify that scan results are retained by version (history) and reviewed or aggregated in the same dashboard or process as the other code quality indicators.",
+      "preuve_attendue": "History of scan results by version + quality dashboard including the security indicator.",
+      "grille_verdict": "compliant = results tracked by version and integrated into the quality dashboard ; partial = results tracked without integration into quality tracking ; non-compliant = results not retained",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Verify the historical retention of scan results by version; attach the excerpt.",
+        "Confirm the integration of the security indicator into the code quality dashboard or process; document the result.",
+        "If a gap is found: instrument the missing retention and integration."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PW.7", "NIST SSDF — PW.8"]
+    },
+    {
+      "id": "CTL-D08-03",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D08",
+      "regle": "Unit test coverage is measured at every integration, with a minimum threshold defined and verified automatically.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Run or review the latest coverage report; verify the presence of a configured minimum threshold and the pipeline's behavior when coverage falls below the threshold.",
+      "preuve_attendue": "Coverage report by module + minimum threshold configuration in CI + evidence of a pipeline failure below the threshold.",
+      "grille_verdict": "compliant = coverage measured, threshold defined and blocking ; partial = coverage measured without a blocking threshold ; non-compliant = coverage not measured",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Extract the latest test coverage report by module; attach the report.",
+        "Verify the minimum threshold configuration in CI and trigger a regression test to confirm the blocking behavior; document the result.",
+        "If a gap is found: define the threshold and activate the missing blocking behavior."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Maintenabilité (testabilité)", "NIST SSDF — PW.7"]
+    },
+    {
+      "id": "CTL-D08-04",
+      "adr_source": ["ADR0501"],
+      "dimension_audit": "D08",
+      "regle": "Critical functional journeys are covered by automated integration (or end-to-end) tests, run on every change.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Identify the critical journeys (declared in D00) and verify the existence of integration/e2e tests covering them, run automatically on every change.",
+      "preuve_attendue": "List of critical journeys with associated test + integration test execution report.",
+      "grille_verdict": "compliant = all critical journeys covered and run automatically ; partial = partial coverage of critical journeys ; non-compliant = no integration test observed",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Identify the critical functional journeys and look for the corresponding integration/e2e tests; attach the mapping.",
+        "Verify the automatic execution of these tests on every change; document the result.",
+        "If a gap is found: develop the missing integration tests for the uncovered journeys."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Maintenabilité (testabilité)"]
+    },
+    {
+      "id": "CTL-D08-05",
+      "adr_source": ["ADR0503"],
+      "dimension_audit": "D08",
+      "regle": "Cyclomatic complexity and technical debt (TODO/FIXME, excessively long functions) are measured periodically and tracked over time, with a documented alert threshold.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Run or review the complexity analysis tool (radon, ESLint complexity, or equivalent); verify the tracking over time and the existence of a documented alert threshold.",
+      "preuve_attendue": "Dated complexity report + trend history + documented alert threshold.",
+      "grille_verdict": "compliant = periodic measurement tracked over time with an alert threshold ; partial = one-off measurement without trend tracking ; non-compliant = complexity/debt not measured",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Run or review the complexity and technical debt analysis tool; attach the dated report.",
+        "Verify the trend tracking over time and the existence of a documented alert threshold; document the finding.",
+        "If a gap is found: tool the missing periodic measurement and define the alert threshold."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Maintenabilité (analysabilité, modifiabilité)"]
+    },
+    {
+      "id": "CTL-D08-06",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D08",
+      "regle": "The entire test suite (unit and integration) is run automatically on every proposed change, with a pipeline that blocks on any failure.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the CI pipeline configuration triggering the test suite on every change and the effective blocking of the merge or deployment in case of failure.",
+      "preuve_attendue": "CI pipeline configuration + evidence of a recent block due to test failure.",
+      "grille_verdict": "compliant = full suite run and 100% blocking ; partial = run without systematic blocking ; non-compliant = tests not run in CI",
+      "enforcement": "blocking",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Verify the pipeline configuration triggering the full test suite on every change; attach the configuration.",
+        "Trigger a deliberate test failure in a test environment and confirm the pipeline blocks; document the result.",
+        "If a gap is found: fix the configuration to make the pipeline block on failure."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PW.7", "DORA (Accelerate) — capacité de test continu"]
+    }
+  ]
+}

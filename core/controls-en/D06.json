@@ -1,0 +1,174 @@
+{
+  "dimension": "D06",
+  "label": "Performance & load",
+  "controls": [
+    {
+      "id": "CTL-D06-01",
+      "adr_source": ["ADR0705"],
+      "dimension_audit": "D06",
+      "regle": "Asynchronous integrations (message queues, event notifications, deferred tasks) are designed to be received multiple times without duplicate effects (idempotence), with a bounded retry policy and a dead-letter queue dedicated to repeated failures.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the presence of a unique message identifier guaranteeing deduplication, the configuration of a bounded retry policy (delay, maximum number of attempts), and the activation of a dead-letter queue for repeatedly failing messages.",
+      "preuve_attendue": "Retry policy configuration (delay, max attempts) + dead-letter queue configuration + example of a message replay without duplicate effect.",
+      "grille_verdict": "compliant = idempotence demonstrated + bounded retry + active dead-letter queue ; partial = idempotence demonstrated without a dead-letter queue ; non-compliant = no idempotence guarantee observed",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "ml"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Verify the presence of a unique message identifier and the deduplication mechanism for each asynchronous integration; attach the configuration excerpts.",
+        "Replay a duplicate message in a test environment and confirm the absence of a duplicated business effect; document the result.",
+        "If a gap is found: design the missing idempotence and activate a bounded dead-letter queue."
+      ],
+      "derogation": null,
+      "standards": ["EIP — Enterprise Integration Patterns (Idempotent Receiver, Dead Letter Channel)", "ISO/IEC 25010:2011 — Fiabilité (tolérance aux fautes)"]
+    },
+    {
+      "id": "CTL-D06-02",
+      "adr_source": ["ADR0706"],
+      "dimension_audit": "D06",
+      "regle": "Consumed external dependencies (third-party APIs, AI inference models, shared services) are subject to known, documented, and monitored quotas and rate thresholds, with a controlled degradation plan in case of overrun.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the consumed external dependencies and their contractual quotas (TPM/RPM, calls/minute); verify that observed usage stays under the declared thresholds and that a degradation plan (queueing, fallback, controlled error message) exists in case of overrun.",
+      "preuve_attendue": "Inventory of external dependencies with contractual quotas + observed usage over the period + documented degradation plan.",
+      "grille_verdict": "compliant = quotas known, usage under threshold, degradation plan tested ; partial = quotas known without a degradation plan ; non-compliant = quotas unknown or overruns not controlled",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Inventory the consumed external dependencies and their contractual quotas; attach the inventory and observed usage.",
+        "Simulate or observe a quota overrun and verify the degradation behavior; document the result.",
+        "If a gap is found: negotiate/document the missing quotas and implement a degradation plan."
+      ],
+      "derogation": null,
+      "standards": ["OWASP ASVS 5.0 — V13", "Site Reliability Engineering (Google) — gestion de la charge"]
+    },
+    {
+      "id": "CTL-D06-03",
+      "adr_source": ["ADR0704"],
+      "dimension_audit": "D06",
+      "regle": "Latency targets (p50/p95/p99) are declared for each critical journey and continuously measured under real conditions, with systematic comparison to the declared target.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of declared latency targets per critical journey and the presence of p50/p95/p99 metrics measured over a representative period (7-30 days); compare the measurements to the declared targets.",
+      "preuve_attendue": "Document of latency targets per journey + export of p50/p95/p99 metrics measured over the period.",
+      "grille_verdict": "compliant = targets declared and measurements compliant over the period ; partial = measurements available without a declared target (or vice versa) ; non-compliant = neither target nor measurement available",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Extract the p50/p95/p99 latency metrics over a representative period for each critical journey; attach the export.",
+        "Compare the measurements to the declared targets; document any observed gaps.",
+        "If a gap is found: declare the missing targets or instrument the unmeasured journeys."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (comportement temporel)", "Google SRE — Service Level Objectives"]
+    },
+    {
+      "id": "CTL-D06-04",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D06",
+      "regle": "Load tests representative of the target are run regularly, at minimum before every major production release, with performance budgets defined and verified in continuous integration, blocking any significant regression.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Look for the load test scripts (k6, Locust, JMeter, or equivalent) and their execution in CI; verify the existence of performance thresholds (budgets) and the pipeline's behavior in case of overrun.",
+      "preuve_attendue": "Report of the latest load test + performance budget configuration in CI + evidence of a pipeline failure on budget overrun.",
+      "grille_verdict": "compliant = regular load tests + active blocking budgets ; partial = regular load tests without a blocking budget ; non-compliant = no load test observed",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Look for the load test scripts and execution history; attach the latest report.",
+        "Verify the performance budget configuration in CI and trigger a regression test to confirm the blocking behavior; document the result.",
+        "If a gap is found: implement the missing load tests and blocking budgets."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (utilisation des ressources)", "DORA (Accelerate) — pratiques de test en continu"]
+    },
+    {
+      "id": "CTL-D06-05",
+      "adr_source": ["ADR0706"],
+      "dimension_audit": "D06",
+      "regle": "A caching strategy is defined and applied to the identified contention points (costly responses, recurring calls to external dependencies), with an explicit invalidation policy.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Identify the contention points (latency, cost, load) on the main journeys and verify the presence of a suitable caching mechanism (application, HTTP, semantic) with a documented invalidation policy.",
+      "preuve_attendue": "Cache configuration (TTL, key, scope) + justification of the contention points covered.",
+      "grille_verdict": "compliant = cache in place on the major contention points with controlled invalidation ; partial = partial cache or uncontrolled invalidation ; non-compliant = no cache despite identified contention points",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "ml"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Identify the contention points (latency, cost, load) on the main journeys; attach the analysis.",
+        "Verify the cache configuration and its invalidation policy at these points; document the coverage.",
+        "If a gap is found: implement the missing cache and define the invalidation policy."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (utilisation des ressources)"]
+    },
+    {
+      "id": "CTL-D06-06",
+      "adr_source": ["ADR0704"],
+      "dimension_audit": "D06",
+      "regle": "Every endpoint returning a collection applies systematic pagination with a bounded page size, avoiding any uncontrolled payload.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inventory the endpoints returning collections; verify the presence of pagination (cursor or offset/limit) and a bounded maximum page size for each.",
+      "preuve_attendue": "List of collection endpoints with pagination parameters + example of a full, non-paginated payload response (if applicable).",
+      "grille_verdict": "compliant = systematic and bounded pagination on 100% of collection endpoints ; partial = partial pagination ; non-compliant = endpoints returning unbounded collections",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "sans_objet" },
+      "actions_audit": [
+        "Inventory the endpoints returning collections; attach the list with pagination parameters.",
+        "Query an endpoint without a pagination parameter and confirm the presence of a default bound; document the result.",
+        "If a gap is found: instrument the missing pagination and bound the page size."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance", "OpenAPI — conventions de pagination"]
+    },
+    {
+      "id": "CTL-D06-07",
+      "adr_source": ["ADR0502"],
+      "dimension_audit": "D06",
+      "regle": "Connections to stateful dependent services (database, cache, third-party services) are managed by a properly sized and configured connection pool, avoiding any connection exhaustion under load.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the connection pooling configuration (min/max size, timeout) for each stateful dependency, and the absence of a connection opened per request.",
+      "preuve_attendue": "Connection pool configuration per dependency + pool usage metrics under load.",
+      "grille_verdict": "compliant = pooling configured and sized for all stateful dependencies ; partial = partial pooling ; non-compliant = non-pooled connections (opened per request)",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "ml"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Inventory the stateful dependencies (database, cache, third-party services) and their pooling configuration; attach the inventory.",
+        "Observe the pool usage metrics under load (saturation, wait time); document the result.",
+        "If a gap is found: configure the missing pooling and size it according to the target load."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (utilisation des ressources)"]
+    },
+    {
+      "id": "CTL-D06-08",
+      "adr_source": ["ADR0502"],
+      "dimension_audit": "D06",
+      "regle": "The horizontal and/or vertical scaling capacity is documented (chosen mechanism, known limits) and validated by a test representative of the target load.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the documentation of the scalability mechanism (horizontal autoscaling, vertical scale-up) and the existence of a test that validated the declared target load.",
+      "preuve_attendue": "Scalability strategy documentation + target load test report + autoscaling configuration.",
+      "grille_verdict": "compliant = scalability documented and validated by a test at target ; partial = documented without test validation ; non-compliant = scalability not documented",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the documentation of the scalability mechanism (horizontal/vertical) and its known limits; attach the document.",
+        "Verify the load test report that validated the declared target; document the result.",
+        "If a gap is found: document the mechanism and conduct the missing target validation test."
+      ],
+      "derogation": null,
+      "standards": ["ISO/IEC 25010:2011 — Efficacité de performance (capacité)", "DORA (Accelerate) — pratiques d'infrastructure élastique"]
+    }
+  ]
+}

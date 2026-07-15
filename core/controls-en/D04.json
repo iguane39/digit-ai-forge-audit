@@ -1,0 +1,455 @@
+{
+  "dimension": "D04",
+  "label": "Regulatory & AI compliance",
+  "controls": [
+    {
+      "id": "CTL-D04-01",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Each personal data processing activity is recorded in the register of processing activities, with its purpose, its identified legal basis, and its categories of data and data subjects.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Review the register of processing activities; verify its completeness against the processing actually carried out by the application and the presence of a legal basis for each processing activity.",
+      "preuve_attendue": "Excerpt from the register of processing activities covering the application + justification of the legal basis adopted for each processing activity.",
+      "grille_verdict": "compliant = all processing activities recorded with an identified legal basis ; partial = incomplete register or unjustified legal basis ; non-compliant = no register",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the data processing activities actually carried out by the application and compare them against the register.",
+        "Verify the legal basis adopted for each processing activity and its documented justification.",
+        "If gap: complete the register and have the missing legal basis decided by the compliance officer."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 30 (registre des activités de traitement)",
+        "RGPD — art. 6 (licéité du traitement)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-02",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "A data protection impact assessment (DPIA) is carried out, documented, and validated by the delegate/compliance officer whenever a processing activity presents a high risk to individuals; it is renewed with every substantial change to the processing.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Determine whether the high-risk criteria are met (nature of the data, scale, cross-referencing, automated decision-making); if so, verify the existence, content, and validation of the DPIA.",
+      "preuve_attendue": "DPIA signed/validated by the compliance officer, or documented analysis concluding there is no obligation.",
+      "grille_verdict": "compliant = required DPIA carried out and validated, or absence of obligation demonstrated ; partial = DPIA started but not validated ; non-compliant = DPIA required and missing",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Assess the criteria triggering the DPIA obligation with regard to the actual processing.",
+        "If required, verify the existence, content, and formal validation of the DPIA by the compliance officer.",
+        "If gap: initiate or finalize the DPIA before any broader release."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 35 (analyse d'impact relative à la protection des données)",
+        "RGPD — art. 36 (consultation préalable de l'autorité de contrôle)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-03",
+      "adr_source": [
+        "ADR0208"
+      ],
+      "dimension_audit": "D04",
+      "regle": "The AI system is classified according to the risk grid of the applicable jurisdiction pack (EU by default: AI Act — unacceptable / high / limited / minimal risk), and the obligations corresponding to the level adopted are formally tracked.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Identify the system's functions that may fall under a risk category of the applicable jurisdiction pack; verify the classification adopted and its documented justification.",
+      "preuve_attendue": "AI system classification sheet (category adopted, justification, identified applicable obligations).",
+      "grille_verdict": "compliant = classification documented and justified, obligations tracked ; partial = classification sketched without a complete justification ; non-compliant = AI system not classified",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Analyze the system's functions with regard to the classification grid of the applicable jurisdiction pack.",
+        "Verify the documented justification of the category adopted and the resulting obligations.",
+        "If gap: produce the classification and initiate compliance with the obligations of the identified level."
+      ],
+      "derogation": null,
+      "standards": [
+        "AI Act — art. 6 et Annexe III (règles de classification)",
+        "AI Act — art. 9 (système de gestion des risques)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-04",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Individuals interacting with the system are informed, in a clear, prior, and accessible manner, of the nature of the processing and, where applicable, of the automated or AI-generated character of the interaction or content.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Walk through the user interaction point; verify the presence, clarity, and accessibility of the information on the processing and on the use of AI.",
+      "preuve_attendue": "Capture of the user journey showing the information/transparency notice.",
+      "grille_verdict": "compliant = clear and systematic information provided before interaction ; partial = information present but incomplete or hardly visible ; non-compliant = no information",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Walk through the user interaction point and note the presence of the information notice.",
+        "Verify the clarity and accessibility of the notice (understandable language, visibility).",
+        "If gap: add or strengthen the information/transparency notice."
+      ],
+      "derogation": null,
+      "standards": [
+        "AI Act — art. 50 (obligations de transparence)",
+        "RGPD — art. 13/14 (information des personnes concernées)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-05",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Only the data strictly necessary for the declared purpose is collected, transmitted, and retained; any additional field, source, or use is explicitly justified.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Compare the data actually collected/transmitted against the strict need of the declared purpose; identify any unjustified excess field.",
+      "preuve_attendue": "Map of the data collected with the associated purpose per field.",
+      "grille_verdict": "compliant = data strictly necessary, deviations justified ; partial = a few unjustified excess fields ; non-compliant = widespread disproportionate collection",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Map the data collected/transmitted and its declared purpose.",
+        "Identify the excess fields relative to the strict need.",
+        "If gap: remove or formally justify each excess field."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5.1.c (minimisation des données)",
+        "ISO/IEC 27701:2019 — 7.4.4"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-06",
+      "adr_source": [
+        "ADR0207"
+      ],
+      "dimension_audit": "D04",
+      "regle": "The rights of data subjects (access, rectification, erasure, objection, portability) are supported by a procedure that is executable within the legal timeframes, tracked, and not dependent on ad hoc manual processing.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Trigger or simulate a rights request; verify the processing timeframe, traceability, and completeness of the response provided.",
+      "preuve_attendue": "Documented procedure for exercising rights + trace of a request processed within the timeframe.",
+      "grille_verdict": "compliant = procedure supported and legal timeframe met, tracked ; partial = procedure exists but timeframe or traceability insufficient ; non-compliant = rights not supported",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the existence of a documented procedure for each data subject right.",
+        "Simulate a rights request and measure the processing timeframe and completeness.",
+        "If gap: build the missing procedure and train the relevant teams."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 15 à 22 (droits des personnes concernées)",
+        "RGPD — art. 12 (délais et modalités d'exercice)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-07",
+      "adr_source": [
+        "ADR0304"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Any transfer of personal data outside the originating jurisdictional perimeter relies on a regulated mechanism (adequacy decision, standard contractual clauses, appropriate safeguards) documented flow by flow.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Map the data flows leaving the originating jurisdictional perimeter; verify for each the applicable regulating mechanism and its documentation.",
+      "preuve_attendue": "Map of cross-border flows + regulating mechanism documented per flow (clauses, adequacy decision, safeguards).",
+      "grille_verdict": "compliant = all out-of-jurisdiction flows regulated and documented ; partial = flows partially regulated or incomplete documentation ; non-compliant = out-of-jurisdiction transfer with no regulating mechanism",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Map the data flows leaving the originating jurisdictional perimeter.",
+        "Verify the regulating mechanism applicable to each identified flow and its documentation.",
+        "If gap: implement the required regulating mechanism or suspend the uncovered flow."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 44 à 49 (transferts vers des pays tiers)",
+        "ISO/IEC 27701:2019 — 7.5"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-08",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Each data category is associated with a defined and proportionate retention period, with an effective purge (automated or procedural) at expiry.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of a retention policy per data category and test the effective execution of the purge at the declared expiry.",
+      "preuve_attendue": "Retention policy per data category + proof of purge execution (log, job report).",
+      "grille_verdict": "compliant = periods defined and purge verified for all categories ; partial = periods defined without a verified purge ; non-compliant = periods not defined or data retained indefinitely",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the declared retention policy for each data category.",
+        "Check the effective execution of the purge at expiry on a data sample.",
+        "If gap: define the missing periods and instrument the automated purge."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5.1.e (limitation de la conservation)",
+        "ISO/IEC 27002:2022 — 8.10"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-09",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "A data protection officer or a compliance officer is formally designated, reachable by data subjects and by project teams, and systematically consulted on high-risk processing activities.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the formal designation of the officer (appointment, published contact details) and their actual consultation on the project's high-risk processing activities.",
+      "preuve_attendue": "Designation record for the officer + trace of consultation on at least one high-risk processing activity of the project.",
+      "grille_verdict": "compliant = officer designated, reachable, and consulted on high-risk processing ; partial = officer designated but not systematically consulted ; non-compliant = no officer identified",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify the existence and publication of the compliance officer's designation.",
+        "Verify the trace of the officer's consultation on the project's high-risk processing activities.",
+        "If gap: designate the missing officer and establish their systematic consultation."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 37 à 39 (délégué à la protection des données)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-10",
+      "adr_source": [
+        "ADR0209"
+      ],
+      "dimension_audit": "D04",
+      "regle": "The AI system has technical documentation covering the model (architecture, known limitations, performance metrics) and the training/validation data (origin, representativeness, governance).",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Request the technical documentation of the model and of the training/validation data; verify its completeness and its consistency with the actually deployed system.",
+      "preuve_attendue": "Technical documentation of the model + governance sheet for the training/validation data.",
+      "grille_verdict": "compliant = documentation complete and up to date, covering model and data ; partial = partial documentation (model or data only) ; non-compliant = no documentation",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "ml",
+          "data"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the technical documentation of the model and of the training/validation data.",
+        "Verify its consistency with the version of the system actually deployed.",
+        "If gap: produce or complete the missing documentation before any move to production."
+      ],
+      "derogation": null,
+      "standards": [
+        "AI Act — art. 11 et Annexe IV (documentation technique)",
+        "AI Act — art. 10 (gouvernance des données)",
+        "ISO/IEC 42001:2023 — 8.3 (gestion du cycle de vie des systèmes d'IA)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-11",
+      "adr_source": [],
+      "dimension_audit": "D04",
+      "regle": "When an AI system falls under an active AI regulatory framework, the deployer's obligations are addressed before going into service: fundamental rights impact assessment where required, information for exposed individuals, designated and logged human oversight.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the regulatory qualification of the AI system, the existence of the impact assessment where required, the information notices to individuals, and the actual designation of human oversight.",
+      "preuve_attendue": "Documented qualification + impact assessment (if required) + information notices + dated oversight designation.",
+      "grille_verdict": "compliant = obligations addressed and tracked ; partial = qualification done, obligations incomplete ; non-compliant = system deployed without the obligations having been addressed",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Qualify the system with regard to the active AI framework; attach the qualification.",
+        "Collect the impact assessment, information notices, and oversight designation; attach the proofs.",
+        "If gap: address the missing obligations before going into service."
+      ],
+      "derogation": null,
+      "jurisdiction": "eu",
+      "standards": [
+        "AI Act (UE 2024/1689) — art. 26-27"
+      ]
+    },
+    {
+      "id": "CTL-D04-12",
+      "adr_source": [
+        "ADR0213"
+      ],
+      "dimension_audit": "D04",
+      "regle": "A data breach notification procedure is defined and tested: breach qualification, notification to the authority within the regulatory timeframe, information to individuals where required, and a breach register maintained.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of the procedure, the trace of an exercise (real or simulated), and the maintenance of the breach register.",
+      "preuve_attendue": "Dated procedure + exercise report + excerpt from the breach register.",
+      "grille_verdict": "compliant = procedure tested + register maintained ; partial = procedure defined but not tested ; non-compliant = no procedure",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Request the notification procedure and its last exercise date; attach.",
+        "Verify the breach register (even if empty, it must exist); attach the excerpt.",
+        "If gap: establish the procedure, designate the responsible parties, schedule an exercise."
+      ],
+      "derogation": null,
+      "jurisdiction": "eu",
+      "standards": [
+        "RGPD — art. 33-34"
+      ]
+    }
+  ]
+}

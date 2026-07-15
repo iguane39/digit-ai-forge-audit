@@ -1,0 +1,153 @@
+{
+  "dimension": "D09",
+  "label": "CI/CD & DevOps",
+  "controls": [
+    {
+      "id": "CTL-D09-01",
+      "adr_source": ["ADR0501"],
+      "dimension_audit": "D09",
+      "regle": "Every deployment to a managed environment passes exclusively through an automated CI/CD pipeline; each run produces an immutable, timestamped log (author, version, target, result).",
+      "criticite": "Fatal",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inventory the direct deployment access (outside the pipeline) on each managed environment; verify that no recent deployment bypasses the pipeline, and that the execution log is immutable and complete (author, version, target, result).",
+      "preuve_attendue": "Inventory of deployment access by environment + excerpt of the pipeline execution log over the audit period.",
+      "grille_verdict": "compliant = 0 deployment outside the pipeline observed + complete immutable log ; partial = documented and waived exceptions ; non-compliant = untracked manual deployment observed",
+      "enforcement": "blocking",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Inspect the direct deployment access on each managed environment; attach the access inventory.",
+        "Confirm from the pipeline execution log the absence of deployments outside the pipeline over the audit period; document the result.",
+        "If a gap is found: revoke the direct deployment access and route every deployment through the pipeline."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PO.3", "DORA (Accelerate) — capacité Deployment Automation", "12-Factor — V. Build, release, run"]
+    },
+    {
+      "id": "CTL-D09-02",
+      "adr_source": ["ADR0504"],
+      "dimension_audit": "D09",
+      "regle": "All managed infrastructure is described as code (Infrastructure as Code), whose reference state is stored remotely, versioned, and locked, with no out-of-band modification.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the IaC coverage of the managed infrastructure (absence of resources created outside the code), the remote state configuration (locking, versioning), and the execution of drift detection.",
+      "preuve_attendue": "Remote state configuration + drift detection report + inventory of resources not covered by IaC (if applicable).",
+      "grille_verdict": "compliant = 0 drift detected + remote state locked and versioned ; partial = isolated drift corrected ; non-compliant = undetected or recurring out-of-band modification",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "ml", "infra"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Run or review the latest drift detection report between the declared state and the actual state; attach the report.",
+        "Verify the remote state configuration (locking, versioning); document the finding.",
+        "If a gap is found: cover the missing resources with IaC and secure the remote state."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PO.5", "CIS Controls v8 — 4 (configuration sécurisée par policy-as-code)", "DORA (Accelerate) — capacité Infrastructure as Code"]
+    },
+    {
+      "id": "CTL-D09-03",
+      "adr_source": ["ADR0505"],
+      "dimension_audit": "D09",
+      "regle": "SAST, secrets detection, and vulnerable dependency scans are integrated into the pipeline and run on every integration, as a blocking gate on any critical vulnerability.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the presence of the three scan types (SAST, secrets, dependencies) in the pipeline configuration and the pipeline's blocking behavior on critical detection.",
+      "preuve_attendue": "Scan gate configuration in the pipeline + scan reports over recent history + evidence of a block on a critical vulnerability.",
+      "grille_verdict": "compliant = 3 scans active and blocking on high criticality ; partial = scans active but not blocking ; non-compliant = absence of at least one scan type",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Verify the configuration of the three scans (SAST, secrets, dependencies) in the pipeline; attach the configuration.",
+        "Introduce a canary vulnerability in a test environment and confirm the pipeline blocks; document the result.",
+        "If a gap is found: integrate the missing scans and activate the blocking behavior."
+      ],
+      "derogation": null,
+      "standards": ["NIST SSDF — PW.7", "NIST SSDF — PW.8", "NIST SSDF — PS.1"]
+    },
+    {
+      "id": "CTL-D09-04",
+      "adr_source": ["ADR0506", "ADR0508"],
+      "dimension_audit": "D09",
+      "regle": "A progressive deployment strategy (blue-green, canary, or rolling depending on context) is documented and applied, and the promotion of a version from one environment to the next passes exclusively through the pipeline, with a tracked approval at each stage.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the documentation of the chosen deployment strategy (blue-green/canary/rolling) and its effective application; verify that inter-environment promotion can only happen via the pipeline, with a trace of the approval at each stage passed.",
+      "preuve_attendue": "Deployment strategy documentation + inter-environment promotion approval configuration + log of a recent promotion.",
+      "grille_verdict": "compliant = progressive strategy documented and applied + promotion exclusively via pipeline with tracked approvals ; partial = strategy documented without tracked promotion (or vice versa) ; non-compliant = direct deployment without progressive strategy or traceability",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "ml", "infra"], "defaut": "a_evaluer" },
+      "actions_audit": [
+        "Request the documentation of the chosen progressive deployment strategy; attach the document.",
+        "Verify the log of a recent promotion (gates passed, approver, timestamp); document the result.",
+        "If a gap is found: document the strategy and track the missing promotion approvals."
+      ],
+      "derogation": null,
+      "standards": ["DORA (Accelerate) — capacité de livraison continue (déploiement progressif)", "SLSA — provenance et reproductibilité du build"]
+    },
+    {
+      "id": "CTL-D09-05",
+      "adr_source": ["ADR0507"],
+      "dimension_audit": "D09",
+      "regle": "Every published artifact (library, service, image) applies a semantic versioning scheme (major.minor.patch), automatically verified in continuous integration, with release notes published for each version.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the configuration of the automatic version scheme check in CI and the systematic publication of release notes for each delivered version.",
+      "preuve_attendue": "History of published versions + associated release notes + configuration of the automatic scheme verification.",
+      "grille_verdict": "compliant = scheme respected and verified in CI + systematic notes ; partial = scheme respected without automated verification or without systematic notes ; non-compliant = versions not distinguishable or duplicated",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Verify the configuration of the automatic version scheme check in CI; attach the configuration.",
+        "Confirm the publication of release notes for the latest delivered versions; document the result.",
+        "If a gap is found: instrument the automatic verification and systematize the missing release notes."
+      ],
+      "derogation": null,
+      "standards": ["SemVer 2.0.0", "DORA (Accelerate) — traçabilité des releases"]
+    },
+    {
+      "id": "CTL-D09-06",
+      "adr_source": ["ADR0504"],
+      "dimension_audit": "D09",
+      "regle": "The repository applies branch protection on the reference branch (prohibition of direct push, required verification statuses) and requires an approved peer review before any merge.",
+      "criticite": "Majeur",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the reference branch protection configuration (merge rules, required statuses, prohibition of direct push) and the number of approvals required before merge.",
+      "preuve_attendue": "Capture of the branch protection configuration + pull request history showing the absence of direct pushes to the protected branch.",
+      "grille_verdict": "compliant = active protection + mandatory review + no direct push observed ; partial = active protection without mandatory review ; non-compliant = reference branch not protected",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Verify the reference branch protection configuration (settings, required approvals); attach the capture.",
+        "Confirm from the history the absence of direct pushes to the protected branch; document the result.",
+        "If a gap is found: activate the missing branch protection and review requirement."
+      ],
+      "derogation": null,
+      "standards": ["CIS Controls v8 — 16 (sécurité du logiciel applicatif)", "NIST SSDF — PO.3"]
+    },
+    {
+      "id": "CTL-D09-07",
+      "adr_source": ["ADR0509"],
+      "dimension_audit": "D09",
+      "regle": "A rollback strategy is defined, tooled by the pipeline, and tested periodically at a defined frequency, without direct manual intervention on the target.",
+      "criticite": "Bloquant",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of a rollback mechanism triggerable from the pipeline and the trace of the last rollback exercise (date, result, measured restoration time).",
+      "preuve_attendue": "Report of the latest rollback exercise + measured restoration time + configuration of the trigger from the pipeline.",
+      "grille_verdict": "compliant = rollback tooled, exercised at the defined frequency, restoration time objective met ; partial = rollback exercised but objective exceeded or frequency not respected ; non-compliant = no rollback exercise observed",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the report of the latest rollback exercise and the measured restoration time; attach the report.",
+        "Verify that triggering the rollback requires no direct manual intervention on the target; document the result.",
+        "If a gap is found: tool the rollback from the pipeline and schedule the missing periodic exercise."
+      ],
+      "derogation": null,
+      "standards": ["DORA (Accelerate) — Time to Restore Service (MTTR)", "ISO/IEC 27002:2022 — 5.30"]
+    }
+  ]
+}

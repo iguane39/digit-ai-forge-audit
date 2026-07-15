@@ -1,0 +1,52 @@
+# AuditCore — framework d'audit & remédiation générique (by Digit-AI)
+
+> Produit issu de l'exécution du plan [PLAN/](../PLAN/README.md) : un framework d'audit
+> **agnostique** (technologies, langages, BDD, cloud), **marque-blanche** et **multi-tenant**,
+> couplé à la forge [digit-ai-saas-forge](https://github.com/iguane39/digit-ai-saas-forge)
+> pour la remédiation. Le comportement actuel du tenant de référence est reproduit par
+> Le produit ne contient AUCUN tenant réel : `config/tenants/exemple/` (ACME, fictif) sert de
+> base d'onboarding, et la logique de fusion est prouvée par le golden-test synthétique
+> (`tests/test-golden-buckets.mjs`). L'iso-comportement d'un tenant réel (`--iso-test`) se
+> rejoue dans le dépôt de son engagement.
+
+**Version du core : 1.0.0** (SemVer — décision PADR-0005). Nom produit : **AuditCore** (PADR-0007).
+
+## Arborescence
+
+```
+auditcore/
+├── docs/decisions/          # ADRs du produit (PADR — décisions actées)
+├── core/                    # LA couche générique invariante, versionnée
+│   ├── adr/<domaine>/       # 73 ADR de principe (MADR), 10 domaines (09 UX optionnel) — + miroir EN adr-en/
+│   ├── controls/            # 169 contrôles CTL-Dxx-nn (+ pack EN controls-core-v1.en.json)
+│   ├── dimensions/          # 17 dimensions D00–D16, 6 familles, applicabilité par type
+│   └── schemas/             # JSON Schemas : tenant, contrôle, actions de remédiation
+├── profiles/                # packs technologiques (azure, databricks-lakehouse, powerbi, elastic)
+├── config/tenants/<tenant>/ # overlays entreprise (branding, packs, aliases) — exemple = ACME fictif
+├── deliverables/templates/  # gabarits des livrables (rapport, banc, matrices, + 6 nouveaux)
+├── tools/                   # validate-config · build-theme · merge-packs · verifier · init · forge-adapter
+└── tests/                   # fixtures invalides (validateur), test iso, exemple adaptateur forge
+```
+
+## Démarrage
+
+```bash
+node tools/validate-config.mjs config/tenants/exemple/tenant.yaml # valider un tenant
+node tools/build-theme.mjs   config/tenants/exemple/tenant.yaml   # générer theme.css + en-tête
+node tools/merge-packs.mjs   config/tenants/exemple/tenant.yaml   # fusion core+profils+overlay
+node tools/merge-packs.mjs   --iso-test                           # preuve d'iso-comportement (91/91)
+node tools/init-audit-workspace.mjs <dossier> --tenant exemple    # espace de travail d'audit
+node tools/forge-adapter.mjs tests/fixtures/remediation-actions.example.yaml --out <repo-cible>
+node tools/build-kit.mjs     config/tenants/exemple/tenant.yaml --kind both # kits zip distribuables
+node tools/build-catalogue.mjs config/tenants/exemple/tenant.yaml           # catalogue ADR navigable (M7)
+node tools/build-rapport.mjs <rapport-data.json> --tenant config/tenants/exemple/tenant.yaml # rendu rapport (M5)
+#   --kind compliance : la part du PROJET AUDITÉ (contraintes fusionnées, banc, vérificateur AUTONOME,
+#                       fiche sécurité, thème) · --kind audit : la part de l'équipe qui conduit l'audit
+#   indice de version auto (a, b, c… par jour) · zip natif sans dépendance (tools/ziplib.mjs)
+```
+
+## Invariants (rappel — [PLAN/01](../PLAN/01-modele-abstraction.md))
+
+Précédence `core > profil > overlay` · un overlay ajoute/durcit/nomme/habille, jamais n'affaiblit un
+`invariant: true` · « pas de score sans preuve » · aucun nom d'éditeur/produit/cloud dans `core/` ·
+chaque contrôle cite ≥ 1 standard · le taux d'automatisation forge est mesuré, jamais objectivé.

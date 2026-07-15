@@ -1,0 +1,455 @@
+{
+  "dimension": "D04",
+  "label": "Conformité réglementaire & IA",
+  "controls": [
+    {
+      "id": "CTL-D04-01",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Chaque traitement de données à caractère personnel figure au registre des traitements, avec sa finalité, sa base légale identifiée et ses catégories de données et de personnes concernées.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Consulter le registre des traitements ; vérifier son exhaustivité par rapport aux traitements réellement opérés par l'application et la présence d'une base légale par traitement.",
+      "preuve_attendue": "Extrait du registre des traitements couvrant l'application + justification de la base légale retenue par traitement.",
+      "grille_verdict": "conforme = tous les traitements inscrits avec base légale identifiée ; partiel = registre incomplet ou base légale non justifiée ; non conforme = registre absent",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Recenser les traitements de données réellement opérés par l'application et les comparer au registre.",
+        "Vérifier la base légale retenue pour chaque traitement et sa justification documentée.",
+        "Si écart : compléter le registre et faire trancher la base légale manquante par le référent."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 30 (registre des activités de traitement)",
+        "RGPD — art. 6 (licéité du traitement)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-02",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Une analyse d'impact relative à la protection des données (AIPD) est réalisée, documentée et validée par le délégué/référent dès lors qu'un traitement présente un risque élevé pour les personnes ; elle est renouvelée à chaque évolution substantielle du traitement.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Déterminer si les critères de risque élevé sont réunis (nature des données, échelle, croisement, décision automatisée) ; si oui, vérifier l'existence, le contenu et la validation de l'AIPD.",
+      "preuve_attendue": "AIPD signée/validée par le référent, ou analyse documentée concluant à l'absence d'obligation.",
+      "grille_verdict": "conforme = AIPD requise réalisée et validée, ou absence d'obligation démontrée ; partiel = AIPD entamée mais non validée ; non conforme = AIPD requise et absente",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Évaluer les critères déclenchant l'obligation d'AIPD au regard du traitement réel.",
+        "Si requise, vérifier l'existence, le contenu et la validation formelle de l'AIPD par le référent.",
+        "Si écart : engager ou finaliser l'AIPD avant toute mise à disposition élargie."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 35 (analyse d'impact relative à la protection des données)",
+        "RGPD — art. 36 (consultation préalable de l'autorité de contrôle)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-03",
+      "adr_source": [
+        "ADR0208"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Le système d'IA est classifié selon la grille de risque du pack de juridiction applicable (par défaut UE : AI Act — risque inacceptable / élevé / limité / minimal), et les obligations correspondant au niveau retenu sont formellement tracées.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Identifier les fonctions du système susceptibles de relever d'une catégorie à risque du pack de juridiction applicable ; vérifier la classification retenue et sa justification documentée.",
+      "preuve_attendue": "Fiche de classification du système d'IA (catégorie retenue, justification, obligations applicables identifiées).",
+      "grille_verdict": "conforme = classification documentée et justifiée, obligations tracées ; partiel = classification esquissée sans justification complète ; non conforme = système d'IA non classifié",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Analyser les fonctions du système au regard de la grille de classification du pack de juridiction applicable.",
+        "Vérifier la justification documentée de la catégorie retenue et les obligations qui en découlent.",
+        "Si écart : produire la classification et engager la mise en conformité aux obligations du niveau identifié."
+      ],
+      "derogation": null,
+      "standards": [
+        "AI Act — art. 6 et Annexe III (règles de classification)",
+        "AI Act — art. 9 (système de gestion des risques)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-04",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Les personnes interagissant avec le système sont informées, de manière claire, préalable et accessible, de la nature du traitement et, le cas échéant, du caractère automatisé ou généré par IA de l'interaction ou du contenu.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Parcourir le point d'interaction utilisateur ; vérifier la présence, la clarté et l'accessibilité de l'information sur le traitement et sur l'usage de l'IA.",
+      "preuve_attendue": "Capture du parcours utilisateur montrant la mention d'information/transparence.",
+      "grille_verdict": "conforme = information claire et systématique avant interaction ; partiel = information présente mais incomplète ou peu visible ; non conforme = absence d'information",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Parcourir le point d'interaction utilisateur et relever la présence de la mention d'information.",
+        "Vérifier la clarté et l'accessibilité de la mention (langage compréhensible, visibilité).",
+        "Si écart : ajouter ou renforcer la mention d'information/transparence."
+      ],
+      "derogation": null,
+      "standards": [
+        "AI Act — art. 50 (obligations de transparence)",
+        "RGPD — art. 13/14 (information des personnes concernées)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-05",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Seules les données strictement nécessaires à la finalité déclarée sont collectées, transmises et conservées ; tout champ, source ou usage additionnel est justifié explicitement.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Comparer les données effectivement collectées/transmises au strict besoin de la finalité déclarée ; identifier tout champ excédentaire non justifié.",
+      "preuve_attendue": "Cartographie des données collectées avec finalité associée par champ.",
+      "grille_verdict": "conforme = données strictement nécessaires, écarts justifiés ; partiel = quelques champs excédentaires non justifiés ; non conforme = collecte disproportionnée généralisée",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Cartographier les données collectées/transmises et leur finalité déclarée.",
+        "Identifier les champs excédentaires par rapport au strict besoin.",
+        "Si écart : supprimer ou justifier formellement chaque champ excédentaire."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5.1.c (minimisation des données)",
+        "ISO/IEC 27701:2019 — 7.4.4"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-06",
+      "adr_source": [
+        "ADR0207"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Les droits des personnes concernées (accès, rectification, effacement, opposition, portabilité) sont outillés par une procédure exécutable dans les délais légaux, tracée et non dépendante d'un traitement manuel ad hoc.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Déclencher ou simuler une demande d'exercice de droit ; vérifier le délai de traitement, la traçabilité et la complétude de la réponse apportée.",
+      "preuve_attendue": "Procédure documentée d'exercice des droits + trace d'une demande traitée dans les délais.",
+      "grille_verdict": "conforme = procédure outillée et délai légal respecté, tracé ; partiel = procédure existante mais délai ou traçabilité insuffisants ; non conforme = droits non outillés",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier l'existence d'une procédure documentée pour chaque droit des personnes.",
+        "Simuler une demande d'exercice de droit et mesurer le délai et la complétude de traitement.",
+        "Si écart : outiller la procédure manquante et former les équipes concernées."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 15 à 22 (droits des personnes concernées)",
+        "RGPD — art. 12 (délais et modalités d'exercice)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-07",
+      "adr_source": [
+        "ADR0304"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Tout transfert de données à caractère personnel hors du périmètre juridictionnel d'origine repose sur un mécanisme encadré (décision d'adéquation, clauses contractuelles types, garanties appropriées) documenté flux par flux.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Cartographier les flux de données sortant du périmètre juridictionnel d'origine ; vérifier pour chacun le mécanisme d'encadrement applicable et sa documentation.",
+      "preuve_attendue": "Cartographie des flux transfrontaliers + mécanisme d'encadrement documenté par flux (clauses, décision d'adéquation, garanties).",
+      "grille_verdict": "conforme = tous les flux hors juridiction encadrés et documentés ; partiel = flux encadrés partiellement ou documentation incomplète ; non conforme = transfert hors juridiction sans encadrement",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Cartographier les flux de données sortant du périmètre juridictionnel d'origine.",
+        "Vérifier le mécanisme d'encadrement applicable à chaque flux identifié et sa documentation.",
+        "Si écart : mettre en place le mécanisme d'encadrement requis ou suspendre le flux non couvert."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 44 à 49 (transferts vers des pays tiers)",
+        "ISO/IEC 27701:2019 — 7.5"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-08",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Chaque catégorie de données est associée à une durée de conservation définie et proportionnée, avec une purge effective (automatisée ou procédurale) à l'échéance.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'existence d'une politique de conservation par catégorie de données et tester l'exécution effective de la purge à l'échéance déclarée.",
+      "preuve_attendue": "Politique de conservation par catégorie de données + preuve d'exécution de la purge (log, rapport de job).",
+      "grille_verdict": "conforme = durées définies et purge vérifiée pour toutes les catégories ; partiel = durées définies sans purge vérifiée ; non conforme = durées non définies ou données conservées sans limite",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la politique de conservation déclarée pour chaque catégorie de données.",
+        "Contrôler l'exécution effective de la purge à l'échéance sur un échantillon de données.",
+        "Si écart : définir les durées manquantes et instrumenter la purge automatisée."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5.1.e (limitation de la conservation)",
+        "ISO/IEC 27002:2022 — 8.10"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-09",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Un délégué à la protection des données ou un référent conformité est formellement désigné, joignable par les personnes concernées et par les équipes projet, et consulté systématiquement sur les traitements à risque.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier la désignation formelle du référent (nomination, coordonnées publiées) et sa consultation effective sur les traitements à risque du projet.",
+      "preuve_attendue": "Acte de désignation du référent + trace de consultation sur au moins un traitement à risque du projet.",
+      "grille_verdict": "conforme = référent désigné, joignable et consulté sur les traitements à risque ; partiel = référent désigné mais non consulté systématiquement ; non conforme = aucun référent identifié",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier l'existence et la publication de la désignation du référent conformité.",
+        "Vérifier la trace de consultation du référent sur les traitements à risque du projet.",
+        "Si écart : désigner le référent manquant et instaurer sa consultation systématique."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 37 à 39 (délégué à la protection des données)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-10",
+      "adr_source": [
+        "ADR0209"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Le système d'IA dispose d'une documentation technique couvrant le modèle (architecture, limites connues, métriques de performance) et les données d'entraînement/validation (origine, représentativité, gouvernance).",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Demander la documentation technique du modèle et des données d'entraînement/validation ; vérifier sa complétude et sa cohérence avec le système réellement déployé.",
+      "preuve_attendue": "Documentation technique du modèle + fiche de gouvernance des données d'entraînement/validation.",
+      "grille_verdict": "conforme = documentation complète et à jour couvrant modèle et données ; partiel = documentation partielle (modèle ou données seuls) ; non conforme = documentation absente",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "ml",
+          "data"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la documentation technique du modèle et des données d'entraînement/validation.",
+        "Vérifier sa cohérence avec la version du système réellement déployée.",
+        "Si écart : produire ou compléter la documentation manquante avant toute mise en production."
+      ],
+      "derogation": null,
+      "standards": [
+        "AI Act — art. 11 et Annexe IV (documentation technique)",
+        "AI Act — art. 10 (gouvernance des données)",
+        "ISO/IEC 42001:2023 — 8.3 (gestion du cycle de vie des systèmes d'IA)"
+      ],
+      "jurisdiction": "eu"
+    },
+    {
+      "id": "CTL-D04-11",
+      "adr_source": [],
+      "dimension_audit": "D04",
+      "regle": "Lorsqu'un système d'IA relève d'un cadre réglementaire IA actif, les obligations du déployeur sont instruites avant mise en service : analyse d'impact (droits fondamentaux) lorsqu'elle est exigée, information des personnes exposées, supervision humaine désignée et journalisée.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la qualification réglementaire du système d'IA, l'existence de l'analyse d'impact lorsque requise, les mentions d'information aux personnes et la désignation effective de la supervision humaine.",
+      "preuve_attendue": "Qualification documentée + analyse d'impact (si exigée) + mentions d'information + désignation de supervision datée.",
+      "grille_verdict": "conforme = obligations instruites et tracées ; partiel = qualification faite, obligations incomplètes ; non conforme = système déployé sans instruction des obligations",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Qualifier le système au regard du cadre IA actif ; joindre la qualification.",
+        "Collecter analyse d'impact, mentions d'information et désignation de supervision ; joindre les preuves.",
+        "Si écart : instruire les obligations manquantes avant toute mise en service."
+      ],
+      "derogation": null,
+      "jurisdiction": "eu",
+      "standards": [
+        "AI Act (UE 2024/1689) — art. 26-27"
+      ]
+    },
+    {
+      "id": "CTL-D04-12",
+      "adr_source": [
+        "ADR0213"
+      ],
+      "dimension_audit": "D04",
+      "regle": "Une procédure de notification des violations de données est définie et testée : qualification de la violation, notification à l'autorité dans le délai réglementaire, information des personnes lorsque requise, registre des violations tenu.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence de la procédure, la trace d'un exercice (réel ou simulé), et la tenue du registre des violations.",
+      "preuve_attendue": "Procédure datée + compte-rendu d'exercice + extrait du registre des violations.",
+      "grille_verdict": "conforme = procédure testée + registre tenu ; partiel = procédure définie non testée ; non conforme = aucune procédure",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Demander la procédure de notification et sa dernière date d'exercice ; joindre.",
+        "Vérifier le registre des violations (même vide, il doit exister) ; joindre l'extrait.",
+        "Si écart : établir la procédure, désigner les responsables, planifier un exercice."
+      ],
+      "derogation": null,
+      "jurisdiction": "eu",
+      "standards": [
+        "RGPD — art. 33-34"
+      ]
+    }
+  ]
+}

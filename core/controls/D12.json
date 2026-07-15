@@ -1,0 +1,395 @@
+{
+  "dimension": "D12",
+  "label": "Run & exploitation",
+  "controls": [
+    {
+      "id": "CTL-D12-01",
+      "adr_source": [
+        "ADR0105"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Les opérations d'exploitation courantes (démarrage/arrêt, déploiement, purge, rotation, tâches planifiées) sont décrites dans des runbooks à jour, exécutables par une personne ne connaissant pas le code de l'application.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence de runbooks couvrant les opérations d'exploitation courantes déclarées et faire exécuter une procédure par une personne extérieure à l'équipe de développement.",
+      "preuve_attendue": "Runbooks documentés pour chaque opération courante + compte-rendu d'exécution par une personne tierce.",
+      "grille_verdict": "conforme = runbooks complets et exécutés avec succès par une personne tierce ; partiel = runbooks partiels ou nécessitant l'assistance de l'équipe de développement ; non conforme = opérations courantes non documentées",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Recenser les opérations d'exploitation courantes et vérifier l'existence d'un runbook pour chacune.",
+        "Faire exécuter une procédure représentative par une personne extérieure à l'équipe de développement.",
+        "Si écart : rédiger les runbooks manquants et corriger les procédures ayant nécessité une assistance."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des opérations informatiques",
+        "ISO/IEC 20000-1"
+      ]
+    },
+    {
+      "id": "CTL-D12-02",
+      "adr_source": [
+        "ADR0403",
+        "ADR0405",
+        "ADR0103"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Une procédure d'incident formalisée couvre la détection, l'escalade (dont la rupture d'un flux d'intégration ou le franchissement d'un seuil de budget d'erreur) et la mobilisation d'une astreinte, avec un délai de prise en charge borné et mesuré.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence d'une procédure d'incident et d'astreinte documentée, couvrant la chaîne de détection-escalade-mobilisation, et mesurer le délai de prise en charge sur un incident réel ou simulé.",
+      "preuve_attendue": "Procédure d'incident et d'astreinte documentée + mesure du délai de prise en charge sur un exercice ou un incident réel.",
+      "grille_verdict": "conforme = procédure documentée, astreinte opérationnelle, délai de prise en charge mesuré et tenu ; partiel = procédure documentée sans mesure de délai ; non conforme = absence de procédure d'incident ou d'astreinte formalisée",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier l'existence de la procédure d'incident et de la chaîne d'astreinte (rotation, contacts, escalade).",
+        "Mesurer le délai de prise en charge sur un exercice simulé ou le dernier incident réel.",
+        "Si écart : formaliser la procédure manquante et planifier un exercice de déclenchement."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des incidents",
+        "SRE (Google) — gestion des incidents",
+        "DORA (Accelerate) — MTTR"
+      ]
+    },
+    {
+      "id": "CTL-D12-03",
+      "adr_source": [
+        "ADR0405"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Chaque application dispose d'une classification de criticité (ex. S1 à S4) justifiée et d'un engagement de service (SLA) déclaré et cohérent avec cette criticité.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif",
+      "verification": "Vérifier l'existence d'une classification de criticité justifiée et d'un SLA déclaré cohérent avec cette classification (heures de service, disponibilité cible, délais d'intervention).",
+      "preuve_attendue": "Fiche de classification de criticité justifiée + document de SLA déclaré.",
+      "grille_verdict": "conforme = classification justifiée et SLA cohérent formellement déclaré ; partiel = classification déclarée sans justification ou SLA incomplet ; non conforme = aucune classification ni SLA déclaré",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la classification de criticité déclarée et sa justification au regard de l'impact métier.",
+        "Vérifier la cohérence du SLA déclaré avec la classification retenue.",
+        "Si écart : établir ou corriger la classification et aligner le SLA correspondant."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique de gestion des niveaux de service",
+        "ISO/IEC 20000-1"
+      ]
+    },
+    {
+      "id": "CTL-D12-04",
+      "adr_source": [
+        "ADR0509"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Les incidents sont gérés au moyen d'un outil dédié (suivi, historique, actions) et tout incident significatif fait l'objet d'un post-mortem sans blâme, incluant un exercice de retour arrière documenté lorsque pertinent.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'usage d'un outil de gestion des incidents et l'existence de post-mortems documentés pour les incidents significatifs des 12 derniers mois, incluant la mesure du temps de restauration.",
+      "preuve_attendue": "Extrait de l'outil de gestion des incidents + échantillon de post-mortems documentés avec temps de restauration mesuré.",
+      "grille_verdict": "conforme = outil en place, post-mortems systématiques avec temps de restauration mesuré ; partiel = outil en place, post-mortems partiels ou informels ; non conforme = incidents non tracés ou aucun post-mortem réalisé",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier l'usage effectif de l'outil de gestion des incidents sur les 12 derniers mois.",
+        "Échantillonner les post-mortems réalisés et vérifier la mesure du temps de restauration et l'absence de blâme individuel.",
+        "Si écart : outiller le suivi manquant et systématiser le post-mortem pour tout incident significatif."
+      ],
+      "derogation": null,
+      "standards": [
+        "DORA (Accelerate) — Time to Restore Service (MTTR)",
+        "SRE (Google) — gestion des incidents",
+        "ISO/IEC 27002:2022 — 5.30"
+      ]
+    },
+    {
+      "id": "CTL-D12-05",
+      "adr_source": [
+        "ADR0004"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Chaque actif en production dispose d'une matrice de responsabilité (RACI) documentée, avec au moins deux personnes réellement capables d'intervenir en exploitation (bus factor ≥ 2), et la matrice est revue au moins une fois par an.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence d'une matrice RACI par actif de production, l'identification d'au moins deux intervenants réels par actif critique, et la date de la dernière revue de la matrice.",
+      "preuve_attendue": "Export horodaté de la matrice RACI + compte-rendu de la dernière revue (< 12 mois).",
+      "grille_verdict": "conforme = matrice complète, bus factor ≥ 2 vérifié et revue < 12 mois ; partiel = matrice complète mais bus factor = 1 sur certains actifs ou revue en retard ; non conforme = au moins un actif sans responsable identifié",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire la matrice RACI et vérifier qu'aucun actif de production n'est sans Accountable identifié.",
+        "Vérifier, par sondage, que chaque actif critique compte au moins deux intervenants réellement opérationnels.",
+        "Si écart : compléter la matrice et organiser le transfert de connaissance vers un second intervenant."
+      ],
+      "derogation": null,
+      "standards": [
+        "COBIT 2019 (composant Structures organisationnelles — RACI par pratique)",
+        "ISO/IEC 38500:2015"
+      ]
+    },
+    {
+      "id": "CTL-D12-06",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Un objectif de perte de données tolérée (RPO) et de délai de restauration (RTO) est déclaré pour chaque actif critique, et la capacité de restauration est testée périodiquement avec preuve de conformité.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier la déclaration du RPO/RTO par actif critique et la trace du dernier exercice de restauration réel, avec mesure de la durée et de l'intégrité des données restaurées.",
+      "preuve_attendue": "RPO/RTO déclarés par actif + rapport du dernier exercice de restauration (durée, intégrité constatée).",
+      "grille_verdict": "conforme = RPO/RTO déclarés et restauration testée avec succès dans les 12 derniers mois ; partiel = objectifs déclarés sans test récent ; non conforme = absence d'objectifs déclarés ou dernier test en échec non corrigé",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la déclaration du RPO/RTO pour chaque actif critique et sa cohérence avec la tolérance métier.",
+        "Vérifier le rapport du dernier exercice de restauration réel (durée obtenue, intégrité constatée).",
+        "Si écart : déclarer les objectifs manquants et planifier un exercice de restauration."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
+        "RGPD — art. 32.1.c",
+        "DORA (Accelerate) — reprise de service"
+      ]
+    },
+    {
+      "id": "CTL-D12-07",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Un plan de continuité d'activité couvre les scénarios de sinistre majeur (perte de site, indisponibilité prolongée d'un fournisseur critique) avec des rôles, une procédure de communication de crise et un test périodique.",
+      "criticite": "Bloquant",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence d'un plan de continuité couvrant les scénarios de sinistre majeur applicables, la désignation des rôles de crise, et la date du dernier test ou exercice.",
+      "preuve_attendue": "Plan de continuité documenté + compte-rendu du dernier test ou exercice de continuité.",
+      "grille_verdict": "conforme = plan documenté couvrant les scénarios applicables et testé dans les 12 derniers mois ; partiel = plan documenté sans test récent ; non conforme = aucun plan de continuité formalisé",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Vérifier la couverture du plan de continuité au regard des scénarios de sinistre applicables à l'application.",
+        "Vérifier la désignation des rôles de crise et l'existence d'une procédure de communication.",
+        "Si écart : compléter le plan et planifier un exercice de test."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO 22301:2019 (management de la continuité d'activité)",
+        "ISO/IEC 27002:2022 — 5.29 (sécurité de l'information pendant une perturbation)"
+      ]
+    },
+    {
+      "id": "CTL-D12-08",
+      "adr_source": [
+        "ADR0207"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Les accès d'exploitation en production (déploiement, intervention d'astreinte, accès de secours) sont nominatifs, tracés, et le mode d'accès d'urgence (« break-glass ») est documenté et journalisé lorsqu'il est utilisé.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la nominativité des accès d'exploitation en production, l'existence d'une procédure d'accès d'urgence documentée et la journalisation de son usage effectif.",
+      "preuve_attendue": "Inventaire des accès d'exploitation en production + procédure d'accès d'urgence + extrait du journal d'usage de cette procédure.",
+      "grille_verdict": "conforme = accès nominatifs, procédure d'urgence documentée et journalisée ; partiel = accès nominatifs sans procédure d'urgence formalisée ; non conforme = accès partagés ou non tracés",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inventorier les comptes disposant d'un accès d'exploitation en production et vérifier leur caractère nominatif.",
+        "Vérifier l'existence de la procédure d'accès d'urgence et, si elle a été utilisée, la trace laissée.",
+        "Si écart : nominaliser les accès partagés et formaliser la procédure d'urgence manquante."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.2 (droits d'accès privilégiés)",
+        "ITIL 4 — pratique de gestion des accès"
+      ]
+    },
+    {
+      "id": "CTL-D12-09",
+      "adr_source": [
+        "ADR0105"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Le transfert de l'application vers l'équipe d'exploitation (RUN) est formalisé par un dossier de reprise applicative complet, l'enregistrement du service dans le référentiel d'inventaire, et une passation tracée entre le porteur et le RUN.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence d'un dossier de reprise applicative complet, l'enregistrement effectif du service dans le référentiel d'inventaire, et la trace d'une passation formelle entre le porteur et l'équipe RUN.",
+      "preuve_attendue": "Dossier de reprise applicative + extrait du référentiel d'inventaire + compte-rendu de passation daté et signé.",
+      "grille_verdict": "conforme = dossier complet, service référencé, passation tracée et signée ; partiel = dossier incomplet ou service non référencé ; non conforme = aucun dossier de reprise ni passation formalisée",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Vérifier la complétude du dossier de reprise applicative au regard du référentiel attendu.",
+        "Vérifier l'enregistrement du service dans le référentiel d'inventaire et sa fraîcheur.",
+        "Si écart : compléter le dossier manquant et planifier la passation formelle avec le RUN."
+      ],
+      "derogation": null,
+      "standards": [
+        "ITIL 4 — pratique Service Configuration Management",
+        "ISO/IEC 20000-1:2018"
+      ]
+    },
+    {
+      "id": "CTL-D12-10",
+      "adr_source": [
+        "ADR0210"
+      ],
+      "dimension_audit": "D12",
+      "regle": "Une procédure de réponse à incident de sécurité est définie, testée et outillée : détection, qualification, confinement, préservation de la preuve, retour d'expérience.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la procédure de réponse (rôles, canaux, étapes), la trace d'un exercice ou d'un incident géré, et la capacité de préservation de preuve (journaux protégés, gel).",
+      "preuve_attendue": "Procédure + compte-rendu d'exercice/incident + preuve de préservation (configuration).",
+      "grille_verdict": "conforme = procédure testée avec preuve préservable ; partiel = procédure non testée ; non conforme = aucune procédure de réponse",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Collecter la procédure et le dernier exercice ; joindre.",
+        "Vérifier le lien avec la journalisation inviolable (CTL-D03-08) pour la preuve.",
+        "Si écart : formaliser la procédure, planifier un exercice, outiller la préservation."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.24-5.28",
+        "CIS Controls v8 — 17"
+      ]
+    }
+  ]
+}

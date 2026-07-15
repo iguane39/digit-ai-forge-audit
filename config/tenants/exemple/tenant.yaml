@@ -1,0 +1,67 @@
+# AuditCore — overlay tenant « exemple » (ACME, 100 % FICTIF — RAF-030)
+# Rôle : base de départ documentée pour un onboarding réel. Copier ce dossier vers
+# config/tenants/<slug>/, remplacer les valeurs marquées, ne rien toucher d'autre.
+# Le produit ne contient AUCUN tenant réel : ACME n'existe pas.
+schema_version: 1
+core_version: "1.0.x"
+tenant: { name: "ACME", short_code: "AC", parent_org: "Groupe ACME", language: fr }
+branding:
+  design_md: DESIGN.md
+  favicon_letter: "A"
+  colors:
+    accent: "#3B5BDB"
+    panel-bg: "#f5f6fa"
+    fatal: "#a3231c"
+    bloquant: "#9a4a06"
+    majeur: "#8a6500"
+    standard: "#136e34"
+    favicon: "#3B5BDB"
+    brand-bg: "#1A1A2E"
+  typography: { body: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", mono: "JetBrains Mono, Consolas, monospace" }
+domains:
+  - { code: "00", key: meta,          label: "Méta & Gouvernance ADR",     color: "#6e7b8a" }
+  - { code: "01", key: org-gov,       label: "Organisation & Gouvernance", color: "#3B5BDB" }
+  - { code: "02", key: identity-sec,  label: "Identité & Sécurité",        color: "#C53030" }
+  - { code: "03", key: network,       label: "Réseau & Connectivité",      color: "#1f6feb" }
+  - { code: "04", key: observability, label: "Observabilité & Logs",       color: "#2D6A4F" }
+  - { code: "05", key: devops,        label: "DevOps & IaC",               color: "#8a5a00" }
+  - { code: "06", key: data,          label: "Data",                       color: "#6F2DBD" }
+  - { code: "07", key: app-int,       label: "Application & Intégration",  color: "#0a8f6c" }
+  - { code: "08", key: reporting,     label: "Reporting & Analytics",      color: "#BE2D78" }
+  - { code: "09", key: ux,            label: "UX & Accessibilité",         color: "#0E7490" }  # domaine optionnel (PADR-0008)
+jurisdictions: [eu]   # juridictions actives — les contrôles hors juridiction passent sans_objet motivé
+dimensions:
+  pack: core-v1
+profiles: [azure]     # profils d'instanciation produit activés pour ce tenant
+constraint_packs:
+  - core/controls/controls-core-v1.json   # pack core générique (résolu depuis la racine produit)
+  # + packs/<slug>-constraints.json       # overlay des contraintes internes du client, le cas échéant
+adr:
+  id_scheme: domain-coded
+  aliases: {}          # remap d'IDs legacy propre au client (vide par défaut)
+  overrides: { add: [], tighten: {}, disable: [] }
+enforcement:
+  # Autorités dont les règles sont opposables. Les contrôles core portent l'autorité
+  # implicite « Generique » : l'ajouter ici rend le core opposable pour ce tenant.
+  binding_authorities: ["ACME"]
+  gate_policy:
+    blocking_when: ["criticite in [Fatal, Bloquant] and bucket == opposable"]
+    advisory_when: ["statut == 'AI Proposed'"]
+environments:
+  - { key: dev,     label: "Dev",     zone: innovation, code: DEV, owner: "Équipe plateforme" }
+  - { key: staging, label: "Staging", zone: platform,   code: STG, owner: "Équipe plateforme" }
+  - { key: prod,    label: "Prod",    zone: platform,   code: PRD, owner: "Équipe plateforme" }
+roles:
+  decision_authority: "Design Authority"
+  security_officer: "RSSI"
+  change_board: "CAB"
+  remediation_team: "Équipe remédiation"
+  compliance_process: "Comité conformité"
+  data_roles: { owner: "Data Owner", architect: "Data Architect", steward: "Data Steward" }
+sources:
+  - { id: SRC-01, title: "Principes d'architecture internes ACME", version: "1.0" }
+  - { id: SRC-02, title: "Politique sécurité groupe ACME", version: "2026" }
+forge:
+  enabled: false
+  repo_provider: github
+  brand_charter: DESIGN.md

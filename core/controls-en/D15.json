@@ -1,0 +1,338 @@
+{
+  "dimension": "D15",
+  "label": "Data by Design Principles",
+  "controls": [
+    {
+      "id": "CTL-D15-01",
+      "adr_source": [
+        "ADR0601"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack applicable to the project defines an ownership principle (named business owner per data domain); this principle is formally adopted and its application is verifiable on the audited scope.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the profile's Data by Design principles pack defines an ownership principle, then check, for a sample of data domains within the scope, the actual presence of a named owner in compliance with this principle.",
+      "preuve_attendue": "Extract from the principles pack (definition of the ownership principle) + sample of data domains with a named owner.",
+      "grille_verdict": "compliant = principle defined in the pack and applied to 100% of the checked sample ; partial = principle defined but partial application ; non-compliant = principle absent from the pack or not applied",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the profile's Data by Design principles pack covers ownership.",
+        "Sample data domains within the scope and verify the presence of a named owner.",
+        "If gap: have the principles pack completed or have the missing owners designated."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 3 (Data Governance)",
+        "RGPD — art. 24 (responsabilité du responsable de traitement)"
+      ]
+    },
+    {
+      "id": "CTL-D15-02",
+      "adr_source": [
+        "ADR0602"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack defines a validated modeling principle (review by a data authority before going into production); this principle is applied to every data model delivered within the audited scope.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the principles pack covers modeling validation, then check that a sample of recently delivered data models bears a record of review by the data authority before going into production.",
+      "preuve_attendue": "Extract from the pack (validated modeling principle) + review reports for a sample of delivered models.",
+      "grille_verdict": "compliant = principle defined and review recorded for 100% of the sample ; partial = principle defined with partially recorded reviews ; non-compliant = principle absent or no review recorded",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the principles pack covers validated modeling.",
+        "Sample recently delivered data models and verify the record of review by the data authority.",
+        "If gap: have the pack completed or establish the missing modeling review."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 5 (Data Modeling and Design)",
+        "ISO/IEC 25012:2008 — modèle de qualité des données"
+      ]
+    },
+    {
+      "id": "CTL-D15-03",
+      "adr_source": [
+        "ADR0605"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack defines a measured quality principle (declared rules and thresholds, continuous control); this principle is applied to the critical data domains within the audited scope.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the principles pack covers measured quality, then check that a sample of critical domains actually applies quality rules with thresholds and continuous execution.",
+      "preuve_attendue": "Extract from the pack (measured quality principle) + sample of rules/thresholds applied per critical domain.",
+      "grille_verdict": "compliant = principle defined and applied to 100% of the critical sample ; partial = partial application ; non-compliant = principle absent or not applied",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the principles pack covers measured quality.",
+        "Sample critical domains and verify the actual application of quality rules with thresholds.",
+        "If gap: have the pack completed or instrument the missing quality rules."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25012:2008 — modèle de qualité des données",
+        "DAMA-DMBOK2 — Chapitre 13 (Data Quality)"
+      ]
+    },
+    {
+      "id": "CTL-D15-04",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack defines a data protection by design principle (classification, minimization, proportionate measures); this principle is applied to every personal or sensitive data domain within the audited scope.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the principles pack covers protection by design, then check that a sample of domains processing personal or sensitive data bears a classification and proportionate protection measures.",
+      "preuve_attendue": "Extract from the pack (privacy by design principle) + sample of classifications and protection measures applied.",
+      "grille_verdict": "compliant = principle defined and proportionate measures applied to 100% of the sample ; partial = classification present without complete measures ; non-compliant = principle absent or sensitive data not classified",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the principles pack covers data protection by design.",
+        "Sample domains processing personal/sensitive data and verify classification and measures.",
+        "If gap: have the pack completed or apply the missing protection measures."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 25 (protection des données dès la conception et par défaut)",
+        "ISO/IEC 27701:2019 — §6"
+      ]
+    },
+    {
+      "id": "CTL-D15-05",
+      "adr_source": [
+        "ADR0607"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack defines a native usability principle (every data domain is exposed via a published, integrable data contract); this principle is applied to domains intended for cross-functional sharing.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the principles pack covers native usability, then check that a sample of cross-functionally shared domains publishes an up-to-date data contract.",
+      "preuve_attendue": "Extract from the pack (usability principle) + sample of published data contracts.",
+      "grille_verdict": "compliant = principle defined and contract published for 100% of the shared sample ; partial = partial or outdated contracts ; non-compliant = principle absent or no contract published",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the principles pack covers native usability.",
+        "Sample cross-functionally shared domains and verify the publication of an up-to-date data contract.",
+        "If gap: have the pack completed or publish the missing data contracts."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 8 (Data Integration and Interoperability)",
+        "ISO/IEC 25010:2011 — compatibilité (interopérabilité)"
+      ]
+    },
+    {
+      "id": "CTL-D15-06",
+      "adr_source": [
+        "ADR0608"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack defines an observability principle (monitoring of freshness, volume, and lineage); this principle is applied to the critical data domains within the audited scope.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the principles pack covers data observability, then check that a sample of critical domains has active monitoring (alerting, viewable lineage).",
+      "preuve_attendue": "Extract from the pack (observability principle) + monitoring captures (alerting, lineage) for the sample.",
+      "grille_verdict": "compliant = principle defined and active monitoring on 100% of the critical sample ; partial = partial monitoring ; non-compliant = principle absent or no monitoring",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the principles pack covers data observability.",
+        "Sample critical domains and verify the existence of active monitoring (alerting, lineage).",
+        "If gap: have the pack completed or instrument the missing monitoring."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management)",
+        "ISO 8000-8 — qualité de l'information : concepts et mesure"
+      ]
+    },
+    {
+      "id": "CTL-D15-07",
+      "adr_source": [
+        "ADR0610"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack defines a knowledge and cataloging principle (every asset in production is described and discoverable); this principle is applied to the data assets in production within the audited scope.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the principles pack covers cataloging, then check the coverage and freshness of the descriptions of a sample of assets in production in the catalog.",
+      "preuve_attendue": "Extract from the pack (cataloging principle) + extract from the catalog showing coverage and freshness for the sample.",
+      "grille_verdict": "compliant = principle defined and 100% of the sample cataloged and up to date ; partial = incomplete coverage ; non-compliant = principle absent or absence of a catalog",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the principles pack covers cataloging and discoverability.",
+        "Sample assets in production and verify their presence and freshness in the catalog.",
+        "If gap: have the pack completed or catalog the missing assets."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management)",
+        "FAIR Principles (GO FAIR, 2016) — Findable, Accessible, Interoperable, Reusable"
+      ]
+    },
+    {
+      "id": "CTL-D15-08",
+      "adr_source": [
+        "ADR0601"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack defines a governed accessibility principle (traced and reviewed authorizations, access proportionate to classification); this principle is applied to the data domains within the audited scope.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the principles pack covers governed accessibility, then check that a sample of domains has an authorization matrix that is traced and periodically reviewed.",
+      "preuve_attendue": "Extract from the pack (governed accessibility principle) + authorization matrix and last review date for the sample.",
+      "grille_verdict": "compliant = principle defined and matrix up to date (reviewed ≤ 12 months ago) for 100% of the sample ; partial = matrix existing without a recent review ; non-compliant = principle absent or absence of a matrix",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the principles pack covers governed accessibility.",
+        "Sample data domains and verify the existence and freshness of the authorization matrix.",
+        "If gap: have the pack completed or update the missing authorization matrices."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.18 (droits d'accès)",
+        "DAMA-DMBOK2 — Chapitre 3 (Data Governance)"
+      ]
+    },
+    {
+      "id": "CTL-D15-09",
+      "adr_source": [
+        "ADR0609",
+        "ADR0611"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The Data by Design principles pack defines a sustainability principle (full lifecycle managed: retention, archiving, purging, proven restoration capability); this principle is applied to the critical data domains within the audited scope.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the principles pack covers lifecycle sustainability, then check that a sample of critical domains applies a retention policy and has a tested restoration capability.",
+      "preuve_attendue": "Extract from the pack (sustainability principle) + retention policies and latest restoration test reports for the sample.",
+      "grille_verdict": "compliant = principle defined and lifecycle managed/proven for 100% of the sample ; partial = partial management (retention without restoration test, or vice versa) ; non-compliant = principle absent or lifecycle not managed",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Verify that the principles pack covers sustainability and the data lifecycle.",
+        "Sample critical domains and verify the retention policy and restoration test.",
+        "If gap: have the pack completed or establish the missing lifecycle management."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 5.1.e (limitation de la conservation)",
+        "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,343 @@
+{
+  "dimension": "D03",
+  "label": "IAM & gestion des secrets",
+  "controls": [
+    {
+      "id": "CTL-D03-01",
+      "adr_source": [
+        "ADR0202"
+      ],
+      "dimension_audit": "D03",
+      "regle": "L'authentification de tout accès humain est déléguée à un fournisseur d'identité central, avec MFA activé.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la configuration d'authentification de l'application : délégation à l'IdP central (aucun compte local applicatif hors procédure), MFA exigé pour tout accès humain.",
+      "preuve_attendue": "Capture de la configuration d'authentification + politique MFA de l'IdP.",
+      "grille_verdict": "conforme = délégation IdP + MFA prouvés ; partiel = délégation sans MFA systématique ; non conforme = authentification locale ou MFA absent",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inspecter la configuration d'authentification (code + console de la plateforme) ; joindre la capture.",
+        "Tester un accès sans MFA : il doit être refusé ; documenter le résultat.",
+        "Si écart : formuler l'action de remédiation (délégation IdP, activation MFA)."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SP 800-63B — AAL2",
+        "ISO/IEC 27002:2022 — 5.17"
+      ]
+    },
+    {
+      "id": "CTL-D03-02",
+      "adr_source": [
+        "ADR0201"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Aucun secret (clé, jeton, mot de passe, certificat) ne réside dans le code source, l'historique du dépôt, la configuration versionnée ou les artefacts livrés.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Exécuter le scan de secrets du profil technologique sur l'historique complet du dépôt ; vérifier l'intégration du scan en CI avec échec bloquant.",
+      "preuve_attendue": "Rapport de scan (0 finding) sur l'historique complet + configuration du pipeline CI.",
+      "grille_verdict": "conforme = scan vierge + gate CI actif ; partiel = scan vierge sans gate CI ; non conforme = ≥ 1 secret actif détecté",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Exécuter le scan de secrets sur l'historique complet ; joindre le rapport.",
+        "Vérifier l'échec du pipeline sur introduction d'un secret canari ; joindre la preuve.",
+        "Si écart : révoquer/faire tourner les secrets exposés, purger l'historique, brancher le coffre-fort."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V2.10",
+        "NIST SSDF — PS.1"
+      ]
+    },
+    {
+      "id": "CTL-D03-03",
+      "adr_source": [
+        "ADR0201"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Les secrets applicatifs résident dans un coffre-fort central ; rotation ≤ 90 jours ; journal d'accès actif.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventorier les secrets applicatifs et leur localisation ; vérifier la politique de rotation et l'activation du journal d'accès du coffre-fort.",
+      "preuve_attendue": "Inventaire des secrets + capture de la politique de rotation + extrait du journal d'accès.",
+      "grille_verdict": "conforme = coffre-fort + rotation ≤ 90 j + journal actif ; partiel = coffre-fort sans rotation gouvernée ; non conforme = secrets hors coffre-fort",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Lister les secrets consommés par l'application et leur emplacement ; joindre l'inventaire.",
+        "Vérifier la date de dernière rotation de chaque secret ; joindre la capture.",
+        "Si écart : migrer vers le coffre-fort du profil et planifier la rotation."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.24"
+      ]
+    },
+    {
+      "id": "CTL-D03-04",
+      "adr_source": [
+        "ADR0201"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Les applications s'authentifient par identité d'exécution (pas de secret statique applicatif) partout où la plateforme le permet.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Identifier les authentifications inter-services ; vérifier l'usage d'identités d'exécution plutôt que de secrets statiques, et justifier chaque exception.",
+      "preuve_attendue": "Cartographie des authentifications inter-services avec mécanisme utilisé.",
+      "grille_verdict": "conforme = identités d'exécution partout où possible, exceptions justifiées ; partiel = mixte sans justification ; non conforme = secrets statiques généralisés",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Cartographier les liaisons service-à-service et leur mode d'authentification.",
+        "Pour chaque secret statique restant, exiger la justification d'impossibilité plateforme.",
+        "Si écart : basculer vers l'identité d'exécution du profil."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST SP 800-207"
+      ]
+    },
+    {
+      "id": "CTL-D03-05",
+      "adr_source": [
+        "ADR0207"
+      ],
+      "dimension_audit": "D03",
+      "regle": "L'autorisation est fondée sur des rôles (RBAC) documentés ; les accès sont revus au moins tous les 6 mois.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence d'une matrice rôles/permissions documentée et la trace de la dernière revue d'accès (< 6 mois).",
+      "preuve_attendue": "Matrice RBAC + compte-rendu de la dernière revue d'accès daté.",
+      "grille_verdict": "conforme = matrice à jour + revue < 6 mois ; partiel = matrice sans revue récente ; non conforme = pas de modèle de rôles",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la matrice rôles/permissions ; vérifier sa correspondance avec la configuration réelle.",
+        "Vérifier la date et le périmètre de la dernière revue d'accès.",
+        "Si écart : établir la matrice et planifier la revue périodique."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.15/5.18",
+        "OWASP ASVS 5.0 — V4"
+      ]
+    },
+    {
+      "id": "CTL-D03-06",
+      "adr_source": [
+        "ADR0205"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Les comptes techniques sont dédiés, non partagés, à privilèges minimaux, et distincts des comptes humains.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventorier les comptes techniques utilisés ; vérifier dédier/non-partage/moindre privilège et l'absence d'usage humain de ces comptes.",
+      "preuve_attendue": "Inventaire des comptes techniques avec propriétaire, périmètre et privilèges.",
+      "grille_verdict": "conforme = comptes dédiés à privilèges minimaux ; partiel = comptes dédiés sur-privilégiés ; non conforme = comptes partagés",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Lister les comptes techniques et croiser avec les journaux d'usage.",
+        "Vérifier les privilèges accordés contre le besoin réel.",
+        "Si écart : créer des comptes dédiés et réduire les privilèges."
+      ],
+      "derogation": null,
+      "standards": [
+        "CIS Controls v8 — 5",
+        "ISO/IEC 27002:2022 — 8.2"
+      ]
+    },
+    {
+      "id": "CTL-D03-07",
+      "adr_source": [
+        "ADR0203"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Les accès externes (partenaires, prestataires) passent par des identités fédérées invitées ; aucun compte local hors procédure.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventorier les accès externes actifs ; vérifier leur fédération et l'existence d'une procédure de création/révocation.",
+      "preuve_attendue": "Inventaire des identités externes + procédure de gestion associée.",
+      "grille_verdict": "conforme = 100 % fédérés avec procédure ; partiel = fédérés sans procédure de révocation ; non conforme = comptes locaux externes",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data"
+        ],
+        "defaut": "a_evaluer"
+      },
+      "actions_audit": [
+        "Extraire la liste des identités externes et leur mode de création.",
+        "Vérifier la procédure de révocation (départ du prestataire).",
+        "Si écart : migrer vers la fédération d'identités invitées du profil."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 5.18"
+      ]
+    },
+    {
+      "id": "CTL-D03-08",
+      "adr_source": [
+        "ADR0402"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Les opérations sensibles (authentification, élévation, accès aux données protégées) sont journalisées de façon inviolable et horodatée.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier la présence des événements sensibles dans les journaux, leur horodatage et la protection en écriture (immutabilité/rétention).",
+      "preuve_attendue": "Extraits de journaux des opérations sensibles + configuration d'immutabilité.",
+      "grille_verdict": "conforme = événements complets, horodatés, protégés ; partiel = journalisés sans protection ; non conforme = opérations sensibles non journalisées",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Rejouer une opération sensible en environnement de test et retrouver sa trace.",
+        "Vérifier la politique de rétention/immutabilité des journaux d'audit.",
+        "Si écart : instrumenter les événements manquants et protéger le stockage."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.15",
+        "NIST SP 800-53 — AU-2/AU-9"
+      ]
+    },
+    {
+      "id": "CTL-D03-09",
+      "adr_source": [
+        "ADR0703"
+      ],
+      "dimension_audit": "D03",
+      "regle": "Les clients publics (application navigateur, mobile) ne portent aucun secret statique ; l'authentification repose sur des jetons de courte durée obtenus par un flux adapté aux clients publics (PKCE ou intermédiaire côté serveur).",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Inspecter les artefacts clients livrés (bundle, application) à la recherche de clés/secrets embarqués ; vérifier le flux d'authentification utilisé et la durée de vie des jetons.",
+      "preuve_attendue": "Analyse de l'artefact client (0 secret) + description du flux d'authentification constaté.",
+      "grille_verdict": "conforme = 0 secret embarqué + flux client public conforme ; partiel = flux conforme mais jetons longue durée ; non conforme = secret statique embarqué côté client",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "mobile"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Analyser le bundle/l'application livrée à la recherche de secrets (scan + inspection) ; joindre le rapport.",
+        "Documenter le flux d'authentification réel du client public ; joindre la capture.",
+        "Si écart : retirer le secret, révoquer, basculer sur un flux à jetons courts (PKCE/intermédiaire serveur)."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP ASVS 5.0 — V2.10/V3",
+        "OAuth 2.0 Security BCP (RFC 9700)"
+      ]
+    }
+  ]
+}

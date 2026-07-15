@@ -1,0 +1,346 @@
+{
+  "dimension": "D16",
+  "label": "Schéma de base de données",
+  "controls": [
+    {
+      "id": "CTL-D16-01",
+      "adr_source": [
+        "ADR0602"
+      ],
+      "dimension_audit": "D16",
+      "regle": "L'ensemble des tables, vues et relations de la base est inventorié et documenté (ERD ou équivalent), tenu à jour à chaque évolution de schéma significative.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Comparer l'ERD ou le modèle documenté avec l'introspection réelle du schéma (information_schema ou équivalent) pour vérifier l'exhaustivité et la fraîcheur de l'inventaire.",
+      "preuve_attendue": "ERD/MCD/MLD à jour + extrait d'introspection du schéma réel pour comparaison.",
+      "grille_verdict": "conforme = inventaire exhaustif et à jour, cohérent avec le schéma réel ; partiel = inventaire existant avec écarts mineurs ou daté ; non conforme = absence d'inventaire ou écarts majeurs avec le schéma réel",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Obtenir l'ERD ou le modèle de données documenté et la date de dernière mise à jour.",
+        "Comparer avec une introspection du schéma réel (tables, colonnes, relations).",
+        "Si écart : mettre à jour l'inventaire et planifier sa synchronisation à chaque migration."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 5 (Data Modeling and Design)",
+        "ISO/IEC 25012:2008 — modèle de qualité des données"
+      ]
+    },
+    {
+      "id": "CTL-D16-02",
+      "adr_source": [
+        "ADR0602"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Chaque table porte une clé primaire déclarée ; chaque relation logique entre tables est implémentée par une contrainte de clé étrangère effective, sans référence logique non contrainte.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Introspecter le schéma réel pour recenser les clés primaires et étrangères déclarées ; rechercher les colonnes de référence (identifiant logique) non couvertes par une contrainte d'intégrité.",
+      "preuve_attendue": "Extrait d'introspection (pg_constraint ou équivalent) listant PK/FK déclarées + liste des références logiques non contraintes identifiées.",
+      "grille_verdict": "conforme = 100 % des tables avec PK et relations logiques couvertes par FK ; partiel = quelques références logiques non contraintes, documentées et justifiées ; non conforme = absence de PK sur une table ou relations logiques non contraintes en nombre significatif",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire la liste des clés primaires et étrangères déclarées sur le schéma réel.",
+        "Rechercher les colonnes de référence logique (par exemple suffixe _id) non couvertes par une contrainte FK.",
+        "Si écart : ajouter les contraintes manquantes ou documenter et justifier les exceptions."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 5 (Data Modeling and Design)",
+        "ISO/IEC 25012:2008 — cohérence"
+      ]
+    },
+    {
+      "id": "CTL-D16-03",
+      "adr_source": [
+        "ADR0602"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Les index en place sont alignés sur les requêtes réellement exécutées en production (filtres, jointures, tris fréquents) ; leur pertinence est vérifiée par plan d'exécution.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Confronter les index déclarés sur le schéma aux requêtes les plus fréquentes ou les plus coûteuses observées en production, et vérifier par plan d'exécution (EXPLAIN) l'absence de balayage complet évitable.",
+      "preuve_attendue": "Liste des index déclarés + plans d'exécution des requêtes fréquentes/coûteuses montrant leur utilisation effective.",
+      "grille_verdict": "conforme = requêtes fréquentes/coûteuses couvertes par un index pertinent, vérifié par plan d'exécution ; partiel = couverture partielle ou quelques balayages complets évitables ; non conforme = absence d'index sur les accès majeurs ou aucune vérification par plan d'exécution",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identifier les requêtes les plus fréquentes ou les plus coûteuses en production (journal de requêtes lentes ou équivalent).",
+        "Exécuter le plan d'exécution de ces requêtes et vérifier l'utilisation effective d'un index pertinent.",
+        "Si écart : créer ou ajuster les index manquants et revérifier le plan d'exécution."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 25010:2011 — efficacité de performance"
+      ]
+    },
+    {
+      "id": "CTL-D16-04",
+      "adr_source": [
+        "ADR0206",
+        "ADR0609"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Chaque colonne portant une donnée personnelle ou sensible est identifiée et classifiée individuellement, avec les mesures de protection proportionnées associées à son niveau de classification.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Passer en revue le dictionnaire de données et le schéma réel pour identifier les colonnes contenant des données personnelles ou sensibles ; vérifier la classification déclarée et les mesures de protection effectives (chiffrement, masquage, contrôle d'accès) pour un échantillon.",
+      "preuve_attendue": "Classification des colonnes sensibles (registre ou dictionnaire annoté) + échantillon de mesures de protection vérifiées.",
+      "grille_verdict": "conforme = 100 % des colonnes sensibles classifiées avec mesures conformes au niveau déclaré ; partiel = classification partielle ou mesures incomplètes ; non conforme = colonnes personnelles/sensibles non identifiées",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Passer en revue chaque table du schéma pour identifier les colonnes personnelles ou sensibles.",
+        "Vérifier la classification déclarée et échantillonner les mesures de protection effectivement appliquées.",
+        "Si écart : classifier les colonnes manquantes et appliquer les mesures de protection proportionnées."
+      ],
+      "derogation": null,
+      "standards": [
+        "RGPD — art. 9 (catégories particulières de données)",
+        "RGPD — art. 32",
+        "ISO/IEC 27002:2022 — 5.12 (classification de l'information)"
+      ]
+    },
+    {
+      "id": "CTL-D16-05",
+      "adr_source": [
+        "ADR0607"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Le modèle déclaré côté code applicatif (ORM ou équivalent) est aligné avec le schéma physique réel de la base ; toute dérive est détectée avant mise en production.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Comparer les déclarations du modèle ORM (tables, colonnes, types, contraintes) avec l'introspection du schéma physique réel, et vérifier l'existence d'un contrôle automatisé détectant une dérive avant déploiement.",
+      "preuve_attendue": "Rapport de comparaison ORM↔schéma réel (dernière exécution) + configuration du contrôle de dérive en intégration continue, si existant.",
+      "grille_verdict": "conforme = alignement vérifié automatiquement à chaque déploiement, aucune dérive résiduelle ; partiel = alignement vérifié manuellement ou dérive mineure documentée ; non conforme = dérive non détectée ou non corrigée entre ORM et schéma réel",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire le modèle ORM déclaré et le comparer à l'introspection du schéma physique réel.",
+        "Vérifier l'existence d'un contrôle automatisé de non-régression sur cet alignement en intégration continue.",
+        "Si écart : corriger la dérive constatée et instrumenter le contrôle automatisé manquant."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 8 (Data Integration and Interoperability)",
+        "ISO/IEC 25010:2011 — compatibilité"
+      ]
+    },
+    {
+      "id": "CTL-D16-06",
+      "adr_source": [
+        "ADR0606",
+        "ADR0607"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Toute évolution du schéma de base de données est appliquée par un outil de migration versionné, avec un script de retour arrière (rollback) testé pour chaque migration.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'outillage de migration utilisé, l'historique versionné des migrations appliquées, et tester le rollback d'une migration récente en environnement non productif.",
+      "preuve_attendue": "Historique des migrations versionnées (outil, dates, auteurs) + résultat d'un test de rollback en environnement non productif.",
+      "grille_verdict": "conforme = migrations outillées, versionnées, rollback testé avec succès ; partiel = migrations versionnées sans rollback testé ; non conforme = migrations manuelles ad hoc non versionnées",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire l'historique des migrations de schéma appliquées et l'outillage utilisé.",
+        "Tester le rollback de la dernière migration en environnement non productif.",
+        "Si écart : outiller les migrations et documenter/tester la procédure de rollback."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 4 (Data Architecture)",
+        "SemVer 2.0.0"
+      ]
+    },
+    {
+      "id": "CTL-D16-07",
+      "adr_source": [
+        "ADR0610",
+        "ADR0603"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Un dictionnaire de données décrivant chaque table et chaque colonne (sens métier, type, contraintes, sensibilité) est maintenu à jour et consultable par les équipes non créatrices.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la couverture et la fraîcheur du dictionnaire de données par rapport au schéma réel, et sa consultabilité par une équipe autre que celle qui a créé le schéma.",
+      "preuve_attendue": "Extrait du dictionnaire de données + taux de couverture des tables/colonnes du schéma réel.",
+      "grille_verdict": "conforme = dictionnaire couvrant 100 % des tables/colonnes en production, à jour, consultable ; partiel = couverture incomplète ou dictionnaire daté ; non conforme = absence de dictionnaire de données",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire le dictionnaire de données existant et son taux de couverture par rapport au schéma réel.",
+        "Vérifier la date de dernière mise à jour et l'accessibilité aux équipes non créatrices.",
+        "Si écart : compléter le dictionnaire et planifier sa mise à jour à chaque migration."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 12 (Metadata Management)",
+        "ISO/IEC 11179 — registres de métadonnées"
+      ]
+    },
+    {
+      "id": "CTL-D16-08",
+      "adr_source": [
+        "ADR0609"
+      ],
+      "dimension_audit": "D16",
+      "regle": "La volumétrie de chaque table significative est mesurée et sa croissance projetée ; un partitionnement ou une stratégie de cycle de vie est en place au-delà des seuils de volumétrie déclarés.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier la mesure de volumétrie actuelle et la projection de croissance des tables significatives, et l'existence d'une stratégie de partitionnement ou de cycle de vie déclenchée au-delà d'un seuil déclaré.",
+      "preuve_attendue": "Mesures de volumétrie et projection de croissance par table significative + configuration de partitionnement ou de cycle de vie si applicable.",
+      "grille_verdict": "conforme = volumétrie mesurée, projection documentée, stratégie de partitionnement/cycle de vie en place au-delà du seuil ; partiel = volumétrie mesurée sans stratégie au-delà du seuil ; non conforme = volumétrie non mesurée",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire la volumétrie actuelle et son historique de croissance pour les tables significatives.",
+        "Vérifier l'existence d'un seuil déclaré déclenchant partitionnement ou archivage.",
+        "Si écart : mesurer la volumétrie manquante et définir la stratégie de partitionnement/cycle de vie."
+      ],
+      "derogation": null,
+      "standards": [
+        "DAMA-DMBOK2 — Chapitre 6 (Data Storage and Operations)",
+        "RGPD — art. 5.1.e (limitation de la conservation)"
+      ]
+    },
+    {
+      "id": "CTL-D16-09",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D16",
+      "regle": "La base de données fait l'objet de sauvegardes régulières conformes à un RPO déclaré, et la procédure de restauration est testée périodiquement avec preuve de conformité au RTO.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier le RPO/RTO déclaré pour la base, la fréquence effective des sauvegardes, et le résultat du dernier exercice de restauration complet.",
+      "preuve_attendue": "RPO/RTO déclarés + configuration de sauvegarde + rapport du dernier exercice de restauration (durée, intégrité).",
+      "grille_verdict": "conforme = RPO/RTO déclarés et respectés, restauration testée avec succès ≤ 12 mois ; partiel = objectifs déclarés sans test récent ; non conforme = absence d'objectifs déclarés ou dernier test en échec non corrigé",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire le RPO/RTO déclaré et la configuration de sauvegarde effective de la base.",
+        "Vérifier la date et le résultat du dernier exercice de restauration complet.",
+        "Si écart : déclarer les objectifs manquants et planifier un test de restauration."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
+        "RGPD — art. 32.1.c"
+      ]
+    }
+  ]
+}

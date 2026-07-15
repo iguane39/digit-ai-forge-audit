@@ -1,0 +1,308 @@
+{
+  "dimension": "D14",
+  "label": "AI Models & Prompts",
+  "controls": [
+    {
+      "id": "CTL-D14-01",
+      "adr_source": [
+        "ADR0601"
+      ],
+      "dimension_audit": "D14",
+      "regle": "The choice of each AI model used (provider, size, version) is justified by documented criteria (cost, performance, latency, sovereignty) and validated by a designated authority before going into production.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif",
+      "verification": "Verify the existence of a model selection note per AI use case, listing the alternatives considered, the selection criteria, and the validation by the designated authority.",
+      "preuve_attendue": "Documented model selection note (alternatives, criteria, decision) + validation record.",
+      "grille_verdict": "compliant = choice documented and validated for all models in production ; partial = choice documented without a recorded validation ; non-compliant = model in production without documented justification",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the AI models used in production and their associated use case.",
+        "Request the selection note and its validation for each model.",
+        "If gap: document the choice retroactively and have it validated by the designated authority."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 6.1 (planification, appréciation des risques IA)",
+        "DAMA-DMBOK2 — Chapitre 3 (Data Governance, par extension à la gouvernance des modèles)"
+      ]
+    },
+    {
+      "id": "CTL-D14-02",
+      "adr_source": [
+        "ADR0607"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Prompts (system, user, templates) are versioned in a dedicated registry, outside of the frozen application code, with a tracked change history and verification before publication.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the prompts are externalized from the compiled code, versioned (registry, versioned files or prompt manager), and that each change is tracked with a review before deployment to production.",
+      "preuve_attendue": "Extract from the prompt registry with version history + review record of the last published change.",
+      "grille_verdict": "compliant = prompts versioned outside the code, tracked history, review before publication ; partial = prompts versioned without a formalized review ; non-compliant = prompts hardcoded in the code without versioning",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the location of the prompts (code, configuration file, dedicated registry).",
+        "Verify the version history of the last significant prompt change and its review.",
+        "If gap: externalize the prompts and set up versioning and review."
+      ],
+      "derogation": null,
+      "standards": [
+        "SemVer 2.0.0 — versionnement sémantique",
+        "ISO/IEC 42001:2023 — 8.1 (contrôle opérationnel)"
+      ]
+    },
+    {
+      "id": "CTL-D14-03",
+      "adr_source": [
+        "ADR0605"
+      ],
+      "dimension_audit": "D14",
+      "regle": "The response quality of each model in production is continuously measured using a representative evaluation set (canary) and declared metrics, against explicit thresholds.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the existence of an evaluation set representative of the use case, declared quality metrics (accuracy, relevance, format) with thresholds, and the actual execution frequency of the evaluation.",
+      "preuve_attendue": "Evaluation set (canary) + definition of metrics and thresholds + history of executions and results.",
+      "grille_verdict": "compliant = regular automated evaluation with documented and met metrics/thresholds ; partial = one-off evaluation or unformalized thresholds ; non-compliant = absence of quality evaluation",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the representative evaluation set and the definition of metrics/thresholds.",
+        "Verify the frequency and results of the latest evaluation runs.",
+        "If gap: build the evaluation set and automate its periodic execution."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 9.1 (surveillance, mesure, analyse et évaluation)",
+        "NIST AI RMF 1.0 — fonction Measure"
+      ]
+    },
+    {
+      "id": "CTL-D14-04",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D14",
+      "regle": "The inputs and outputs of each model are filtered by guardrails (dangerous content, personal data, prompt injection attempts) before being transmitted to the user or the downstream system.",
+      "criticite": "Fatal",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the configuration of the content filters (input and output), test a prompt injection attempt and a request for sensitive content, and confirm that they are blocked or flagged.",
+      "preuve_attendue": "Content filter configuration + result of a prompt injection test and a sensitive content request test.",
+      "grille_verdict": "compliant = active filtering on input and output, bypass tests blocked ; partial = partial filtering (input or output only) ; non-compliant = absence of guardrails or successful bypass",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inspect the input and output guardrail configuration of the model(s) in production.",
+        "Replay a prompt injection test and a personal data request; verify that they are blocked.",
+        "If gap: activate or strengthen the missing guardrails and document the coverage achieved."
+      ],
+      "derogation": null,
+      "standards": [
+        "OWASP Top 10 for LLM Applications 2025 — LLM01 (Prompt Injection), LLM06 (Sensitive Information Disclosure)",
+        "RGPD — art. 25 (protection des données dès la conception)"
+      ]
+    },
+    {
+      "id": "CTL-D14-05",
+      "adr_source": [
+        "ADR0605"
+      ],
+      "dimension_audit": "D14",
+      "regle": "The hallucination rate (responses not grounded in the sources or incorrect) of each model in production is measured, bounded by a declared acceptability threshold, and is subject to a reduction plan in case of breach.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the hallucination detection method (comparison against sources, LLM-as-judge, user feedback), the declared acceptability threshold, and the history of measurements against this threshold.",
+      "preuve_attendue": "Method and history of hallucination rate measurement + declared threshold + reduction plan in case of breach.",
+      "grille_verdict": "compliant = rate continuously measured, below the declared threshold, reduction plan in place in case of breach ; partial = one-off measurement or unformalized threshold ; non-compliant = no measurement of the hallucination rate",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the hallucination rate measurement method and its recent history.",
+        "Compare the measured rate to the declared acceptability threshold.",
+        "If gap: instrument the measurement and define the threshold and the associated reduction plan."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST AI RMF 1.0 — fonction Measure (fiabilité, exactitude)",
+        "ISO/IEC 42001:2023 — 8.1 (contrôle opérationnel)"
+      ]
+    },
+    {
+      "id": "CTL-D14-06",
+      "adr_source": [
+        "ADR0611"
+      ],
+      "dimension_audit": "D14",
+      "regle": "A fallback strategy (backup model, degraded response, human escalation) is defined and tested for cases of unavailability, quota reached, or content refusal by the primary model.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the documentation of the fallback strategy and its actual triggering during a simulated unavailability test of the primary model (switchover to the backup model or controlled degradation).",
+      "preuve_attendue": "Fallback strategy documentation + result of a switchover test (simulated unavailability).",
+      "grille_verdict": "compliant = strategy documented and successfully tested ≤ 12 months ago ; partial = strategy documented without a recent test ; non-compliant = absence of a fallback strategy",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the documentation of the fallback strategy (backup model, degradation, escalation).",
+        "Simulate an unavailability of the primary model and verify the switchover behavior.",
+        "If gap: define the missing fallback strategy and schedule a switchover test."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 8.1 (contrôle opérationnel)",
+        "DORA (Accelerate) — reprise de service (par analogie de résilience)"
+      ]
+    },
+    {
+      "id": "CTL-D14-07",
+      "adr_source": [
+        "ADR0608"
+      ],
+      "dimension_audit": "D14",
+      "regle": "The consumption and inference cost of each model in production are continuously monitored, with alerts on consumption drift thresholds.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Verify the instrumentation of consumption tracking (tokens, calls, cost) per model and use case, and the existence of alerts configured on threshold breaches.",
+      "preuve_attendue": "Dashboard or export of consumption/inference cost per model + threshold alert configuration.",
+      "grille_verdict": "compliant = continuous tracking per model with active threshold alerts ; partial = tracking in place without configured alerts ; non-compliant = absence of consumption tracking",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the consumption/inference cost tracking per model over the recent period.",
+        "Verify the configuration of the consumption drift threshold alerts.",
+        "If gap: instrument the missing tracking and configure the alerts."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 9.1 (surveillance et mesure)"
+      ]
+    },
+    {
+      "id": "CTL-D14-08",
+      "adr_source": [
+        "ADR0206"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Any interaction classified as sensitive (risky content, decision impacting a person, low model confidence) triggers a human review before final action or transmission.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the classification criteria triggering a human review, and test a case classified as sensitive to confirm the interruption of the automatic flow and the escalation to a human reviewer.",
+      "preuve_attendue": "Documented classification criteria + record of a real or simulated case escalated to human review.",
+      "grille_verdict": "compliant = criteria documented and systematic escalation verified ; partial = criteria documented without proven systematic escalation ; non-compliant = absence of a human review mechanism",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the classification criteria triggering human review.",
+        "Replay a simulated sensitive case and verify the actual escalation to a human reviewer.",
+        "If gap: define the missing criteria and instrument the escalation."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 42001:2023 — 8.1 (contrôle opérationnel, supervision humaine)",
+        "RGPD — art. 22 (décision individuelle automatisée)"
+      ]
+    },
+    {
+      "id": "CTL-D14-09",
+      "adr_source": [
+        "ADR0608"
+      ],
+      "dimension_audit": "D14",
+      "regle": "Every interaction with an AI model (prompt, context, response, decision metadata) is logged in a usable way, to allow the retrospective audit of a contested response.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique",
+      "verification": "Select a recent interaction and verify that it can be found in the logs with the complete prompt, the response, the model used, and the timestamp.",
+      "preuve_attendue": "Log extract of a recent AI interaction (prompt, response, model, timestamp).",
+      "grille_verdict": "compliant = 100% of interactions logged and usable for the audit ; partial = partial logging (sampling or missing fields) ; non-compliant = interactions not logged",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Choose a recent AI interaction and search for it in the application logs.",
+        "Verify the presence of all the fields necessary for the audit (prompt, response, model, timestamp).",
+        "If gap: complete the missing logging instrumentation."
+      ],
+      "derogation": null,
+      "standards": [
+        "ISO/IEC 27002:2022 — 8.15 (journalisation)",
+        "ISO/IEC 42001:2023 — 9.1 (surveillance et mesure)"
+      ]
+    }
+  ]
+}
