@@ -32,7 +32,24 @@ const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta n
 table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:7px 10px;font-size:12.5px;text-align:left;vertical-align:top}
 th{background:var(--bg);width:34%}.ph{color:var(--maj);font-family:var(--font-mono);font-size:11.5px}
 .muted{color:var(--muted)}.small{font-size:11.5px}
-@media print{section{break-inside:avoid}}
+/* ECR-08 — la fiche doit tenir sur UNE page A4. Trois pièges, tous corrigés ici :
+   1. hauteur dimensionnée par le CONTENU — pas de min-height:297mm : avec des marges,
+      une hauteur forcée pousse TOUJOURS sur une 2e page (à l'impression comme à la capture) ;
+   2. @page{margin} explicite — sinon la marge par défaut du dialogue navigateur s'ajoute ;
+   3. overflow:visible — ne jamais couper silencieusement le contenu d'un projet volumineux :
+      un débordement doit se voir, pas disparaître. */
+@media print{
+  html,body{background:#fff;margin:0;padding:0}
+  @page{size:A4 portrait;margin:8mm}
+  .wrap{width:auto;max-width:none;min-height:0;overflow:visible;margin:0;padding:0}
+  section{break-inside:avoid}
+  /* Rythme vertical compact : les 8 sections renseignées tiennent sur UNE page A4.
+     Réglé contre l'oracle de rendu (compte de pages du PDF A4), pas à l'estime. */
+  h1{font-size:19px;margin:6px 0}
+  h2{margin:9px 0 3px}
+  th,td{padding:3px 7px;font-size:10.5px}
+  header{font-size:11px}
+}
 </style></head><body><div class="wrap">
 <header><span class="brand">${esc(cfg.tenant.short_code)}</span> <b>${esc(cfg.tenant.name)} — Fiche sécurité de mise à disposition (environnement de développement)</b><br>
 <span class="muted small">Réf. ${V('reference', 'TRI-SEC-DEV-AAAAMMJJa')} · validée par ${esc(cfg.roles?.security_officer ?? 'le responsable sécurité')} · accompagne le rapport d'audit · core ${esc(String(cfg.core_version))}</span></header>
