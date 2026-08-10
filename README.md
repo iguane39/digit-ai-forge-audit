@@ -2,7 +2,7 @@
 
 > Produit issu de l'exécution du plan [PLAN/](../PLAN/README.md) : un framework d'audit
 > **agnostique** (technologies, langages, BDD, cloud), **marque-blanche** et **multi-tenant**,
-> couplé à la forge [digit-ai-saas-forge](https://github.com/iguane39/digit-ai-saas-forge)
+> couplé à la forge [digit-ai-forge-development](https://github.com/iguane39/digit-ai-forge-development)
 > pour la remédiation. Le comportement actuel du tenant de référence est reproduit par
 > Le produit ne contient AUCUN tenant réel : `config/tenants/exemple/` (ACME, fictif) sert de
 > base d'onboarding, et la logique de fusion est prouvée par le golden-test synthétique

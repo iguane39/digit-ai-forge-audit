@@ -149,7 +149,8 @@ Première release du core générique (exécution du plan [PLAN/](../PLAN/README
   verdicts 5 états, enforcement 4 niveaux, gates 1a/1b, matrice de traçabilité, banc de preuves.
 - **Schémas** : tenant.yaml, control, remediation-actions (JSON Schema draft-07).
 - **Outils** : validate-config · build-theme · merge-packs (+ test iso 91/91) · verifier-rapport ·
-  init-audit-workspace · forge-adapter (formats forge vérifiés sur le dépôt digit-ai-saas-forge).
+  init-audit-workspace · forge-adapter (formats forge vérifiés sur le dépôt digit-ai-forge-development,
+  nommé `digit-ai-saas-forge` à la date de cette release).
 - **Profils** : azure, databricks-lakehouse, powerbi, elastic. **Overlay de référence** : le tenant historique (espace engagement depuis 1.6.0).
 
 ### Standards sources (état à la release)
