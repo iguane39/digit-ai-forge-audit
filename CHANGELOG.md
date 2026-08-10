@@ -7,7 +7,8 @@ sources mis à jour.
 ## [1.6.0] — 2026-07-15
 
 > Découplage produit/tenant (RAF-027..030) : AuditCore devient un dépôt autonome
-> (`digit-ai-auditcore`) qui ne connaît AUCUN tenant réel — l'espace de l'engagement
+> (`digit-ai-forge-auditcore`, nommé `digit-ai-auditcore` à la date de cette release) qui ne
+> connaît AUCUN tenant réel — l'espace de l'engagement
 > historique (overlay, mapping, baseline d'iso-test, plan, registre) vit dans le dépôt client.
 
 ### Ajouté
