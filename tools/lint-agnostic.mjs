@@ -67,6 +67,20 @@ for (const c of pack.constraints) {
   }
 }
 
+// ── P0 (ECR-09) : syntaxe de gabarit dans le TEXTE NORMATIF des contrôles.
+// Un littéral « {{…}} » dans une règle/preuve fait échouer le check « 0 placeholder résiduel »
+// des vérificateurs de rapport : la contrainte est correctement rédigée, mais elle se signale
+// elle-même comme un trou à combler. Décrire le mécanisme en clair (« gabarit paramétré »).
+const phre = /\{\{[^}]*\}\}/;
+for (const c of pack.constraints) {
+  for (const field of ['regle', 'verification', 'preuve_attendue', 'grille_verdict']) {
+    const text = c[field];
+    if (!text) continue;
+    const m = String(text).match(phre);
+    if (m) findings.push({ file: `core/controls (${c.id})`, line: 0, level: 'P0', term: m[0], excerpt: `${field}: ${String(text).slice(0, 90)}` });
+  }
+}
+
 // ── N0 (v2, RAF-030) : noms de tenants réels — balayage de TOUT le dépôt produit.
 // Termes construits par concaténation : le lint lui-même ne contient pas la chaîne interdite,
 // si bien que le critère de done « grep -ri <tenant> = 0 sur le dépôt produit » tient partout.
@@ -90,7 +104,7 @@ let scanned = 0;
 
 if (findings.length) {
   for (const f of findings) console.error(`✖ [${f.level}] ${f.file}:${f.line} — « ${f.term} » — ${f.excerpt}`);
-  console.error(`\n✖ lint agnosticité: ${findings.length} finding(s) — le core ne doit nommer ni éditeur ni vocabulaire biaisé (zones normatives), et le dépôt produit ne doit nommer aucun tenant réel (N0, repo-wide).`);
+  console.error(`\n✖ lint agnosticité: ${findings.length} finding(s) — le core ne doit nommer ni éditeur ni vocabulaire biaisé (zones normatives), ne doit pas porter de syntaxe de gabarit « {{…}} » dans son texte normatif (P0), et le dépôt produit ne doit nommer aucun tenant réel (N0, repo-wide).`);
   process.exit(1);
 }
 if (!quiet) console.log(`✔ lint agnosticité: 0 finding — ${pack.constraints.length} contrôles + corpus ADR conformes (zones normatives) · N0 repo-wide: ${scanned} fichiers sans nom de tenant réel.`);

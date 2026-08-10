@@ -151,6 +151,14 @@ for (const kind of kinds) {
   const name = `${prefix}${nextIndice(prefix)}`;
   const entries = [];
   const add = (n, data) => entries.push({ name: `${name}/${n}`, data });
+  // ECR-01 : les oracles PROJET (contrôles exécutés contre le système audité) partent dans les
+  // DEUX kits — le projet s'en sert pour se prouver conforme, l'auditeur pour l'exercer lui-même.
+  // Autoportants (Node ≥ 18, zéro dépendance) : ils se copient tels quels.
+  const addOracles = () => {
+    const od = rel('oracles');
+    for (const f of fs.readdirSync(od).sort())
+      if (f.endsWith('.mjs') || f.endsWith('.md')) add(`oracles/${f}`, F(path.join(od, f)));
+  };
 
   const lisezmoiCommon = kitLang === 'en'
     ? `# ${tenant} — ${kindLabel} Kit — ${name.slice(-9)}
@@ -188,6 +196,7 @@ Au **projet audité** : équipe de développement, agent IA codeur, pipeline CI.
     add('fiche-securite.template.md', F(rel('deliverables', 'templates', 'fiche-securite.template.md')));
     add('theme/theme.css', F(path.join(tmp, 'theme', 'theme.css')));
     add('theme/header.html', F(path.join(tmp, 'theme', 'header.html')));
+    addOracles();
   } else {
     add('LISEZMOI - Kit Audit.md', lisezmoiCommon + `
 ## À qui ce kit est destiné
@@ -227,6 +236,7 @@ est le kit « Compliance Pack » généré séparément (\`--kind compliance\`).
     }
     add('schemas/control.schema.json', F(rel('core', 'schemas', 'control.schema.json')));
     add('schemas/remediation-actions.schema.json', F(rel('core', 'schemas', 'remediation-actions.schema.json')));
+    addOracles();
   }
 
   const zip = createZip(entries);

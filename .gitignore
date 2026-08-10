@@ -10,7 +10,10 @@ config/merged.json
 tests/fixtures/merged.json
 tests/fixtures/theme/
 
-# Sorties des oracles projet (rapports régénérables)
+# Sorties des oracles projet (rapports régénérables, jamais versionnés)
 oracles/versions-actuelles.json
-oracles/*.json
-!oracles/package.json
+oracles/*.remediation-plan.json
+
+# Sous-produits de build par tenant (regénérables par build-theme / merge-packs)
+config/tenants/*/merged.json
+config/tenants/*/theme/
