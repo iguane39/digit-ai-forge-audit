@@ -59,3 +59,26 @@ jobs:
           node tools/build-rapport.mjs tests/fixtures/rapport-data-valid.json --tenant config/tenants/exemple/tenant.yaml --out /tmp/rapport.html
           node tools/build-catalogue.mjs config/tenants/exemple/tenant.yaml --out /tmp/catalogue.html
           grep -q "Toutes les règles" /tmp/rapport.html && grep -q "Catalogue ADR" /tmp/catalogue.html
+
+  # ── Oracles PROJET (ECR-01/03) : contrôles exécutés contre le système audité.
+  # Matrice {ubuntu, windows} exigée : `runCmd` porte des gardes spécifiques Windows
+  # (shell pour les `.cmd` → EINVAL, maxBuffer → ENOBUFS). Une régression y est invisible
+  # sur un seul OS — c'est précisément ce qui avait coûté trois versions avant le figeage.
+  oracles:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Dépendances outillage
+        run: npm ci || npm install
+
+      - name: Batterie des oracles projet (41 tests)
+        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/roundtrip.test.mjs

@@ -1,0 +1,10 @@
+{ "projet":"ACME",
+  "back":[
+    { "id":"get-listings","endpoint":"GET /listings","niveau":"integration","tests":["t::test_list"] },
+    { "id":"post-listings","endpoint":"POST /listings","niveau":"integration","tests":["t::test_create"] },
+    { "id":"get-listing","endpoint":"GET /listing/<id>","niveau":"integration","tests":["t::test_detail"] },
+    { "id":"alerts-process","endpoint":"POST /alerts/process","niveau":"integration","tests":["t::test_alerts"] }
+  ],
+  "front":[ { "id":"publier","parcours":"Publier","niveau":"e2e","tests":["e2e/pub.spec.ts"] } ],
+  "non_testable":[ { "id":"auth","point":"EasyAuth/Entra","raison":"IdP externe","oracle_substitution":"smoke déployé + test back garde 401" } ]
+}

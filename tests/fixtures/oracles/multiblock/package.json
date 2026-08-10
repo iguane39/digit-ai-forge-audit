@@ -1,0 +1,9 @@
+{
+  "name": "fixture-multiblock",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "vite": "^8.0.0",
+    "eslint": "^9.0.0"
+  }
+}

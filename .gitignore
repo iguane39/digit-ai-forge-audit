@@ -9,3 +9,8 @@ deliverables/generated/
 config/merged.json
 tests/fixtures/merged.json
 tests/fixtures/theme/
+
+# Sorties des oracles projet (rapports régénérables)
+oracles/versions-actuelles.json
+oracles/*.json
+!oracles/package.json

@@ -1,0 +1,10 @@
+{ "projet":"ACME",
+  "back":[
+    { "id":"get-listings","endpoint":"GET /listings","niveau":"integration","tests":["t::test_list"] },
+    { "id":"post-listings","endpoint":"POST /listings","niveau":"integration","tests":["t::test_create"] },
+    { "id":"get-listing","endpoint":"GET /listing/<id>","niveau":"schema","tests":["t::test_schema"] }
+  ],
+  "front":[ { "id":"publier","parcours":"Publier","niveau":"e2e","tests":["e2e/pub.spec.ts"] },
+            { "id":"supprimer","parcours":"Supprimer","niveau":"unit","tests":["u/del.test.ts"] } ],
+  "non_testable":[ { "id":"auth","point":"EasyAuth","raison":"" } ]
+}

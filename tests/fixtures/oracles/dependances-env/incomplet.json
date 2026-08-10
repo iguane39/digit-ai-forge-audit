@@ -1,0 +1,14 @@
+{ "projet":"ACME", "canonical_source":"main",
+  "environnements":[
+    { "nom":"dev","source":"main","base_url":"http://localhost:5173" },
+    { "nom":"qualif","source":"release/qualif","sync":"none","base_url":"https://acme-qualif" },
+    { "nom":"prod","source":"main","base_url":"https://acme-prod" }
+  ],
+  "dependances":[
+    { "id":"template-import","type":"blob",
+      "provisioning":{ "mode":"code","etape":"deploy/provision_storage.py","envs":["dev"] },
+      "smoke":{ "type":"http","path":"/file-import/template","attendu":"2xx","par_env":["dev"] } },
+    { "id":"csp-connect-src","type":"header",
+      "provisioning":{ "mode":"manuel" },
+      "smoke":{ "type":"header","header":"content-security-policy","doit_contenir":"https://api.acme","par_env":["dev","qualif","prod"] } }
+  ] }

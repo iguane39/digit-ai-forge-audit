@@ -1,0 +1,7 @@
+trigger:
+- main
+stages:
+- stage: Migrate
+  jobs: [{ job: migrate, steps: [{ script: "psql $DB -f scripts/08-add-status.sql" }] }]
+- stage: Deploy
+  jobs: [{ job: deploy, steps: [{ script: "az webapp deploy" }] }]

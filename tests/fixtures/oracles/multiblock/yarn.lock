@@ -1,0 +1,13 @@
+# fixture : vite existe en DEUX blocs (direct ^8 + transitif ^5).
+# La version résolue de la dép directe vite@^8.0.0 doit être 8.1.5, JAMAIS le transitif 5.4.19.
+"vite@^8.0.0":
+  version "8.1.5"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-8.1.5.tgz#deadbeef"
+
+vite@^5.0.0:
+  version "5.4.19"
+  resolved "https://registry.yarnpkg.com/vite/-/vite-5.4.19.tgz#cafebabe"
+
+eslint@^9.0.0:
+  version "9.39.5"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-9.39.5.tgz#0badf00d"

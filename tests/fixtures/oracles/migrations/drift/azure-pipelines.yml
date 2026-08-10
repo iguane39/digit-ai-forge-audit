@@ -1,0 +1,7 @@
+trigger:
+- main
+stages:
+- stage: Build
+  jobs: [{ job: build, steps: [{ script: "npm run build" }] }]
+- stage: Deploy
+  jobs: [{ job: deploy, steps: [{ script: "az webapp deploy" }] }]

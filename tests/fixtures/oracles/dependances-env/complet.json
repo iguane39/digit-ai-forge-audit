@@ -1,0 +1,9 @@
+{ "projet":"ACME", "canonical_source":"main",
+  "environnements":[
+    { "nom":"dev","source":"main" }, { "nom":"qualif","source":"main" }, { "nom":"prod","source":"main" }
+  ],
+  "dependances":[
+    { "id":"template-import","type":"blob",
+      "provisioning":{ "mode":"code","etape":"deploy/provision_storage.py","envs":["dev","qualif","prod"] },
+      "smoke":{ "type":"http","path":"/file-import/template","attendu":"2xx","par_env":["dev","qualif","prod"] } }
+  ] }
