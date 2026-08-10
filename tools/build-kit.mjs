@@ -197,6 +197,9 @@ Au **projet audité** : équipe de développement, agent IA codeur, pipeline CI.
     add('theme/theme.css', F(path.join(tmp, 'theme', 'theme.css')));
     add('theme/header.html', F(path.join(tmp, 'theme', 'header.html')));
     addOracles();
+    // ECR-04 · la porte de clôture part avec le kit : le projet contrôle sa remédiation
+    // depuis le seul rapport HTML qu'on lui a remis, sans export ni outillage supplémentaire.
+    add('verifier-remediation.mjs', F(rel('tools', 'verifier-remediation.mjs')));
   } else {
     add('LISEZMOI - Kit Audit.md', lisezmoiCommon + `
 ## À qui ce kit est destiné
@@ -237,6 +240,9 @@ est le kit « Compliance Pack » généré séparément (\`--kind compliance\`).
     add('schemas/control.schema.json', F(rel('core', 'schemas', 'control.schema.json')));
     add('schemas/remediation-actions.schema.json', F(rel('core', 'schemas', 'remediation-actions.schema.json')));
     addOracles();
+    // ECR-04 · la porte de clôture part avec le kit : le projet contrôle sa remédiation
+    // depuis le seul rapport HTML qu'on lui a remis, sans export ni outillage supplémentaire.
+    add('verifier-remediation.mjs', F(rel('tools', 'verifier-remediation.mjs')));
   }
 
   const zip = createZip(entries);

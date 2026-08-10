@@ -86,7 +86,9 @@ function mergePacks(tenantYaml, { allowMissing = false } = {}) {
     blocking: constraints.filter(c => c.enforcement === 'blocking').length,
     advisory: constraints.filter(c => c.enforcement === 'advisory').length,
   };
-  return { tenant: cfg.tenant.name, core_version: cfg.core_version, counts, constraints };
+  // ECR-07 · provenance du pack : reportée telle quelle depuis le tenant, jamais inférée.
+  return { tenant: cfg.tenant.name, core_version: cfg.core_version,
+    ...(cfg.build_provenance ? { build_provenance: cfg.build_provenance } : {}), counts, constraints };
 }
 
 function isoTest() {

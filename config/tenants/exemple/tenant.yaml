@@ -65,3 +65,11 @@ forge:
   enabled: false
   repo_provider: github
   brand_charter: DESIGN.md
+
+# ECR-07 — LLM ayant construit / durci ce pack de contraintes (déclaré, jamais inféré).
+build_provenance:
+  role: LLM ayant construit / durci le pack de contraintes
+  modele: Modèle générique de construction
+  modele_id: exemple-model-1
+  editeur: éditeur
+  date: '2026-08-10'

@@ -1,340 +1,390 @@
 {
- "titre": "Rapport pilote",
- "tenant": "ACME",
- "dimensions": [
-  {
-   "id": "D00",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:10"
-   ]
-  },
-  {
-   "id": "D01",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:11"
-   ]
-  },
-  {
-   "id": "D02",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:12"
-   ]
-  },
-  {
-   "id": "D03",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:13"
-   ]
-  },
-  {
-   "id": "D04",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:14"
-   ]
-  },
-  {
-   "id": "D05",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:15"
-   ]
-  },
-  {
-   "id": "D06",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:16"
-   ]
-  },
-  {
-   "id": "D07",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:17"
-   ]
-  },
-  {
-   "id": "D08",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:18"
-   ]
-  },
-  {
-   "id": "D09",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:19"
-   ]
-  },
-  {
-   "id": "D10",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:20"
-   ]
-  },
-  {
-   "id": "D11",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:21"
-   ]
-  },
-  {
-   "id": "D12",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:22"
-   ]
-  },
-  {
-   "id": "D13",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:23"
-   ]
-  },
-  {
-   "id": "D14",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:24"
-   ]
-  },
-  {
-   "id": "D15",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:25"
-   ]
-  },
-  {
-   "id": "D16",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:26"
-   ]
-  }
- ],
- "regles": [
-  {
-   "id": "C-0207-01",
-   "verdict": "conforme"
-  },
-  {
-   "id": "C-0601-01",
-   "verdict": "sans_objet",
-   "motif": "pas de périmètre data dans ce projet"
-  }
- ],
- "constats": [
-  {
-   "titre": "Secret en clair",
-   "preuves": [
+  "titre": "Rapport pilote",
+  "tenant": "ACME",
+  "dimensions": [
     {
-     "ref": "config.py:12"
+      "id": "D00",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:10"
+      ]
+    },
+    {
+      "id": "D01",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:11"
+      ]
+    },
+    {
+      "id": "D02",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:12"
+      ]
+    },
+    {
+      "id": "D03",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:13"
+      ]
+    },
+    {
+      "id": "D04",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:14"
+      ]
+    },
+    {
+      "id": "D05",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:15"
+      ]
+    },
+    {
+      "id": "D06",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:16"
+      ]
+    },
+    {
+      "id": "D07",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:17"
+      ]
+    },
+    {
+      "id": "D08",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:18"
+      ]
+    },
+    {
+      "id": "D09",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:19"
+      ]
+    },
+    {
+      "id": "D10",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:20"
+      ]
+    },
+    {
+      "id": "D11",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:21"
+      ]
+    },
+    {
+      "id": "D12",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:22"
+      ]
+    },
+    {
+      "id": "D13",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:23"
+      ]
+    },
+    {
+      "id": "D14",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:24"
+      ]
+    },
+    {
+      "id": "D15",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:25"
+      ]
+    },
+    {
+      "id": "D16",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:26"
+      ]
     }
-   ]
-  }
- ],
- "actions": [
-  {
-   "titre": "Purger le secret",
-   "adr": [
-    "ADR0201"
-   ]
-  }
- ],
- "db_schema": {
-  "bandes": [
-   {
-    "key": "metier",
-    "label": "Métier"
-   },
-   {
-    "key": "ref",
-    "label": "Référentiel"
-   }
   ],
-  "tables": [
-   {
-    "id": "users",
-    "bande": "metier",
-    "label": "users",
-    "note": "comptes",
-    "columns": [
-     {
-      "n": "id",
-      "t": "uuid",
-      "k": "PK",
-      "nn": true
-     },
-     {
-      "n": "email",
-      "t": "text",
-      "nn": true,
-      "pii": true
-     },
-     {
-      "n": "org_id",
-      "t": "uuid",
-      "k": "FK"
-     }
-    ]
-   },
-   {
-    "id": "audits",
-    "bande": "metier",
-    "label": "audits",
-    "columns": [
-     {
-      "n": "id",
-      "t": "uuid",
-      "k": "PK",
-      "nn": true
-     },
-     {
-      "n": "user_id",
-      "t": "uuid",
-      "k": "FK"
-     },
-     {
-      "n": "score",
-      "t": "numeric"
-     }
-    ]
-   },
-   {
-    "id": "orgs",
-    "bande": "ref",
-    "label": "organisations",
-    "columns": [
-     {
-      "n": "id",
-      "t": "uuid",
-      "k": "PK",
-      "nn": true
-     },
-     {
-      "n": "nom",
-      "t": "text",
-      "nn": true
-     }
-    ]
-   }
+  "regles": [
+    {
+      "id": "CTL-D02-01",
+      "verdict": "conforme"
+    },
+    {
+      "id": "CTL-D06-01",
+      "verdict": "sans_objet",
+      "motif": "pas de périmètre data dans ce projet"
+    },
+    {
+      "id": "CTL-D05-01",
+      "verdict": "non_conforme",
+      "criticite": "Majeur",
+      "preuve": "aucun scan de secrets dans le pipeline",
+      "possible": "Ajouter une étape de scan de secrets bloquante au pipeline",
+      "verification_cloture": "le pipeline échoue sur un secret injecté volontairement (test de non-régression)"
+    }
   ],
-  "relations": [
-   {
-    "from": "users",
-    "to": "orgs",
-    "enforced": true
-   },
-   {
-    "from": "audits",
-    "to": "users",
-    "enforced": true
-   },
-   {
-    "from": "audits",
-    "to": "orgs",
-    "enforced": false
-   }
+  "constats": [
+    {
+      "titre": "Secret en clair",
+      "preuves": [
+        {
+          "ref": "config.py:12"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "titre": "Purger le secret",
+      "desc": "Retirer la valeur en clair et la reprendre depuis le coffre.",
+      "dimension": "D02",
+      "tag": "urgent",
+      "effort": "0.5j",
+      "severite": "Bloquant",
+      "adr": [
+        "ADR0201"
+      ],
+      "verification": "git log -p sur le fichier ne montre plus la valeur ET l'application démarre en lisant le coffre",
+      "activation": {
+        "mode": "forge-assisted",
+        "reason": "substitution mécanique, relecture humaine du coffre requise"
+      }
+    }
+  ],
+  "db_schema": {
+    "bandes": [
+      {
+        "key": "metier",
+        "label": "Métier"
+      },
+      {
+        "key": "ref",
+        "label": "Référentiel"
+      }
+    ],
+    "tables": [
+      {
+        "id": "users",
+        "bande": "metier",
+        "label": "users",
+        "note": "comptes",
+        "columns": [
+          {
+            "n": "id",
+            "t": "uuid",
+            "k": "PK",
+            "nn": true
+          },
+          {
+            "n": "email",
+            "t": "text",
+            "nn": true,
+            "pii": true
+          },
+          {
+            "n": "org_id",
+            "t": "uuid",
+            "k": "FK"
+          }
+        ]
+      },
+      {
+        "id": "audits",
+        "bande": "metier",
+        "label": "audits",
+        "columns": [
+          {
+            "n": "id",
+            "t": "uuid",
+            "k": "PK",
+            "nn": true
+          },
+          {
+            "n": "user_id",
+            "t": "uuid",
+            "k": "FK"
+          },
+          {
+            "n": "score",
+            "t": "numeric"
+          }
+        ]
+      },
+      {
+        "id": "orgs",
+        "bande": "ref",
+        "label": "organisations",
+        "columns": [
+          {
+            "n": "id",
+            "t": "uuid",
+            "k": "PK",
+            "nn": true
+          },
+          {
+            "n": "nom",
+            "t": "text",
+            "nn": true
+          }
+        ]
+      }
+    ],
+    "relations": [
+      {
+        "from": "users",
+        "to": "orgs",
+        "enforced": true
+      },
+      {
+        "from": "audits",
+        "to": "users",
+        "enforced": true
+      },
+      {
+        "from": "audits",
+        "to": "orgs",
+        "enforced": false
+      }
+    ]
+  },
+  "architecture": {
+    "bandes": [
+      {
+        "key": "acteurs",
+        "label": "Acteurs"
+      },
+      {
+        "key": "app",
+        "label": "Application"
+      },
+      {
+        "key": "data",
+        "label": "Données"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "u",
+        "bande": "acteurs",
+        "label": "Utilisateurs",
+        "sub": "navigateur",
+        "style": "amber"
+      },
+      {
+        "id": "front",
+        "bande": "app",
+        "label": "Frontend",
+        "sub": "SPA",
+        "style": "blue"
+      },
+      {
+        "id": "api",
+        "bande": "app",
+        "label": "API",
+        "sub": "service",
+        "style": "purple"
+      },
+      {
+        "id": "db",
+        "bande": "data",
+        "label": "Base de données",
+        "sub": "relationnelle",
+        "style": "teal"
+      },
+      {
+        "id": "obs",
+        "bande": "data",
+        "label": "Observabilité",
+        "sub": "logs·traces",
+        "style": "gray"
+      }
+    ],
+    "edges": [
+      {
+        "from": "u",
+        "to": "front"
+      },
+      {
+        "from": "front",
+        "to": "api"
+      },
+      {
+        "from": "api",
+        "to": "db"
+      },
+      {
+        "from": "api",
+        "to": "obs",
+        "style": "dashed",
+        "label": "télémétrie"
+      }
+    ]
+  },
+  "moteur_audit_llm": {
+    "modele": "Modèle générique d'audit",
+    "modele_id": "exemple-model-1",
+    "editeur": "éditeur",
+    "date": "2026-08-10"
+  },
+  "tests": [
+    {
+      "type": "integration",
+      "portee": "endpoints du service",
+      "resultat": "42/42",
+      "couverture": "78 %"
+    }
+  ],
+  "analyses": [
+    {
+      "outil": "scanner de dépendances",
+      "categorie": "SCA",
+      "version_utilisee": "3.2.1",
+      "resultat": "0 vulnérabilité directe"
+    }
+  ],
+  "composants": [
+    {
+      "nom": "bibliothèque de sérialisation",
+      "version_resolue": "2.4.0",
+      "version_actuelle": "2.6.1",
+      "statut": "reco_correctif",
+      "reco_flag": "Oui",
+      "perimetre": "direct"
+    }
   ]
- },
- "architecture": {
-  "bandes": [
-   {
-    "key": "acteurs",
-    "label": "Acteurs"
-   },
-   {
-    "key": "app",
-    "label": "Application"
-   },
-   {
-    "key": "data",
-    "label": "Données"
-   }
-  ],
-  "nodes": [
-   {
-    "id": "u",
-    "bande": "acteurs",
-    "label": "Utilisateurs",
-    "sub": "navigateur",
-    "style": "amber"
-   },
-   {
-    "id": "front",
-    "bande": "app",
-    "label": "Frontend",
-    "sub": "SPA",
-    "style": "blue"
-   },
-   {
-    "id": "api",
-    "bande": "app",
-    "label": "API",
-    "sub": "service",
-    "style": "purple"
-   },
-   {
-    "id": "db",
-    "bande": "data",
-    "label": "Base de données",
-    "sub": "relationnelle",
-    "style": "teal"
-   },
-   {
-    "id": "obs",
-    "bande": "data",
-    "label": "Observabilité",
-    "sub": "logs·traces",
-    "style": "gray"
-   }
-  ],
-  "edges": [
-   {
-    "from": "u",
-    "to": "front"
-   },
-   {
-    "from": "front",
-    "to": "api"
-   },
-   {
-    "from": "api",
-    "to": "db"
-   },
-   {
-    "from": "api",
-    "to": "obs",
-    "style": "dashed",
-    "label": "télémétrie"
-   }
-  ]
- }
 }

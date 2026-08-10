@@ -80,5 +80,5 @@ jobs:
       - name: Dépendances outillage
         run: npm ci || npm install
 
-      - name: Batterie des oracles (46 tests — projet + rendu du rapport)
-        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-rapport-html.test.mjs
+      - name: Batterie des oracles (55 tests — projet, rendu du rapport, porte de clôture)
+        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-rapport-html.test.mjs

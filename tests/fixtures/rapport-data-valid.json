@@ -1,171 +1,221 @@
 {
- "titre": "Rapport pilote",
- "tenant": "ACME",
- "dimensions": [
-  {
-   "id": "D00",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:10"
-   ]
-  },
-  {
-   "id": "D01",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:11"
-   ]
-  },
-  {
-   "id": "D02",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:12"
-   ]
-  },
-  {
-   "id": "D03",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:13"
-   ]
-  },
-  {
-   "id": "D04",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:14"
-   ]
-  },
-  {
-   "id": "D05",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:15"
-   ]
-  },
-  {
-   "id": "D06",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:16"
-   ]
-  },
-  {
-   "id": "D07",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:17"
-   ]
-  },
-  {
-   "id": "D08",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:18"
-   ]
-  },
-  {
-   "id": "D09",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:19"
-   ]
-  },
-  {
-   "id": "D10",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:20"
-   ]
-  },
-  {
-   "id": "D11",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:21"
-   ]
-  },
-  {
-   "id": "D12",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:22"
-   ]
-  },
-  {
-   "id": "D13",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:23"
-   ]
-  },
-  {
-   "id": "D14",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:24"
-   ]
-  },
-  {
-   "id": "D15",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:25"
-   ]
-  },
-  {
-   "id": "D16",
-   "score": 3,
-   "gate1b": "go",
-   "preuves": [
-    "src/x.py:26"
-   ]
-  }
- ],
- "regles": [
-  {
-   "id": "C-0207-01",
-   "verdict": "conforme"
-  },
-  {
-   "id": "C-0601-01",
-   "verdict": "sans_objet",
-   "motif": "pas de périmètre data dans ce projet"
-  }
- ],
- "constats": [
-  {
-   "titre": "Secret en clair",
-   "preuves": [
+  "titre": "Rapport pilote",
+  "tenant": "ACME",
+  "dimensions": [
     {
-     "ref": "config.py:12"
+      "id": "D00",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:10"
+      ]
+    },
+    {
+      "id": "D01",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:11"
+      ]
+    },
+    {
+      "id": "D02",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:12"
+      ]
+    },
+    {
+      "id": "D03",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:13"
+      ]
+    },
+    {
+      "id": "D04",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:14"
+      ]
+    },
+    {
+      "id": "D05",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:15"
+      ]
+    },
+    {
+      "id": "D06",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:16"
+      ]
+    },
+    {
+      "id": "D07",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:17"
+      ]
+    },
+    {
+      "id": "D08",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:18"
+      ]
+    },
+    {
+      "id": "D09",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:19"
+      ]
+    },
+    {
+      "id": "D10",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:20"
+      ]
+    },
+    {
+      "id": "D11",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:21"
+      ]
+    },
+    {
+      "id": "D12",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:22"
+      ]
+    },
+    {
+      "id": "D13",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:23"
+      ]
+    },
+    {
+      "id": "D14",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:24"
+      ]
+    },
+    {
+      "id": "D15",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:25"
+      ]
+    },
+    {
+      "id": "D16",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:26"
+      ]
     }
-   ]
-  }
- ],
- "actions": [
-  {
-   "titre": "Purger le secret",
-   "adr": [
-    "ADR0201"
-   ]
-  }
- ]
+  ],
+  "regles": [
+    {
+      "id": "CTL-D02-01",
+      "verdict": "conforme"
+    },
+    {
+      "id": "CTL-D06-01",
+      "verdict": "sans_objet",
+      "motif": "pas de périmètre data dans ce projet"
+    },
+    {
+      "id": "CTL-D05-01",
+      "verdict": "non_conforme",
+      "criticite": "Majeur",
+      "preuve": "aucun scan de secrets dans le pipeline",
+      "possible": "Ajouter une étape de scan de secrets bloquante au pipeline",
+      "verification_cloture": "le pipeline échoue sur un secret injecté volontairement (test de non-régression)"
+    }
+  ],
+  "constats": [
+    {
+      "titre": "Secret en clair",
+      "preuves": [
+        {
+          "ref": "config.py:12"
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "titre": "Purger le secret",
+      "desc": "Retirer la valeur en clair et la reprendre depuis le coffre.",
+      "dimension": "D02",
+      "tag": "urgent",
+      "effort": "0.5j",
+      "severite": "Bloquant",
+      "adr": [
+        "ADR0201"
+      ],
+      "verification": "git log -p sur le fichier ne montre plus la valeur ET l'application démarre en lisant le coffre",
+      "activation": {
+        "mode": "forge-assisted",
+        "reason": "substitution mécanique, relecture humaine du coffre requise"
+      }
+    }
+  ],
+  "moteur_audit_llm": {
+    "modele": "Modèle générique d'audit",
+    "modele_id": "exemple-model-1",
+    "editeur": "éditeur",
+    "date": "2026-08-10"
+  },
+  "tests": [
+    {
+      "type": "integration",
+      "portee": "endpoints du service",
+      "resultat": "42/42",
+      "couverture": "78 %"
+    }
+  ],
+  "analyses": [
+    {
+      "outil": "scanner de dépendances",
+      "categorie": "SCA",
+      "version_utilisee": "3.2.1",
+      "resultat": "0 vulnérabilité directe"
+    }
+  ],
+  "composants": [
+    {
+      "nom": "bibliothèque de sérialisation",
+      "version_resolue": "2.4.0",
+      "version_actuelle": "2.6.1",
+      "statut": "reco_correctif",
+      "reco_flag": "Oui",
+      "perimetre": "direct"
+    }
+  ]
 }

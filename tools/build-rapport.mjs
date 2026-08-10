@@ -5,8 +5,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import * as yaml from 'js-yaml';
 import { rel, loadTenant, loadJson, loadYaml } from './lib.mjs';
-import { renderRapport } from './rapport-engine.mjs';
+import { renderRapport, buildPlan, planToActions } from './rapport-engine.mjs';
 
 const file = process.argv[2];
 const tIdx = process.argv.indexOf('--tenant');
@@ -46,5 +47,20 @@ const out = outIdx > -1 ? path.resolve(process.argv[outIdx + 1])
   : rel('deliverables', 'generated', cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 'rapport-audit.html');
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');
+
+// ── ECR-04/05 · DOUBLE ÉMISSION du plan de remédiation, depuis le MÊME calcul que le HTML.
+// Le YAML latéral est l'entrée contractuelle de la forge (validée par JSON Schema) ; le bloc
+// embarqué dans le HTML rend le rapport auto-porteur pour le projet. Aucune ressaisie, aucune
+// divergence possible : `buildPlan` est appelé une fois côté moteur pour les deux sorties.
+const plan = buildPlan(data);
+const { doc: actionsDoc, nonProjetees } = planToActions(plan, data, cfg.core_version);
+const yamlOut = out.replace(/\.html?$/i, '') + '.remediation-actions.yaml';
+fs.writeFileSync(yamlOut, yaml.dump(actionsDoc, { lineWidth: 100, noRefs: true }), 'utf-8');
+
 console.log(`✔ rapport rendu: ${(html.length / 1024).toFixed(0)} Ko → ${out}`);
+console.log(`✔ plan de remédiation: ${plan.length} actions — embarqué dans le HTML ET écrit en ${path.basename(yamlOut)}`);
+// Pas de troncature muette : ce qui ne passe pas le contrat forge se dit.
+if (nonProjetees.length)
+  console.log(`⚠ ${nonProjetees.length} action(s) hors YAML (dimension non rattachée, visibles au plan HTML) : ${nonProjetees.map(a => a.source).join(', ')}`);
 console.log('  rappel gate machine : node tools/verifier-rapport.mjs <rapport-data.json> (exit 0 avant diffusion)');
+console.log('  porte de clôture    : node tools/verifier-remediation.mjs <rapport.html> --status <suivi.json>');
