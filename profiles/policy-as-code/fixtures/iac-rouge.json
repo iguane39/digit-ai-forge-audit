@@ -1,0 +1,26 @@
+{
+  "_fixture": "rouge — doit ÉCHOUER sur les 3 règles (au moins 1 deny par règle)",
+  "resources": [
+    {
+      "id": "app-x-web-01",
+      "type": "compute-instance",
+      "tags": { "application": "app-x", "environment": "prod" }
+    },
+    {
+      "id": "app-x-db-01",
+      "type": "managed-database",
+      "tags": {}
+    }
+  ],
+  "perimeters": ["app-x/prod", "app-x/staging"],
+  "budgets": [
+    { "scope": "app-x/prod", "amount": 5000, "alert_thresholds": [100] }
+  ],
+  "network_egress": [
+    {
+      "resource": "app-x-prod-net",
+      "default_action": "allow",
+      "allowed_destinations": []
+    }
+  ]
+}

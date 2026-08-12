@@ -1,0 +1,25 @@
+{
+  "profile": "policy-as-code",
+  "version": "0.1.0",
+  "description": "Démonstrateur policy-as-code (OPA/Rego + conftest) sur un sous-ensemble de 3 contrôles core — preuve de la voie, pas une migration du référentiel (TF-0110).",
+  "bindings": [
+    {
+      "control": "CTL-D07-01",
+      "instanciation": "La taxonomie de tags minimale (application, environnement, domaine, propriétaire) est encodée en règle Rego `deny` : toute ressource du manifeste IaC dont un tag obligatoire manque est refusée.",
+      "verification_command": "conftest test <manifeste-iac.json> -p profiles/policy-as-code/policy",
+      "evidence": "Sortie `conftest test` (0 échec = conforme) + le manifeste IaC audité, daté."
+    },
+    {
+      "control": "CTL-D07-04",
+      "instanciation": "Chaque périmètre déclaré doit porter un budget, et chaque budget doit porter au moins deux seuils d'alerte progressifs — encodé en deux règles Rego `deny` distinctes.",
+      "verification_command": "conftest test <manifeste-iac.json> -p profiles/policy-as-code/policy",
+      "evidence": "Sortie `conftest test` (0 échec = conforme) + le manifeste IaC audité, daté."
+    },
+    {
+      "control": "CTL-D02-11",
+      "instanciation": "La sortie réseau doit être refusée par défaut (`default_action == \"deny\"`) et porter une liste explicite de destinations autorisées non vide — encodé en deux règles Rego `deny` distinctes.",
+      "verification_command": "conftest test <manifeste-iac.json> -p profiles/policy-as-code/policy",
+      "evidence": "Sortie `conftest test` (0 échec = conforme) + le manifeste IaC audité, daté."
+    }
+  ]
+}

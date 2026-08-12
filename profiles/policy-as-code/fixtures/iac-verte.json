@@ -1,0 +1,27 @@
+{
+  "_fixture": "verte — doit PASSER les 3 règles (0 deny attendu)",
+  "resources": [
+    {
+      "id": "app-x-web-01",
+      "type": "compute-instance",
+      "tags": { "application": "app-x", "environment": "prod", "domain": "vente", "owner": "equipe-vente" }
+    },
+    {
+      "id": "app-x-db-01",
+      "type": "managed-database",
+      "tags": { "application": "app-x", "environment": "prod", "domain": "vente", "owner": "equipe-vente" }
+    }
+  ],
+  "perimeters": ["app-x/prod", "app-x/staging"],
+  "budgets": [
+    { "scope": "app-x/prod", "amount": 5000, "alert_thresholds": [50, 80, 100] },
+    { "scope": "app-x/staging", "amount": 800, "alert_thresholds": [80, 100] }
+  ],
+  "network_egress": [
+    {
+      "resource": "app-x-prod-net",
+      "default_action": "deny",
+      "allowed_destinations": ["pkg-registry.internal", "identity-provider.internal"]
+    }
+  ]
+}
