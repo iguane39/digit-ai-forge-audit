@@ -1,7 +1,7 @@
 <!-- AuditCore template v1 -->
 # Plan de remédiation priorisé — {{tenant.name}} — {{projet.nom}}
 
-> Vue consolidée et exécutable de toutes les actions REM issues des 17 dimensions — triées
+> Vue consolidée et exécutable de toutes les actions REM issues des 18 dimensions — triées
 > priorité × effort. **Entrée directe de la forge** : cette vue est une projection lisible de
 > `remediation-actions.yaml` (voir `remediation-actions.schema.json`) ; l'adaptateur forge
 > (composant à construire — voir `06-remediation-forge.md` §4) consomme le même fichier pour

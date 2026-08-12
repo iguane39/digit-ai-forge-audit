@@ -43,7 +43,7 @@ format).
 
 | Filtre | Valeurs | Usage |
 |---|---|---|
-| Dimension | D00 à D16 | isoler une dimension du référentiel |
+| Dimension | D00 à D17 | isoler une dimension du référentiel |
 | Criticité | Fatal · Bloquant · Majeur · Standard | prioriser la lecture par gravité |
 | Enforcement | blocking · required · advisory · recommendation | isoler ce qui pèse sur le Gate |
 | Verdict | conforme · partiel · non_conforme · sans_objet · a_evaluer | suivre l'avancement |

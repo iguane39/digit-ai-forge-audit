@@ -32,11 +32,12 @@ Le catalogue consolidé des dix forges vit chez le pilot :
 auditcore/
 ├── docs/decisions/          # ADRs du produit (PADR — décisions actées)
 ├── core/                    # LA couche générique invariante, versionnée
-│   ├── adr/<domaine>/       # 73 ADR de principe (MADR), 10 domaines (09 UX optionnel) — + miroir EN adr-en/
-│   ├── controls/            # 169 contrôles CTL-Dxx-nn (+ pack EN controls-core-v1.en.json)
-│   ├── dimensions/          # 17 dimensions D00–D16, 6 familles, applicabilité par type
+│   ├── adr/<domaine>/       # 75 ADR de principe (MADR), 10 domaines (09 UX optionnel) — + miroir EN adr-en/
+│   ├── controls/            # 175 contrôles CTL-Dxx-nn (+ pack EN controls-core-v1.en.json)
+│   ├── dimensions/          # 18 dimensions D00–D17, 6 familles, applicabilité par type
 │   └── schemas/             # JSON Schemas : tenant, contrôle, actions de remédiation
-├── profiles/                # packs technologiques (azure, databricks-lakehouse, powerbi, elastic)
+├── profiles/                # packs technologiques (azure, databricks-lakehouse, powerbi, elastic,
+│                             #   policy-as-code — démonstrateur OPA/Rego sur 3 contrôles, TF-0110)
 ├── config/tenants/<tenant>/ # overlays entreprise (branding, packs, aliases) — exemple = ACME fictif
 ├── deliverables/templates/  # gabarits des livrables (rapport, banc, matrices, + 6 nouveaux)
 ├── tools/                   # validate-config · build-theme · merge-packs · verifier · init · forge-adapter

@@ -7,8 +7,8 @@ informed: "toutes les équipes produit"
 id: ADR0107
 domain: "01"
 invariant: false
-standards: ["FinOps Foundation — cycle Inform/Optimize/Operate", "ISO/IEC 38500:2015 — principe d'acquisition"]
-derived_controls: [CTL-D00-07, CTL-D07-04, CTL-D07-05, CTL-D07-06, CTL-D07-07]
+standards: ["FinOps Foundation — FinOps Framework 2025/2026 (Domaines/Capacités, Personas, phases Inform/Optimize/Operate, Scopes, maturité Crawl/Walk/Run par capacité)", "ISO/IEC 38500:2015 — principe d'acquisition"]
+derived_controls: [CTL-D00-07, CTL-D07-04, CTL-D07-05, CTL-D07-06, CTL-D07-07, CTL-D07-08]
 ---
 
 # Gouvernance des coûts : budgets, alertes, revues FinOps
@@ -27,6 +27,10 @@ prenantes dans la décision ?
 * Imputabilité du budget par périmètre (produit, domaine) plutôt qu'un budget global opaque
 * Décision collective récurrente plutôt que réaction ponctuelle à une alerte isolée
 * Applicabilité indépendante de l'hébergeur et du modèle de facturation retenu
+* Couverture de tous les postes de dépense technologique significatifs (cloud public, mais aussi
+  SaaS, licences, IA/inférence générative) plutôt du seul calcul cloud historique
+* Maturité mesurée capacité par capacité (une organisation peut être avancée sur l'allocation de
+  coût et débutante sur l'optimisation de l'inférence IA) plutôt qu'un score global unique trompeur
 
 ## Considered Options
 
@@ -76,3 +80,15 @@ et revue régulière tracée ; partiel = budgets partiels ou revue irrégulière
 Instanciations par profil : `profil:azure` → gestion de budgets et alertes, complétée par
 des tableaux de bord FinOps pour la revue ; `profil:aws` → budgets et détection
 d'anomalies de coût. Le rythme de revue (mensuel, trimestriel) relève de l'overlay.
+
+**Réalignement TF-0110 (2026-08-12) — FinOps Framework 2025/2026.** La citation initiale
+(« cycle Inform/Optimize/Operate ») décrivait le cœur du framework mais n'en couvrait plus
+l'évolution récente : le cycle en 3 phases reste le moteur, mais le framework 2025/2026 y ajoute
+les **Scopes** (le périmètre de dépense n'est plus seulement le cloud public : SaaS, licences,
+centre de données, IA/GenAI sont des scopes distincts, chacun avec ses leviers propres) et une
+**maturité déclarée par capacité** (Crawl/Walk/Run) plutôt qu'un score de maturité FinOps global —
+une organisation « Run » sur l'allocation de coût peut être « Crawl » sur l'optimisation de
+l'inférence IA, et les deux constats doivent rester visibles séparément. `CTL-D07-08` opérationnalise
+cette maturité par capacité ; les contrôles existants (`CTL-D07-01..07`) restent valides tels quels
+(taxonomie de tags, budgets, revue, coûts d'inférence IA déjà couverts par `CTL-D07-07`) — ce
+réalignement **enrichit** la référence normative, il ne retire ni n'assouplit aucun contrôle.

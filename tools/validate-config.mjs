@@ -22,7 +22,7 @@ if (!ajv.validate(schema, cfg)) {
 }
 
 // ── 1. Domaines : les 9 codes 00–08 requis + 09 OPTIONNEL (PADR-0008, évolution additive) ;
-//     dimensions : relabel ⊆ D00–D16 (jamais de retrait)
+//     dimensions : relabel ⊆ D00–D17 (jamais de retrait)
 const codes = (cfg.domains ?? []).map(d => d.code).sort();
 const required9 = ['00','01','02','03','04','05','06','07','08'];
 const okBase = required9.every(c => codes.includes(c));
@@ -32,7 +32,7 @@ if (!okBase || !okExtra || new Set(codes).size !== codes.length)
 const keys = new Set((cfg.domains ?? []).map(d => d.key));
 if (keys.size !== (cfg.domains ?? []).length) errors.push('règle 1: clés de domaines non uniques');
 for (const k of Object.keys(cfg.dimensions?.relabel ?? {}))
-  if (!/^D(0[0-9]|1[0-6])$/.test(k)) errors.push(`règle 1: relabel de dimension inconnue ${k}`);
+  if (!/^D(0[0-9]|1[0-7])$/.test(k)) errors.push(`règle 1: relabel de dimension inconnue ${k}`);
 
 // ── 2. disable d'un élément invariant → erreur
 const disables = cfg.adr?.overrides?.disable ?? [];

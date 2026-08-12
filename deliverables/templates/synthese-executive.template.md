@@ -8,7 +8,7 @@
 
 **{{gate.verdict}}** — GO · GO sous réserve · NO-GO — prononcé par {{roles.decision_authority}} le {{gate.date}}
 
-Score global : {{score.global}}/5 (moyenne pondérée, 17 dimensions) · Bloquants : {{gate.nb_bloquants}} dimension(s) ≤ 2 ou criticité Fatal
+Score global : {{score.global}}/5 (moyenne pondérée, 18 dimensions) · Bloquants : {{gate.nb_bloquants}} dimension(s) ≤ 2 ou criticité Fatal
 
 ## 3 risques majeurs (impact métier)
 

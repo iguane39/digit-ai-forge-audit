@@ -56,4 +56,4 @@
 > Instanciation profil `{{profil.nom}}` : {{control.verification_resolue}}
 > Standards : {{control.standards}} · ADR source : {{control.adr_source}} · Dérogation : {{control.derogation}}
 
-*(Répéter pour chaque contrôle applicable du domaine {{dim_2.id}}, puis reprendre depuis `## {{dim.id}}` pour chacune des 17 dimensions applicables au type de projet audité — un contrôle `sans_objet` reste tracé avec son motif d'applicabilité.)*
+*(Répéter pour chaque contrôle applicable du domaine {{dim_2.id}}, puis reprendre depuis `## {{dim.id}}` pour chacune des 18 dimensions applicables au type de projet audité — un contrôle `sans_objet` reste tracé avec son motif d'applicabilité.)*

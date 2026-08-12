@@ -2,7 +2,7 @@
 
 # {{tenant.name}} — Rapport d'audit — {{projet.nom}} — {{date}}{{indice}}
 
-> Référentiel core {{core_version}} · 17 dimensions · 6 familles · scoring 1–5.
+> Référentiel core {{core_version}} · 18 dimensions · 6 familles · scoring 1–5.
 > Diffusion : {{roles.decision_authority}} · {{projet.sponsor}} · {{porteur.nom}}.
 
 ## Bandeau Gate
@@ -28,7 +28,7 @@ Audit conduit le {{date_longue}} par {{auditeur.nom}} · {{synthese.audit.nb_sca
 
 | Score global | Statut Gate | Bloquants |
 |---|---|---|
-| {{score.global}}/5 — moyenne pondérée sur 17 dimensions | {{gate.verdict}} | {{gate.nb_bloquants}} — dimensions notées ≤ 2 ou criticité Fatal |
+| {{score.global}}/5 — moyenne pondérée sur 18 dimensions | {{gate.verdict}} | {{gate.nb_bloquants}} — dimensions notées ≤ 2 ou criticité Fatal |
 
 ## D00 — Périmètre fonctionnel & valeur métier
 
@@ -111,4 +111,4 @@ Note de l'autorité : {{dim.note_da}}
 
 Le Markdown est la source de vérité versionnable. Le rendu HTML autonome injecte le thème via `{{theme.css}}` + `{{header.html}}`, générés par `build-theme.mjs` depuis `branding.*` de la config tenant — aucune couleur, police ou marque n'est en dur dans ce gabarit.
 
-**Gates de diffusion conservés** : diffusable uniquement si le vérificateur de format passe (0 placeholder résiduel, 17 dimensions valides, verdicts complets) ; rapport **auto-portant** (aucune référence à un audit antérieur, statuts au présent).
+**Gates de diffusion conservés** : diffusable uniquement si le vérificateur de format passe (0 placeholder résiduel, 18 dimensions valides, verdicts complets) ; rapport **auto-portant** (aucune référence à un audit antérieur, statuts au présent).

@@ -148,7 +148,7 @@
         "relabel": {
           "type": "object",
           "propertyNames": {
-            "pattern": "^D(0[0-9]|1[0-6])$"
+            "pattern": "^D(0[0-9]|1[0-7])$"
           },
           "additionalProperties": {
             "type": "string"

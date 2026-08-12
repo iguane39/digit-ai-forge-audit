@@ -63,3 +63,20 @@ status: **accepted** · date: 2026-07-11
 **Conséquences** : le dépôt actuel (input/, output/) devient l'espace du tenant de référence ;
 les générateurs legacy `output/_generateurs/` sont dépréciés au profit de `auditcore/tools/`
 (données d'entrée absentes du repo : chemins locaux du poste d'origine morts — constat d'inventaire).
+
+---
+## PADR-0009 — Dimension `D17 · Gouvernance IA` : nouvelle dimension core, additive (TF-0110)
+status: **accepted** · date: 2026-08-12 · decision-makers: propriétaire produit
+**Contexte** : aucune des 17 dimensions historiques ne porte le risque organisationnel des
+systèmes IA (classification de risque, dérive, supervision humaine, documentation de conformité
+ISO 42001/NIST AI RMF/EU AI Act) — D04 couvre la conformité réglementaire générale, D14 la qualité
+technique des modèles/prompts, ni l'une ni l'autre la gouvernance transverse (ADR0109).
+**Décision** : le schéma `core-v1` passe de 17 à **18 dimensions** par ajout de `D17` (famille
+`securite`, 4 contrôles v0 `CTL-D17-01..04`) — évolution **additive**, aucun retrait ni fusion des
+17 dimensions existantes (invariant `dimensions.yaml` respecté) → **MINEURE** (SemVer, PADR-0005),
+pas MAJEURE.
+**Conséquences** : bon — un engagement soumis à l'EU AI Act ou à ISO 42001 trouve une dimension
+dédiée ; bon — `core/schemas/control.schema.json` et `tenant.schema.json` étendent leur regex de
+dimension (`D00`–`D16` → `D00`–`D17`), changement rétrocompatible (aucun tenant existant ne
+référence D17) ; vigilance — aucun profil technologique n'instancie encore D17 (backlog v1,
+cf. ADR0109 « More Information »).

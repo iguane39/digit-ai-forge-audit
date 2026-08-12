@@ -71,7 +71,7 @@ input[type=search]{width:100%;padding:9px;border:1px solid var(--line);border-ra
 @media print{.filters,input{display:none}.card{break-inside:avoid}}
 </style></head><body><div class="wrap">
 <header><span class="brand">${esc(cfg.tenant.short_code)}</span> <b>${esc(cfg.tenant.name)} — Référentiel d'audit</b>
- <span class="muted">· 17 dimensions · ${merged.constraints.filter(c => /^CTL-/.test(c.id)).length} contrôles core · scoring 1–5 « pas de score sans preuve » · core ${esc(String(cfg.core_version))}</span></header>
+ <span class="muted">· ${pack.dimensions.length} dimensions · ${merged.constraints.filter(c => /^CTL-/.test(c.id)).length} contrôles core · scoring 1–5 « pas de score sans preuve » · core ${esc(String(cfg.core_version))}</span></header>
 <h1>Référentiel — dimensions & contrôles</h1>
 <input type="search" id="q" placeholder="Rechercher un contrôle (id, règle)…" oninput="apply()">
 <div class="filters"><button class="on" data-f="*" onclick="fam('*',this)">Toutes les familles</button>
@@ -90,4 +90,4 @@ const out = outIdx > -1 ? path.resolve(process.argv[outIdx + 1])
   : rel('deliverables', 'generated', cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 'referentiel-audit.html');
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');
-console.log(`✔ référentiel: 17 dimensions, ${merged.constraints.filter(c => /^CTL-/.test(c.id)).length} contrôles, ${(html.length / 1024).toFixed(0)} Ko → ${out}`);
+console.log(`✔ référentiel: ${pack.dimensions.length} dimensions, ${merged.constraints.filter(c => /^CTL-/.test(c.id)).length} contrôles, ${(html.length / 1024).toFixed(0)} Ko → ${out}`);

@@ -1,17 +1,18 @@
 #!/usr/bin/env node
-// AuditCore — assemble le pack core (17 Dxx.json → controls-core-v1.json), valide tout via ajv,
-// RÉCONCILIE les derived_controls des ADRs (autorité = adr_source des contrôles),
+// AuditCore — assemble le pack core (Dxx.json de dimensions.yaml → controls-core-v1.json), valide
+// tout via ajv, RÉCONCILIE les derived_controls des ADRs (autorité = adr_source des contrôles),
 // et génère core/invariants.json (consommé par validate-config règle 2).
 import fs from 'node:fs';
 import path from 'node:path';
 import Ajv from 'ajv';
-import { rel, loadJson, saveJson } from './lib.mjs';
+import { rel, loadJson, saveJson, loadYaml } from './lib.mjs';
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validate = ajv.compile(loadJson(rel('core', 'schemas', 'control.schema.json')));
 
 // ── 1. Assemblage + validation
-const dims = Array.from({ length: 17 }, (_, i) => `D${String(i).padStart(2, '0')}`);
+// Source unique du nombre de dimensions : dimensions.yaml (TF-0113 — plus de compte en dur qui dérive).
+const dims = loadYaml(rel('core', 'dimensions', 'dimensions.yaml')).dimensions.map(d => d.id);
 const all = [];
 const adr2ctl = new Map();
 let invalid = 0;
@@ -43,7 +44,7 @@ saveJson(rel('core', 'controls', 'controls-core-v1.json'), {
             standard: all.filter(c => c.criticite === 'Standard').length },
   constraints: all,
 });
-console.log(`✔ pack core assemblé: ${all.length} contrôles (17 dimensions) — ${invalid} invalide(s), ${noStd} sans standard`);
+console.log(`✔ pack core assemblé: ${all.length} contrôles (${dims.length} dimensions) — ${invalid} invalide(s), ${noStd} sans standard`);
 
 // ── 1bis. Pack EN (RAF-012) : émis si le corpus traduit core/controls-en/ est complet
 const enDir = rel('core', 'controls-en');

@@ -4,11 +4,11 @@
   "pack_version": "1.0.0",
   "generated": "2026-07-11",
   "counts": {
-    "total": 169,
+    "total": 175,
     "fatal": 17,
-    "bloquant": 60,
-    "majeur": 62,
-    "standard": 30
+    "bloquant": 62,
+    "majeur": 64,
+    "standard": 32
   },
   "constraints": [
     {
@@ -3337,6 +3337,80 @@
       ]
     },
     {
+      "id": "CTL-D07-08",
+      "adr_source": [
+        "ADR0107"
+      ],
+      "dimension_audit": "D07",
+      "regle": "La maturité FinOps est déclarée capacité par capacité (ex. allocation, forecasting, optimisation de la dépense, optimisation de l'inférence IA) selon l'échelle Crawl/Walk/Run, pour chaque périmètre de dépense significatif (cloud public, SaaS, licences, IA/inférence) — jamais un score de maturité global unique masquant des écarts entre capacités.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Demander la déclaration de maturité par capacité et par périmètre de dépense (Crawl/Walk/Run) ; vérifier qu'aucun score global unique ne remplace cette granularité et que chaque périmètre de dépense significatif est couvert.",
+      "preuve_attendue": "Grille de maturité par capacité et par périmètre de dépense, datée, avec justification du niveau déclaré pour chacune.",
+      "grille_verdict": "conforme = maturité déclarée par capacité pour tous les périmètres significatifs, avec justification ; partiel = déclaration partielle ou score global sans détail par capacité ; non conforme = aucune déclaration de maturité",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la grille de maturité par capacité et par périmètre de dépense ; joindre le document.",
+        "Vérifier que la granularité par capacité est respectée (pas de score global masquant) et que les périmètres significatifs (cloud, SaaS, licences, IA) sont couverts.",
+        "Si écart : produire la grille de maturité par capacité manquante ou décomposer un score global existant."
+      ],
+      "derogation": null,
+      "standards": [
+        "FinOps Foundation — FinOps Framework 2025/2026 (Scopes, maturité Crawl/Walk/Run par capacité)"
+      ]
+    },
+    {
+      "id": "CTL-D07-09",
+      "adr_source": [
+        "ADR0110"
+      ],
+      "dimension_audit": "D07",
+      "regle": "Les décisions d'hébergement et de dimensionnement documentent leur impact environnemental au moins qualitativement (choix de région, extinction programmée, dimensionnement au plus près du besoin réel) ; une mesure quantitative (ex. Software Carbon Intensity) est adoptée dès qu'un profil technologique l'expose de façon vérifiable.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le plan d'optimisation de coût (CTL-D07-07) documente aussi l'impact environnemental qualitatif des choix retenus, et qu'une mesure quantitative est utilisée si un profil technologique l'expose.",
+      "preuve_attendue": "Section environnementale du plan d'optimisation, ou document dédié, documentant les choix (région, extinction, dimensionnement) et leur justification qualitative — mesure quantitative jointe si disponible.",
+      "grille_verdict": "conforme = impact environnemental documenté qualitativement pour les choix significatifs (+ mesure quantitative si un profil l'expose) ; partiel = mention informelle sans documentation structurée ; non conforme = aucune considération environnementale documentée",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la section environnementale du plan d'optimisation de coût ou le document dédié ; joindre la référence.",
+        "Vérifier la justification qualitative des choix de région/extinction/dimensionnement et la présence d'une mesure quantitative si un profil l'expose.",
+        "Si écart : documenter l'impact environnemental qualitatif des décisions d'hébergement manquantes."
+      ],
+      "derogation": null,
+      "standards": [
+        "Green Software Foundation — Software Carbon Intensity (SCI)"
+      ]
+    },
+    {
       "id": "CTL-D08-01",
       "adr_source": [
         "ADR0504"
@@ -6312,6 +6386,156 @@
       "standards": [
         "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
         "RGPD — art. 32.1.c"
+      ]
+    },
+    {
+      "id": "CTL-D17-01",
+      "adr_source": [
+        "ADR0109"
+      ],
+      "dimension_audit": "D17",
+      "regle": "Chaque système IA du périmètre (modèle, agent, fonctionnalité assistée) est recensé dans un inventaire et classé selon un niveau de risque documenté (ex. inacceptable, haut risque, risque limité, risque minimal), avec la justification de la classification.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Demander l'inventaire des systèmes IA du périmètre et la classification de risque de chacun ; vérifier que la justification de classement est documentée et cohérente avec la finalité du système.",
+      "preuve_attendue": "Inventaire des systèmes IA avec niveau de risque et justification, daté et tenu à jour.",
+      "grille_verdict": "conforme = inventaire complet avec classification justifiée pour chaque système ; partiel = inventaire partiel ou classification non justifiée ; non conforme = aucun inventaire ni classification",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander l'inventaire des systèmes IA du périmètre ; joindre la référence.",
+        "Vérifier la classification de risque de chaque système et sa justification documentée.",
+        "Si écart : constituer l'inventaire et classer chaque système manquant."
+      ],
+      "derogation": null,
+      "standards": [
+        "EU AI Act (Règlement UE 2024/1689) — classification par niveau de risque",
+        "NIST AI RMF 1.0 — fonction Map (contexte et catégorisation du risque)"
+      ]
+    },
+    {
+      "id": "CTL-D17-02",
+      "adr_source": [
+        "ADR0109"
+      ],
+      "dimension_audit": "D17",
+      "regle": "La dérive de comportement d'un système IA en production (dégradation de performance, changement de distribution des entrées, régression qualité) est surveillée avec un seuil documenté et une action corrective définie (réentraînement, restriction, retrait) en cas de dépassement.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'existence d'une surveillance de dérive (métrique, fréquence, seuil) pour chaque système classé à risque non minimal, et la définition de l'action corrective déclenchée au dépassement du seuil.",
+      "preuve_attendue": "Configuration de la surveillance de dérive + historique de mesure + procédure d'action corrective documentée.",
+      "grille_verdict": "conforme = surveillance active avec seuil et action corrective documentée ; partiel = surveillance active sans action corrective définie ; non conforme = aucune surveillance de dérive",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la configuration de surveillance de dérive et son historique de mesure ; joindre l'export.",
+        "Vérifier la définition de l'action corrective déclenchée au dépassement du seuil ; documenter le constat.",
+        "Si écart : instaurer la surveillance et l'action corrective manquantes."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST AI RMF 1.0 — fonction Measure (suivi de performance et de dérive)",
+        "ISO/IEC 42001:2023 — 8.2 (évaluation continue du système de management de l'IA)"
+      ]
+    },
+    {
+      "id": "CTL-D17-03",
+      "adr_source": [
+        "ADR0109"
+      ],
+      "dimension_audit": "D17",
+      "regle": "Une supervision humaine effective existe sur les décisions à impact significatif prises ou assistées par un système IA : un humain nommé peut examiner, corriger ou arrêter la décision, et cette capacité est testée périodiquement (pas seulement déclarée).",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence d'un rôle de supervision humaine nommé pour chaque système à impact significatif, et l'exécution d'un test périodique démontrant la capacité réelle d'examen, de correction ou d'arrêt.",
+      "preuve_attendue": "Description du mécanisme de supervision humaine (rôle, portée, mode d'intervention) + compte-rendu du dernier test d'exercice de cette capacité.",
+      "grille_verdict": "conforme = supervision nommée et test d'exercice concluant daté de moins de 12 mois ; partiel = supervision nommée sans test récent ; non conforme = aucune supervision humaine identifiée",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la description du mécanisme de supervision humaine et le rôle nommé responsable.",
+        "Demander le compte-rendu du dernier test d'exercice de la capacité d'examen/correction/arrêt ; vérifier sa date et sa conclusion.",
+        "Si écart : nommer le rôle de supervision et exécuter un test d'exercice documenté."
+      ],
+      "derogation": null,
+      "standards": [
+        "EU AI Act (Règlement UE 2024/1689) — art. 14 (supervision humaine)",
+        "ISO/IEC 42001:2023 — Annexe A (contrôles de supervision humaine)"
+      ]
+    },
+    {
+      "id": "CTL-D17-04",
+      "adr_source": [
+        "ADR0109"
+      ],
+      "dimension_audit": "D17",
+      "regle": "Chaque système IA classé à risque non minimal porte une fiche de documentation de conformité à jour (finalité, données d'entraînement/d'entrée, mesures de risque, information de l'utilisateur final), accessible à l'autorité de conformité désignée.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Demander la fiche de documentation de conformité de chaque système IA à risque non minimal ; vérifier sa complétude (finalité, données, mesures de risque, information utilisateur) et sa date de dernière mise à jour.",
+      "preuve_attendue": "Fiche de documentation de conformité par système IA, datée, accessible à l'autorité de conformité désignée.",
+      "grille_verdict": "conforme = fiche complète et à jour (< 12 mois) pour chaque système concerné ; partiel = fiche incomplète ou obsolète ; non conforme = aucune fiche de conformité",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Demander la fiche de documentation de conformité de chaque système IA à risque non minimal ; joindre les documents.",
+        "Vérifier la complétude et la fraîcheur (< 12 mois) de chaque fiche ; documenter le constat.",
+        "Si écart : produire ou mettre à jour les fiches manquantes ou obsolètes."
+      ],
+      "derogation": null,
+      "standards": [
+        "EU AI Act (Règlement UE 2024/1689) — art. 11 et art. 53 (documentation technique)",
+        "ISO/IEC 42001:2023 — 7.5 (informations documentées)"
       ]
     }
   ]

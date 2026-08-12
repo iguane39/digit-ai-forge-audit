@@ -148,6 +148,48 @@
       ],
       "derogation": null,
       "standards": ["FinOps Foundation — cycle Inform/Optimize/Operate"]
+    },
+    {
+      "id": "CTL-D07-08",
+      "adr_source": ["ADR0107"],
+      "dimension_audit": "D07",
+      "regle": "La maturité FinOps est déclarée capacité par capacité (ex. allocation, forecasting, optimisation de la dépense, optimisation de l'inférence IA) selon l'échelle Crawl/Walk/Run, pour chaque périmètre de dépense significatif (cloud public, SaaS, licences, IA/inférence) — jamais un score de maturité global unique masquant des écarts entre capacités.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Demander la déclaration de maturité par capacité et par périmètre de dépense (Crawl/Walk/Run) ; vérifier qu'aucun score global unique ne remplace cette granularité et que chaque périmètre de dépense significatif est couvert.",
+      "preuve_attendue": "Grille de maturité par capacité et par périmètre de dépense, datée, avec justification du niveau déclaré pour chacune.",
+      "grille_verdict": "conforme = maturité déclarée par capacité pour tous les périmètres significatifs, avec justification ; partiel = déclaration partielle ou score global sans détail par capacité ; non conforme = aucune déclaration de maturité",
+      "enforcement": "advisory",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander la grille de maturité par capacité et par périmètre de dépense ; joindre le document.",
+        "Vérifier que la granularité par capacité est respectée (pas de score global masquant) et que les périmètres significatifs (cloud, SaaS, licences, IA) sont couverts.",
+        "Si écart : produire la grille de maturité par capacité manquante ou décomposer un score global existant."
+      ],
+      "derogation": null,
+      "standards": ["FinOps Foundation — FinOps Framework 2025/2026 (Scopes, maturité Crawl/Walk/Run par capacité)"]
+    },
+    {
+      "id": "CTL-D07-09",
+      "adr_source": ["ADR0110"],
+      "dimension_audit": "D07",
+      "regle": "Les décisions d'hébergement et de dimensionnement documentent leur impact environnemental au moins qualitativement (choix de région, extinction programmée, dimensionnement au plus près du besoin réel) ; une mesure quantitative (ex. Software Carbon Intensity) est adoptée dès qu'un profil technologique l'expose de façon vérifiable.",
+      "criticite": "Standard",
+      "profil": ["complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier que le plan d'optimisation de coût (CTL-D07-07) documente aussi l'impact environnemental qualitatif des choix retenus, et qu'une mesure quantitative est utilisée si un profil technologique l'expose.",
+      "preuve_attendue": "Section environnementale du plan d'optimisation, ou document dédié, documentant les choix (région, extinction, dimensionnement) et leur justification qualitative — mesure quantitative jointe si disponible.",
+      "grille_verdict": "conforme = impact environnemental documenté qualitativement pour les choix significatifs (+ mesure quantitative si un profil l'expose) ; partiel = mention informelle sans documentation structurée ; non conforme = aucune considération environnementale documentée",
+      "enforcement": "recommendation",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml", "infra"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander la section environnementale du plan d'optimisation de coût ou le document dédié ; joindre la référence.",
+        "Vérifier la justification qualitative des choix de région/extinction/dimensionnement et la présence d'une mesure quantitative si un profil l'expose.",
+        "Si écart : documenter l'impact environnemental qualitatif des décisions d'hébergement manquantes."
+      ],
+      "derogation": null,
+      "standards": ["Green Software Foundation — Software Carbon Intensity (SCI)"]
     }
   ]
 }

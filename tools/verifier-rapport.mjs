@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // AuditCore — vérificateur de rapport GÉNÉRIQUE (généralise verifier-rapport-audit.mjs).
 // v2 : valide le CONTRAT DE DONNÉES du rapport (rapport-data.json) plutôt que le HTML —
-// libellés/branding via tenant, règles core inchangées : 0 placeholder, 17 dimensions,
+// libellés/branding via tenant, règles core inchangées : 0 placeholder, dimensions core au complet,
 // verdicts complets sur toutes les règles applicables. Gate BLOQUANT avant diffusion.
 // Usage: node tools/verifier-rapport.mjs <rapport-data.json> [--tenant <tenant.yaml>]
 import fs from 'node:fs';
@@ -20,7 +20,7 @@ const data = JSON.parse(raw);
 const placeholders = raw.match(/\{\{[^}]+\}\}|__TODO__|À COMPLÉTER/g) ?? [];
 if (placeholders.length) errors.push(`${placeholders.length} placeholder(s) résiduel(s) — ex: ${placeholders.slice(0, 3).join(', ')}`);
 
-// 2. Les 17 dimensions core présentes et valides
+// 2. Les dimensions core (dimensions.yaml, source unique — TF-0113) présentes et valides
 const dims = loadYaml(rel('core', 'dimensions', 'dimensions.yaml')).dimensions.map(d => d.id);
 const got = (data.dimensions ?? []).map(d => d.id);
 for (const d of dims) if (!got.includes(d)) errors.push(`dimension manquante: ${d}`);

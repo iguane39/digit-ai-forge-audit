@@ -1,5 +1,6 @@
-# AuditCore — dimensions d'audit core (invariant: les 17 dimensions et 6 familles
+# AuditCore — dimensions d'audit core (invariant: les 18 dimensions et 6 familles
 # ne sont ni supprimables ni fusionnables par overlay ; relabel cosmétique autorisé).
+# D17 ajoutée le 2026-08-12 (TF-0110, PADR-0009) — évolution additive, aucun retrait.
 # Source : généralisation du référentiel D00-D16 du profil de référence (PLAN/04 §1).
 pack: core-v1
 invariant: true
@@ -59,3 +60,5 @@ dimensions:
       applicability: { web-app: partial, api: partial, data: full, mobile: partial, ml: full, infra: off } }
   - { id: D16, label: "Schéma de base de données", label_en: "Database schema", family: donnees-ia, themes: 9,
       applicability: { web-app: full, api: full, data: full, mobile: partial, ml: partial, infra: off } }
+  - { id: D17, label: "Gouvernance IA", label_en: "AI governance", family: securite, themes: 4,
+      applicability: { web-app: partial, api: partial, data: partial, mobile: partial, ml: full, infra: off } }

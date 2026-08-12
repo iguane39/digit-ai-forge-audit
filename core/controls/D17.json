@@ -1,0 +1,90 @@
+{
+  "dimension": "D17",
+  "label": "Gouvernance IA",
+  "controls": [
+    {
+      "id": "CTL-D17-01",
+      "adr_source": ["ADR0109"],
+      "dimension_audit": "D17",
+      "regle": "Chaque système IA du périmètre (modèle, agent, fonctionnalité assistée) est recensé dans un inventaire et classé selon un niveau de risque documenté (ex. inacceptable, haut risque, risque limité, risque minimal), avec la justification de la classification.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Demander l'inventaire des systèmes IA du périmètre et la classification de risque de chacun ; vérifier que la justification de classement est documentée et cohérente avec la finalité du système.",
+      "preuve_attendue": "Inventaire des systèmes IA avec niveau de risque et justification, daté et tenu à jour.",
+      "grille_verdict": "conforme = inventaire complet avec classification justifiée pour chaque système ; partiel = inventaire partiel ou classification non justifiée ; non conforme = aucun inventaire ni classification",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander l'inventaire des systèmes IA du périmètre ; joindre la référence.",
+        "Vérifier la classification de risque de chaque système et sa justification documentée.",
+        "Si écart : constituer l'inventaire et classer chaque système manquant."
+      ],
+      "derogation": null,
+      "standards": ["EU AI Act (Règlement UE 2024/1689) — classification par niveau de risque", "NIST AI RMF 1.0 — fonction Map (contexte et catégorisation du risque)"]
+    },
+    {
+      "id": "CTL-D17-02",
+      "adr_source": ["ADR0109"],
+      "dimension_audit": "D17",
+      "regle": "La dérive de comportement d'un système IA en production (dégradation de performance, changement de distribution des entrées, régression qualité) est surveillée avec un seuil documenté et une action corrective définie (réentraînement, restriction, retrait) en cas de dépassement.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'existence d'une surveillance de dérive (métrique, fréquence, seuil) pour chaque système classé à risque non minimal, et la définition de l'action corrective déclenchée au dépassement du seuil.",
+      "preuve_attendue": "Configuration de la surveillance de dérive + historique de mesure + procédure d'action corrective documentée.",
+      "grille_verdict": "conforme = surveillance active avec seuil et action corrective documentée ; partiel = surveillance active sans action corrective définie ; non conforme = aucune surveillance de dérive",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander la configuration de surveillance de dérive et son historique de mesure ; joindre l'export.",
+        "Vérifier la définition de l'action corrective déclenchée au dépassement du seuil ; documenter le constat.",
+        "Si écart : instaurer la surveillance et l'action corrective manquantes."
+      ],
+      "derogation": null,
+      "standards": ["NIST AI RMF 1.0 — fonction Measure (suivi de performance et de dérive)", "ISO/IEC 42001:2023 — 8.2 (évaluation continue du système de management de l'IA)"]
+    },
+    {
+      "id": "CTL-D17-03",
+      "adr_source": ["ADR0109"],
+      "dimension_audit": "D17",
+      "regle": "Une supervision humaine effective existe sur les décisions à impact significatif prises ou assistées par un système IA : un humain nommé peut examiner, corriger ou arrêter la décision, et cette capacité est testée périodiquement (pas seulement déclarée).",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier l'existence d'un rôle de supervision humaine nommé pour chaque système à impact significatif, et l'exécution d'un test périodique démontrant la capacité réelle d'examen, de correction ou d'arrêt.",
+      "preuve_attendue": "Description du mécanisme de supervision humaine (rôle, portée, mode d'intervention) + compte-rendu du dernier test d'exercice de cette capacité.",
+      "grille_verdict": "conforme = supervision nommée et test d'exercice concluant daté de moins de 12 mois ; partiel = supervision nommée sans test récent ; non conforme = aucune supervision humaine identifiée",
+      "enforcement": "blocking",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander la description du mécanisme de supervision humaine et le rôle nommé responsable.",
+        "Demander le compte-rendu du dernier test d'exercice de la capacité d'examen/correction/arrêt ; vérifier sa date et sa conclusion.",
+        "Si écart : nommer le rôle de supervision et exécuter un test d'exercice documenté."
+      ],
+      "derogation": null,
+      "standards": ["EU AI Act (Règlement UE 2024/1689) — art. 14 (supervision humaine)", "ISO/IEC 42001:2023 — Annexe A (contrôles de supervision humaine)"]
+    },
+    {
+      "id": "CTL-D17-04",
+      "adr_source": ["ADR0109"],
+      "dimension_audit": "D17",
+      "regle": "Chaque système IA classé à risque non minimal porte une fiche de documentation de conformité à jour (finalité, données d'entraînement/d'entrée, mesures de risque, information de l'utilisateur final), accessible à l'autorité de conformité désignée.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Demander la fiche de documentation de conformité de chaque système IA à risque non minimal ; vérifier sa complétude (finalité, données, mesures de risque, information utilisateur) et sa date de dernière mise à jour.",
+      "preuve_attendue": "Fiche de documentation de conformité par système IA, datée, accessible à l'autorité de conformité désignée.",
+      "grille_verdict": "conforme = fiche complète et à jour (< 12 mois) pour chaque système concerné ; partiel = fiche incomplète ou obsolète ; non conforme = aucune fiche de conformité",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander la fiche de documentation de conformité de chaque système IA à risque non minimal ; joindre les documents.",
+        "Vérifier la complétude et la fraîcheur (< 12 mois) de chaque fiche ; documenter le constat.",
+        "Si écart : produire ou mettre à jour les fiches manquantes ou obsolètes."
+      ],
+      "derogation": null,
+      "standards": ["EU AI Act (Règlement UE 2024/1689) — art. 11 et art. 53 (documentation technique)", "ISO/IEC 42001:2023 — 7.5 (informations documentées)"]
+    }
+  ]
+}

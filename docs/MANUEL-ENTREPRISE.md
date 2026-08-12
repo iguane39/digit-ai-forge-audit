@@ -10,7 +10,7 @@
 ```mermaid
 flowchart LR
     A[Onboarding<br/>dossier d'entrants] --> B[Kits générés<br/>à votre marque]
-    B --> C[Audit<br/>17 dimensions]
+    B --> C[Audit<br/>18 dimensions]
     C --> D{Gate décisionnelle<br/>go / réserve / no-go}
     D --> E[Remédiation<br/>auto · assistée · manuelle]
     E --> F[Re-audit ciblé<br/>+ tableau de bord]
@@ -22,7 +22,7 @@ deux points de contrôle humain dans la remédiation (revue du backlog, revue de
 
 ## 1. Ce que vous obtenez
 
-- **Un audit exhaustif sur 17 dimensions** (17 grands domaines de jugement — fonctionnel,
+- **Un audit exhaustif sur 18 dimensions** (18 grands domaines de jugement — fonctionnel,
   architecture, sécurité, données & IA, FinOps, opérations) : la valeur métier, la dette
   technique, la conformité réglementaire et les coûts sont couverts par le même exercice.
 - **Des kits personnalisés à votre marque** — un **kit** est une archive prête à l'emploi,
@@ -70,7 +70,7 @@ grille de verdict) n'est jugé conforme que si une preuve existe, citée à l'en
 a été vérifiée (**preuve fichier:ligne** : fichier et ligne de code, extrait de configuration,
 rapport de scan ou capture d'écran — jamais une affirmation non sourcée).
 
-**Les 17 dimensions, en langage métier :**
+**Les 18 dimensions, en langage métier :**
 
 | ID | Dimension | Ce que ça vous demande, en clair |
 |---|---|---|
@@ -91,9 +91,10 @@ rapport de scan ou capture d'écran — jamais une affirmation non sourcée).
 | D14 | Modèles IA & prompts | Vos modèles d'IA sont-ils choisis, évalués, surveillés — ou déployés à l'aveugle ? |
 | D15 | Principes data by design | Vos données sont-elles gouvernées dès la conception, ou rattrapées après coup ? |
 | D16 | Schéma de base de données | Votre base est-elle documentée, cohérente, et sait-on où sont les données sensibles ? |
+| D17 | Gouvernance IA | Savez-vous classer le risque de vos systèmes IA, surveiller leur dérive, et un humain garde-t-il la main ? |
 
 **Scoring.** Chaque dimension applicable reçoit une note de 1 à 5 (1 Bloquant, 2 Insuffisant, 3
-Acceptable, 4 Solide, 5 État de l'art) et un score global (moyenne pondérée sur les 17
+Acceptable, 4 Solide, 5 État de l'art) et un score global (moyenne pondérée sur les 18
 dimensions). Chaque contrôle porte aussi une **criticité** (Standard, Majeur, Bloquant, Fatal) et
 un niveau de contrainte (**enforcement** : recommandation, conseillé, obligatoire ou bloquant).
 
@@ -102,7 +103,7 @@ décisionnelle**, elle, est tranchée par votre autorité de décision — pas p
 un verdict par dimension (**go**, **réserve** — c'est-à-dire go sous condition — ou **no-go**).
 Les dimensions notées ≤ 2, ou de criticité Fatal, sont automatiquement signalées bloquantes.
 
-**Ce que vous recevez** : le rapport d'audit complet (les 17 dimensions, les scores, les
+**Ce que vous recevez** : le rapport d'audit complet (les 18 dimensions, les scores, les
 preuves), le banc de preuves (le détail par contrôle — règle, actions vérifiées, preuve, et un
 **verdict** : conforme, partiel, non conforme, sans objet ou à évaluer) et une synthèse
 exécutive d'une page (verdict Gate, 3 risques majeurs, 3 décisions attendues, coût et délai de

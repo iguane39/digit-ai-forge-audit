@@ -208,7 +208,7 @@ est le kit « Compliance Pack » généré séparément (\`--kind compliance\`).
 
 ## Démarrage
 1. \`node init-audit-workspace-standalone.mjs <dossier>\` — échafaude input/00-07, output/00-04, Old/.
-2. Référentiel : \`dimensions.yaml\` (17 dimensions, 6 familles, scoring 1-5, applicabilité par type).
+2. Référentiel : \`dimensions.yaml\` (18 dimensions, 6 familles, scoring 1-5, applicabilité par type).
 3. Conduite : gabarits \`templates/\` (rapport, matrices, présentation, go-prod, plan de remédiation…).
 4. Règles impératives : feuille blanche · preuves \`fichier:ligne\` · « pas de score sans preuve » ·
    ne jamais écraser (Old/) · vérificateur obligatoire avant diffusion.

@@ -4,6 +4,30 @@ Versionnement SemVer (PADR-0005) : MAJEUR = rupture de schéma / retrait de cont
 MINEUR = nouveaux contrôles/ADR · PATCH = corrections. Chaque release liste les standards
 sources mis à jour.
 
+## [1.7.0] — 2026-08-12
+
+> TF-0110 : gouvernance IA, policy-as-code, réalignement FinOps, pilier soutenabilité.
+
+### Ajouté
+- **Dimension `D17 · Gouvernance IA`** (18e dimension, famille `securite`) : classification du
+  risque des systèmes IA, dérive de modèle, supervision humaine, documentation de conformité
+  (ISO/IEC 42001, NIST AI RMF, EU AI Act) — `ADR0109`, 4 contrôles `CTL-D17-01..04` (PADR-0009,
+  évolution additive, MINEURE). `control.schema.json`/`tenant.schema.json` étendent leur regex de
+  dimension (`D00`–`D16` → `D00`–`D17`).
+- **`CTL-D07-08`** (maturité FinOps Crawl/Walk/Run par capacité et par périmètre de dépense) et
+  **`CTL-D07-09`** (impact environnemental des décisions d'hébergement, extension qualitative du
+  pilier soutenabilité — `ADR0110`) : 175 contrôles au total.
+- **Démonstrateur policy-as-code** (`profiles/policy-as-code/`) : 3 règles Rego (OPA/conftest)
+  sur un sous-ensemble de contrôles (`CTL-D07-01`, `CTL-D07-04`, `CTL-D02-11`), fixtures IaC
+  verte/rouge, exécutées via `conftest` (preuve, pas de migration du corpus).
+
+### Modifié
+- `ADR0107` (gouvernance des coûts) réaligné sur le FinOps Framework 2025/2026 (Scopes,
+  Domaines/Capacités, Personas, maturité Crawl/Walk/Run par capacité) — les contrôles existants
+  `CTL-D07-01..07` restent inchangés.
+- `tools/assemble-core.mjs` : le nombre de dimensions n'est plus codé en dur, il se lit dans
+  `dimensions.yaml` (évite la dérive documentaire signalée par TF-0113).
+
 ## [1.6.0] — 2026-07-15
 
 > Découplage produit/tenant (RAF-027..030) : AuditCore devient un dépôt autonome

@@ -26,7 +26,7 @@
 | FinOps | Relevés de coûts ponctuels | Suivi en place, budgets définis, écarts non expliqués | FinOps outillé (alertes, tagging), optimisations récurrentes | Coût unitaire piloté par métrique métier, forecast fiable |
 | Opérations | Logs bruts non exploités | Observabilité minimale, run partiellement documenté | SLO définis et suivis, documentation à jour, CI testée | Amélioration continue outillée (post-mortems), documentation vivante |
 
-## 3. Application par dimension (répéter pour les 17 dimensions applicables)
+## 3. Application par dimension (répéter pour les 18 dimensions applicables)
 
 | Dim. | Libellé | Famille | Score {{audit.prev}} | Score {{audit.curr}} | Prochain palier | Preuve clé (fichier:ligne) |
 |---|---|---|---|---|---|---|
@@ -62,5 +62,5 @@
 ## 6. Règles
 
 - « Pas de score sans preuve » : aucune case des §3/§5 ne se remplit sans preuve `fichier:ligne` ou entrée du manifeste (`manifeste-preuves.schema.json`).
-- Score global = moyenne pondérée sur les 17 dimensions (`dimensions.yaml#scoring.global`).
+- Score global = moyenne pondérée sur les 18 dimensions (`dimensions.yaml#scoring.global`).
 - Bloquants = dimensions notées ≤ 2 ou de criticité Fatal — repris tels quels dans la synthèse exécutive.
