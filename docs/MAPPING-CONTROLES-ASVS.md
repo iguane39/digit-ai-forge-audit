@@ -252,9 +252,18 @@ haut.
 **Recommandation** (décision humaine, hors de ce document) : soit renuméroter vers 5.0.0,
 soit rétablir la mention de version exacte `ASVS 4.0.3`. À porter à la revue
 `GOUVERNANCE-STANDARDS.md` (étape 2 « Delta → impact ») et à instruire en item RAF/SemVer.
-**Réserve de méthode** : ce constat est établi par recoupement de pièces internes
+~~**Réserve de méthode** : ce constat est établi par recoupement de pièces internes
 (libellés du corpus × structure 5.0.0 attestée par S2), sans accès au texte publié des
-deux versions. À confirmer sur le texte source avant toute correction de masse.
+deux versions. À confirmer sur le texte source avant toute correction de masse.~~
+
+**Réserve levée le 2026-08-14 (TF-0205) — constat CONFIRMÉ.** Les huit lignes du tableau
+ci-dessus ont été vérifiées contre le texte publié des deux versions (dépôt officiel
+`OWASP/ASVS`, tags `v4.0.3` et `v5.0.0` : noms de fichiers, titres H1 et exports JSON
+officiels). Les huit sont exactes. Voir **`docs/CORRESPONDANCE-ASVS-4.0.x-5.0.0.md`** :
+sources, structures complètes (4.0.3 = **14** chapitres, 5.0.0 = **17**), correspondance
+dérivée chapitre par chapitre, inventaire recalculé des **44** emplacements, et les trois
+classes de citations qui interdisent une correction de masse mécanique. La correction
+elle-même reste **non faite** : c'est une décision humaine.
 
 ## 8. Ce que ce document n'est pas
 

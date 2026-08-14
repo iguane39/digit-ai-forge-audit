@@ -137,6 +137,14 @@
       "preuves": [
         "src/x.py:26"
       ]
+    },
+    {
+      "id": "D17",
+      "score": 3,
+      "gate1b": "go",
+      "preuves": [
+        "src/x.py:27"
+      ]
     }
   ],
   "regles": [
