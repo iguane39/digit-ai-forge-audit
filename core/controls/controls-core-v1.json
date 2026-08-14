@@ -813,7 +813,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V13",
+        "OWASP ASVS 5.0 — V4 (API et services web)",
         "ISO/IEC 27002:2022 — 8.21"
       ]
     },
@@ -956,8 +956,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP Top 10 2021 — A01 à A10",
-        "OWASP ASVS 5.0 — V1 (Architecture, conception, threat modeling)"
+        "OWASP Top 10 2021 — A01 à A10"
       ]
     },
     {
@@ -994,7 +993,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V5 (Validation, Sanitization, Encoding)",
+        "OWASP ASVS 5.0 — V2.2 (validation des entrées) + V1.3 (assainissement) — 4.0.3 V5 scindé entre V1 et V2",
         "OWASP Top 10 2021 — A03:2021 Injection"
       ]
     },
@@ -1070,7 +1069,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V13 (API et services Web)",
+        "OWASP ASVS 5.0 — V2.4.1 (anti-automatisation et limitation de débit)",
         "NIST SP 800-207"
       ]
     },
@@ -1141,7 +1140,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V14 (Configuration)",
+        "OWASP ASVS 5.0 — V3.4 (en-têtes de mécanismes de sécurité navigateur)",
         "ISO/IEC 27002:2022 — 8.24"
       ]
     },
@@ -1491,7 +1490,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V2.10",
+        "OWASP ASVS 5.0 — V13.3.1 (gestion des secrets) + V13.2.1/V13.2.3 (authentification de service)",
         "NIST SSDF — PS.1"
       ]
     },
@@ -1605,7 +1604,7 @@
       "derogation": null,
       "standards": [
         "ISO/IEC 27002:2022 — 5.15/5.18",
-        "OWASP ASVS 5.0 — V4"
+        "OWASP ASVS 5.0 — V8.2.1/V8.3.1 (autorisation au niveau fonction, appliquée en couche de confiance)"
       ]
     },
     {
@@ -1750,7 +1749,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V2.10/V3",
+        "OWASP ASVS 5.0 — V13.3.1 (gestion des secrets, 4.0.3 V2.10) + V7.2.2 (jetons dynamiques, jamais de secret statique) + V10 (OAuth et OIDC)",
         "OAuth 2.0 Security BCP (RFC 9700)"
       ]
     },
@@ -2841,7 +2840,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V13",
+        "OWASP ASVS 5.0 — V2.4.1 (anti-automatisation : quotas et limitation de débit)",
         "Site Reliability Engineering (Google) — gestion de la charge"
       ]
     },

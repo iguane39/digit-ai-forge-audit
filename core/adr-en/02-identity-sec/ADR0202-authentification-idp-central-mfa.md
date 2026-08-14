@@ -7,7 +7,7 @@ informed: "all product teams"
 id: ADR0202
 domain: "02"
 invariant: true
-standards: ["ISO/IEC 27002:2022 — 5.17", "NIST SP 800-63B — §4.2.1 (AAL2) & §5.1.1 (MFA)", "OWASP ASVS 5.0 — V2.1/V2.2", "OpenID Connect / OAuth 2.0 (spécification ouverte)"]
+standards: ["ISO/IEC 27002:2022 — 5.17", "NIST SP 800-63B — §4.2.1 (AAL2) & §5.1.1 (MFA)", "OWASP ASVS 5.0 — V6.2/V6.3 + V6.5.1 (MFA) — 4.0.3 V2.1/V2.2 ; V2.2.5 déplacée en V12.3.5, V2.2.6 couverte par V6.5.1, V2.1.4 et V2.1.8 supprimées", "OpenID Connect / OAuth 2.0 (spécification ouverte)"]
 derived_controls: [CTL-D03-01]
 ---
 

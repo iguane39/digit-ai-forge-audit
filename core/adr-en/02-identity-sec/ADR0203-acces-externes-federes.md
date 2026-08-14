@@ -7,7 +7,7 @@ informed: "all product teams"
 id: ADR0203
 domain: "02"
 invariant: true
-standards: ["ISO/IEC 27002:2022 — 5.18", "NIST SP 800-53 — famille AC (AC-2/AC-3)", "OWASP ASVS 5.0 — V4.1", "SAML 2.0 / OIDC Federation (spécifications ouvertes)"]
+standards: ["ISO/IEC 27002:2022 — 5.18", "NIST SP 800-53 — famille AC (AC-2/AC-3)", "OWASP ASVS 5.0 — V8.2.1/V8.3.1 — 4.0.3 V4.1 (V4.1.1→V8.3.1, V4.1.3→V8.2.1, V4.1.2 supprimée et couverte par V8.2.1, V4.1.5 déplacée en V16.5.3)", "SAML 2.0 / OIDC Federation (spécifications ouvertes)"]
 derived_controls: [CTL-D03-07]
 ---
 

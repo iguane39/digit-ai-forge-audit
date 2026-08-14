@@ -7,7 +7,7 @@ informed: "product teams"
 id: ADR0706
 domain: "07"
 invariant: false
-standards: ["OWASP ASVS 5.0 — V13 (limitation de débit)", "SRE — Site Reliability Engineering (gestion de la charge)"]
+standards: ["OWASP ASVS 5.0 — V2.4.1 (anti-automatisation : appels excessifs, dépassement de quota, déni de service)", "SRE — Site Reliability Engineering (gestion de la charge)"]
 derived_controls: [CTL-D06-02, CTL-D06-05]
 ---
 
@@ -76,3 +76,11 @@ justification of thresholds; non-compliant = API exposed without a quota.
 
 Instantiations: `profil:azure` → quota policies at the API gateway level; other profiles →
 equivalent rate limiting at the common exposure point (link ADR0701).
+
+**ASVS citation — corrected on 2026-08-14 (migration to ASVS 5.0.0).** The original citation
+`OWASP ASVS 5.0 — V13 (limitation de débit)` was **wrong in both versions of the
+standard**: the parenthetical was a thematic gloss, never a chapter title. In 4.0.3, V13 = *API
+and Web Service*; in 5.0.0, V13 = *Configuration*. Rate limiting belonged to 4.0.3 **V11.1.4**
+(*Business Logic*) → 5.0.0 **V2.4.1** (*Anti-automation*) (`mapping_v4.0.3_to_v5.0.0.yml`:
+`v4.0.3-11.1.4: MOVED TO v5.0.0-2.4.1`). Same correction for the derived control
+CTL-D06-02, which cited a bare `V13`.

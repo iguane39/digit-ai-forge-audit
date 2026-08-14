@@ -56,6 +56,55 @@ leurs `adr_source` ; bon — zéro migration forcée ; vigilance — le catalogu
 pour les tenants qui le déclarent (comportement voulu).
 
 ---
+## PADR-0010 — Les citations ASVS du corpus migrent vers **ASVS 5.0.0** (TF-0221)
+status: **accepted** · date: 2026-08-14 · decision-makers: propriétaire produit *(mandat humain, exécution déléguée au pilot)*
+**Contexte** : les 22 citations `OWASP ASVS 5.0 — Vxx` des `standards[]` du corpus employaient
+la **numérotation de chapitres d'ASVS 4.0.x** — constat établi par recoupement interne
+(`MAPPING-CONTROLES-ASVS.md` §7), puis **confirmé sur le texte publié** des deux versions
+(`CORRESPONDANCE-ASVS-4.0.x-5.0.0.md`, TF-0205 : 4.0.3 = 14 chapitres, 5.0.0 = 17, quatre
+intitulés communs à des numéros différents). Deux options ouvertes : rétablir `ASVS 4.0.3`, ou
+migrer vers 5.0.0.
+**Décision** : **migration vers ASVS 5.0.0**. Motif : l'**exécution juge déjà sur 5.0.0** — le
+référentiel curé de la forge de sécurité web (`referentiels/asvs-l1.md`) est un sous-ensemble
+L1 d'ASVS 5.0.0. Rétablir 4.0.3 rendrait les citations exactes mais ferait citer à la
+gouvernance une version que **personne n'applique**, et rendrait **inter-versions** le mapping
+gouvernance↔exécution construit le 2026-08-14.
+**Mise en œuvre** : chaque citation suivie **exigence par exigence** dans le fichier officiel
+`mapping_v4.0.3_to_v5.0.0.yml` (278 entrées), jamais par translation de chapitre ; cibles
+vérifiées contre l'export JSON officiel 5.0.0. Une exigence éclatée donne une **citation
+multiple** (classe B) ; une citation fausse dans les deux versions est corrigée **et signalée
+comme erronée** dans le corps de l'ADR (classe C) ; `CTL-D02-01` **perd** sa citation, 4.0.3 V1
+n'ayant aucun successeur en 5.0.0. Bilan : **21 réécrites, 1 supprimée, 0 laissée en 4.0.x**
+(42 emplacements, miroirs EN compris). Le préfixe `OWASP ASVS 5.0` est conservé : le défaut
+portait sur les numéros, pas sur l'étiquette de version.
+**Conséquences** : bon — la traçabilité gouvernance → standard redevient suivable, et sur la
+même version que l'exécution ; bon — un contrôle porte désormais 0 citation ASVS au lieu d'une
+fausse (`CTL-D02-01` : 10 → **9** contrôles cités) ; vigilance — les citations de classe B sont
+**volontairement longues** (elles nomment les exigences supprimées/fusionnées) : une citation
+courte y serait fausse ; vigilance — toute révision d'ASVS périme ce travail, à rejouer à la
+revue `GOUVERNANCE-STANDARDS.md`. Évolution **PATCH** au sens de PADR-0005 (correction de
+citations, aucun contrôle retiré ni schéma modifié).
+
+---
+## PADR-0011 — Le corpus EN devient **complet et régénérable** (TF-0220)
+status: **accepted** · date: 2026-08-14 · decision-makers: propriétaire produit *(mandat humain)*
+**Contexte** : `tools/assemble-core.mjs` refuse d'émettre `controls-core-v1.en.json` tant que
+`core/controls-en/` ne couvre pas exactement le corpus FR. Il manquait la dimension **D17**
+(4 contrôles, PADR-0009) et **2 contrôles de D07** (`CTL-D07-08`, `CTL-D07-09`) — 169/175.
+Conséquence : toute correction portée à une source EN **divergeait de son pack** sans recours,
+et le blocage était irrésorbable en aval.
+**Décision** : compléter le corpus EN à la source (`core/controls-en/D17.json` créé,
+`core/controls-en/D07.json` complété), jamais en éditant un fichier généré. Convention
+respectée telle qu'elle est en place : `standards[]` **non localisé**, de même que `criticite`,
+`profil`, `mode_de_controle`, `enforcement`, `applicabilite` ; formatage du fichier EN calqué
+sur celui de son homologue FR.
+**Conséquences** : bon — les **deux** packs sortent (175 FR + 175 EN), le refus d'émission n'est
+plus un plafond ; bon — parité FR/EN vérifiable mécaniquement (mêmes identifiants, même ordre,
+mêmes champs non localisés) ; vigilance — tout contrôle ajouté au FR doit l'être au EN dans le
+même mouvement, sans quoi le pack EN cesse d'être émis, **silencieusement** (avertissement, pas
+échec).
+
+---
 ## PADR-0007 — Arborescence produit et nom : `auditcore/`, produit « AuditCore » (P0.3/P0.4)
 status: **accepted** · date: 2026-07-11
 **Décision** : arborescence `core/ profiles/ config/ deliverables/ tools/ tests/ docs/decisions/`

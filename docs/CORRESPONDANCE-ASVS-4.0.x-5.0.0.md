@@ -1,13 +1,21 @@
 # Correspondance OWASP ASVS 4.0.x → 5.0.0 — et vérification des citations du corpus
 
 **Établi le 2026-08-14** (mandat TF-0205, suite du §7 de `MAPPING-CONTROLES-ASVS.md`).
-**Portée** : document de constat et de correspondance. **Aucune citation n'est corrigée ici.**
+**Mis à jour le 2026-08-14** (TF-0221) : la direction est tranchée et **appliquée** — voir §6.
+**Portée** : constat, correspondance, **et journal de la correction effectivement portée au
+corpus**.
 
-> **Verdict : constat CONFIRMÉ sur le texte publié.** Le §7 de `MAPPING-CONTROLES-ASVS.md`
+> **Verdict du constat : CONFIRMÉ sur le texte publié.** Le §7 de `MAPPING-CONTROLES-ASVS.md`
 > avait établi par recoupement interne que les citations `OWASP ASVS 5.0 — Vxx` du corpus
 > emploient la numérotation de chapitres d'ASVS **4.0.x**. Ce document lève la réserve de
 > méthode : les huit lignes de ce constat sont vérifiées une à une contre les titres publiés
 > des deux versions. **Les huit sont exactes.**
+>
+> **État de la correction au 2026-08-14 : FAITE.** Décision humaine du 2026-08-14, déléguée
+> au pilot : **le corpus migre vers ASVS 5.0.0** (§6). Les **22 citations** distinctes
+> (44 emplacements avec les miroirs EN) sont **toutes traitées** : 21 réécrites vers leur
+> cible 5.0.0 réelle, 1 supprimée faute de successeur (`CTL-D02-01`). **Aucune citation
+> n'est laissée en numérotation 4.0.x.** Détail et preuves : §6.
 
 ## 1. Sources
 
@@ -107,7 +115,10 @@ WebRTC : ce sont des contenus neufs.
    `V4.1/V4.2`, `V2.10` désignent des exigences précises : leur cible 5.0.0 se lit dans
    `mapping_v4.0.3_to_v5.0.0.yml`, exigence par exigence, pas par translation de chapitre.
 
-## 4. Les 44 emplacements — inventaire recalculé le 2026-08-14
+## 4. Les 44 emplacements — inventaire d'origine, recalculé le 2026-08-14
+
+> **Cet inventaire est celui d'*avant* correction.** Il est conservé tel quel : c'est la
+> pièce qui rend la correction du §6 vérifiable. Pour l'état actuel du corpus, lire le §6.
 
 Décompte reproduit à la source (jamais recopié du §7) : **12 ADR FR + 12 ADR EN + 10
 contrôles FR + 10 contrôles EN = 44**.
@@ -165,10 +176,16 @@ contrôles FR + 10 contrôles EN = 44**.
 date, et n'a pas à être réécrit. `docs/GOUVERNANCE-STANDARDS.md` et `docs/MANUEL-ENTREPRISE.md`
 (1 chacun) citent le standard sans numéro de chapitre — non concernés.
 
+**Après correction (§6)** : les deux packs assemblés portent **9** occurrences chacun et les
+deux `merged.json` **9** également — et non plus 10 : `CTL-D02-01` a perdu sa citation ASVS
+(§6.4). Les `merged.json` sont ignorés de git (sous-produits de fusion, cf. `.gitignore`) :
+ils se régénèrent, ils ne se relisent pas en revue de diff.
+
 ## 5. Les 44 ne se corrigent pas d'un seul geste — trois classes
 
-C'est la raison de fond pour laquelle la correction de masse est **refusée ici** : les 44
-emplacements ne relèvent pas du même traitement.
+C'est la raison de fond pour laquelle **aucune correction de masse mécanique** n'a été
+appliquée : les 44 emplacements ne relèvent pas du même traitement. Cette typologie a servi
+de plan de traitement au §6, classe par classe.
 
 **Classe A — mésnumérotation prouvée par le libellé** (7 citations distinctes ; **14
 emplacements** avec les miroirs EN) : le libellé accolé *est* un titre de chapitre 4.0.x.
@@ -191,34 +208,127 @@ elle vise le mauvais chapitre **dans les deux référentiels**. Même réserve p
 (protection périmétrique) et `ADR0706` (`V13 (limitation de débit)`, glose thématique et non
 titre de chapitre). Ces cas demandent un arbitrage **de fond**, pas de forme.
 
-## 6. Ce qui reste à décider (humain)
+**Requalification du 2026-08-14** : `CTL-D02-04` figurait en classe A à cause de son libellé
+`(API et services Web)` — titre exact de 4.0.3 V13. Sa **règle** porte en réalité sur la
+**limitation de débit**, qui n'a jamais relevé de V13 dans aucune version : c'est un cas de
+**classe C**, traité comme tel. Classe A effective : 6 citations ; classe C : 4.
 
-Le choix n'est pas technique, il est **normatif** — il change le sens de citations opposables :
+## 6. Décision : le corpus MIGRE vers ASVS 5.0.0 — et la migration est faite
 
-1. **Rétablir la version réellement citée** — remplacer `OWASP ASVS 5.0` par
-   `OWASP ASVS 4.0.3` partout. Geste le plus sûr : il rend les citations *exactes* sans
-   toucher aux numéros, et supprime le mensonge de version. Coût : le corpus déclare alors
-   s'appuyer sur une version antérieure du standard.
-2. **Migrer vers 5.0.0** — renuméroter chapitres *et* sous-sections d'après
-   `mapping_v4.0.3_to_v5.0.0.yml`, en arbitrant au cas par cas les classes B et C, et en
-   traitant à part 4.0.3 V1 (sans successeur). Coût : une revue par ADR, plus la mise à jour
-   des miroirs EN et la régénération des packs.
-3. **Les deux, par étapes** — (1) immédiatement pour rétablir la vérité de la citation, puis
-   (2) comme évolution instruite en SemVer.
+**Décision humaine du 2026-08-14, déléguée au pilot** (option 2 des trois qui étaient
+ouvertes ; les options « rétablir 4.0.3 » et « les deux par étapes » sont **écartées**).
 
-Quelle que soit l'option, la vérification finale passe par les oracles du dépôt
-(`node tools/lint-agnostic.mjs`, `node --test tests/oracles/*.test.mjs`) et par la
-régénération des artefacts du §4.3 — jamais par relecture seule.
+**Motif.** L'exécution juge déjà sur 5.0.0 : le référentiel curé de la forge de sécurité web
+est `asvs-l1.md`, sous-ensemble **L1 d'ASVS 5.0.0**. Revenir à 4.0.3 rendrait le corpus vrai
+d'un coup — mais ferait citer à la gouvernance une version que **personne n'applique**, et le
+mapping gouvernance↔exécution construit le 2026-08-14
+(`MAPPING-CONTROLES-ASVS.md`) deviendrait **inter-versions**. La migration aligne les deux
+bouts de la chaîne sur une seule version.
+
+**Méthode.** Chaque citation a été suivie **exigence par exigence** dans le fichier officiel
+`mapping_v4.0.3_to_v5.0.0.yml`, jamais par translation de chapitre. Les cibles retenues sont
+vérifiées contre le texte publié de 5.0.0 (export JSON officiel `…_5.0.0_en.json`). Le
+préfixe `OWASP ASVS 5.0` est **conservé** : le défaut n'a jamais été l'étiquette de version
+mais les numéros de chapitre, et un préfixe constant garde les 21 citations homogènes.
+
+### 6.1 Classe B — sous-sections à cibles multiples (8 citations) : toutes réécrites
+
+Une citation dont l'exigence éclate ne se remplace pas par une cible unique — une citation
+multiple est exacte, une cible unique choisie arbitrairement serait fausse. Les exigences
+supprimées ou fusionnées sont **nommées dans la citation**.
+
+| Emplacement | Avant | Après (cibles réelles 5.0.0) |
+|---|---|---|
+| `ADR0201` | `V2.10` | `V13.3.1` + `V13.2.1`/`V13.2.3` — V2.10.1→13.2.1, V2.10.2→13.2.3, V2.10.3 *couverte* et V2.10.4 *fusionnée* dans 13.3.1 |
+| `ADR0202` | `V2.1/V2.2` | `V6.2`/`V6.3` + `V6.5.1` — V2.2.5→12.3.5, V2.2.6 couverte par 6.5.1, V2.1.4 et V2.1.8 supprimées |
+| `ADR0203` | `V4.1` | `V8.2.1`/`V8.3.1` — V4.1.1→8.3.1, V4.1.3→8.2.1, V4.1.2 supprimée (couverte par 8.2.1), V4.1.5→16.5.3 |
+| `ADR0204` | `V2.1.7/V2.1.9` | `V6.2.4` + `V6.2.10`/`V6.2.12` (éclats de V2.1.7) + `V6.2.5` (V2.1.9) |
+| `ADR0207` | `V4.1/V4.2` | `V8.2.1`/`V8.2.2`/`V8.3.1` — V4.1.5→16.5.3, V4.2.2→3.5.1, V4.1.2 supprimée |
+| `ADR0703` | `V2.10 (secrets côté client)` | `V13.3.1` + `V7.2.2` (jetons dynamiques, jamais de secret statique) + `V10` (OAuth et OIDC) |
+| `CTL-D03-02` | `V2.10` | `V13.3.1` + `V13.2.1`/`V13.2.3` |
+| `CTL-D03-09` | `V2.10/V3` | `V13.3.1` (ex-V2.10) + `V7.2.2` (ex-V3.5.2) + `V10` |
+
+### 6.2 Classe C — citations fausses dans les *deux* versions (4) : corrigées **et signalées**
+
+Ce ne sont pas des renumérotations : ces citations n'ont **jamais** porté leur sujet. Chaque
+ADR porteur reçoit, dans son corps (`## More Information`, FR **et** EN), une note qui dit
+explicitement que la citation d'origine était **erronée** — sans quoi la correction se lirait
+comme une simple renumérotation et l'erreur de fond se perdrait.
+
+| Emplacement | Avant | Après | Pourquoi la citation d'origine était fausse |
+|---|---|---|---|
+| `ADR0303` | `V13` | `V12` (communication sécurisée) | Le chiffrement en transit relevait de 4.0.3 **V9 Communication** → 5.0.0 V12 (9.1.1→12.2.1, 9.1.3→12.1.1, 9.2.2→12.3.1…). V13 = *API and Web Service* en 4.0.3, *Configuration* en 5.0.0 |
+| `ADR0305` | `V13` | `V1.2` + `V2.2` + `V2.4` | Le filtrage des attaques applicatives n'est ni *API and Web Service* ni *Configuration* ; cibles réelles de 4.0.3 V5, scindé entre V1 et V2 |
+| `ADR0706` | `V13 (limitation de débit)` | `V2.4.1` (anti-automatisation) | La parenthèse était une **glose thématique**, jamais un titre de chapitre. Rate limiting = 4.0.3 **V11.1.4** (*Business Logic*) → `v4.0.3-11.1.4: MOVED TO v5.0.0-2.4.1` |
+| `CTL-D02-04` | `V13 (API et services Web)` | `V2.4.1` | Même cas ; note portée par son ADR source `ADR0301` |
+
+### 6.3 Classe A — mésnumérotation prouvée par le libellé (6) : 6/6 traitées
+
+Trois l'avaient été le matin du 2026-08-14 (`ADR0701` V13→**V4**, `ADR0702` V12→**V5**,
+`CTL-D02-05` V3→**V7**). Les trois restantes le sont ici, chacune selon sa nature :
+
+| Emplacement | Avant | Après | Nature |
+|---|---|---|---|
+| `CTL-D02-02` | `V5 (Validation, Sanitization, Encoding)` | `V2.2` (validation des entrées) + `V1.3` (assainissement) | 4.0.3 V5 **se scinde** : V5.1→V2.2, V5.2/V5.3→V1.3/V1.2 → citer **les deux** |
+| `CTL-D02-06` | `V14 (Configuration)` | `V3.4` (*Browser Security Mechanism Headers*) | Le titre *Configuration* survit (4.0.3 V14 → 5.0.0 V13) mais les **en-têtes HTTP l'ont quitté** : 14.4.3→3.4.3 (CSP), 14.4.5→3.4.1 (HSTS), 14.4.4→3.4.4, 14.4.6→3.4.5 |
+| `CTL-D02-01` | `V1 (Architecture, conception, threat modeling)` | **citation supprimée** | Voir §6.4 |
+
+### 6.4 Le cas `CTL-D02-01` — pourquoi la citation disparaît plutôt que de se déplacer
+
+4.0.3 **V1 n'a aucun successeur** en 5.0.0 : ses exigences de processus (V1.1.1-V1.1.4,
+V1.1.7, V1.10.1, V1.11.1, V1.14.1/2/4) sont marquées `DELETED, NOT IN SCOPE` — ASVS 5.0.0 a
+délibérément sorti le SDLC et la modélisation de menaces de son périmètre. Le reste de V1 se
+disperse (V1.6→V11, V1.8→V14, V1.9→V12, V1.7→V16…) sans qu'aucune destination ne porte le
+sujet du contrôle. Or **ce contrôle exige une cartographie de l'OWASP Top 10** — qui n'a
+jamais été une exigence ASVS, dans aucune version. Pointer vers un chapitre 5.0.0 fabriquerait
+une référence *crédible et fausse*. La citation est donc **retirée** ; le contrôle conserve
+`OWASP Top 10 2021 — A01 à A10`, qui est son référentiel réel. Effet mesurable : 10 → **9**
+contrôles porteurs d'une citation ASVS.
+
+### 6.5 Hors classe — les 4 numéros nus, vérifiés un par un
+
+Quatre citations n'ont **aucun libellé** : elles ne se trahissent pas d'elles-mêmes et
+devaient être confrontées au sujet réel de leur contrôle ou de leur ADR. **Aucune des quatre
+n'était déjà juste en 5.0.0.**
+
+| Emplacement | Avant | Sujet réel | Après |
+|---|---|---|---|
+| `ADR0301` | `V13` | Point de contrôle unique d'exposition ; contrôle dérivé = limitation de débit | `V4.1` (*Generic Web Service Security*) + `V2.4.1` (anti-automatisation) |
+| `CTL-D01-12` | `V13` | Aucun échange inter-applicatif ne contourne le tiers de confiance (passerelle d'API) | `V4` (API et services web) — aligné sur son ADR source `ADR0701` |
+| `CTL-D03-05` | `V4` | RBAC documenté + revue d'accès semestrielle | `V8.2.1`/`V8.3.1` — en 5.0.0, V4 = *API and Web Service*, l'autorisation est en **V8** |
+| `CTL-D06-02` | `V13` | Quotas et seuils de débit sur les dépendances externes | `V2.4.1` — aligné sur son ADR source `ADR0706` |
+
+### 6.6 Décompte final et preuves
+
+| | Citations distinctes | Emplacements (FR + miroir EN) |
+|---|---|---|
+| Avant (2026-08-14, matin) | 22 | 44 |
+| Corrigées le matin (classe A partielle) | 3 | 6 |
+| **Réécrites par ce passage** | **18** | **36** |
+| **Supprimées** (`CTL-D02-01`) | **1** | **2** |
+| **Restant en numérotation 4.0.x** | **0** | **0** |
+| État final du corpus | 21 | 42 |
+
+**Miroirs FR/EN** : chaque correction est portée à l'identique dans `core/adr/` **et**
+`core/adr-en/`, `core/controls/D0x.json` **et** `core/controls-en/D0x.json` — vérifié par
+comparaison exhaustive des 175 contrôles (`standards[]` identiques champ à champ, la
+localisation ne portant pas sur ce champ). Divergence FR/EN résiduelle : **aucune**.
+
+**Preuves exécutées le 2026-08-14** : `lint-agnostic` 0 finding · `node --test
+tests/oracles/*.test.mjs` 55/55 · golden buckets 9/9 · `verifier-rapport` rapport diffusable
+(18 dimensions) · `assemble-core` **les deux packs émis** (175 FR + 175 EN) · `merge-packs`
+175 contraintes fusionnées.
 
 ## 7. Ce que ce document n'est pas
 
-- **Pas une correction.** Aucune des 44 citations n'est modifiée. Le §7 de
-  `MAPPING-CONTROLES-ASVS.md` reste le constat d'origine ; ce document en lève la seule
-  réserve (« à confirmer sur le texte source ») et l'instruit.
 - **Pas une table officielle.** OWASP ne publie pas de correspondance de chapitre à chapitre.
   Le §3 est une lecture dérivée d'un fichier de correspondance **par exigence**, et le §2 est
   seul à être directement attesté.
-- **Pas une mesure de conformité.** Rien ici ne dit qu'une exigence ASVS est tenue.
+- **Pas une mesure de conformité.** Rien ici ne dit qu'une exigence ASVS est tenue. Une
+  citation juste rend la traçabilité *suivable* ; elle ne prouve rien de la conformité.
+- **Pas une revue de pertinence exhaustive.** Le §6 corrige la **cible** de chaque citation
+  existante. Il ne réexamine pas si chaque ADR *devait* citer l'ASVS, ni n'ajoute les
+  citations manquantes — c'est l'objet des trous n°1 et n°2 de `MAPPING-CONTROLES-ASVS.md`.
 - **Une incohérence de source signalée** : `0x05-For-Users-Of-4.0.md` annonce « 286
   exigences » en introduction et « 278 » plus loin ; `mapping_v4.0.3_to_v5.0.0.yml` en
   contient 278. Le décompte 286 n'a pu être réconcilié — les comptages du §3 reposent sur les

@@ -76,7 +76,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V2.10",
+        "OWASP ASVS 5.0 — V13.3.1 (gestion des secrets) + V13.2.1/V13.2.3 (authentification de service)",
         "NIST SSDF — PS.1"
       ]
     },
@@ -190,7 +190,7 @@
       "derogation": null,
       "standards": [
         "ISO/IEC 27002:2022 — 5.15/5.18",
-        "OWASP ASVS 5.0 — V4"
+        "OWASP ASVS 5.0 — V8.2.1/V8.3.1 (autorisation au niveau fonction, appliquée en couche de confiance)"
       ]
     },
     {
@@ -335,7 +335,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V2.10/V3",
+        "OWASP ASVS 5.0 — V13.3.1 (gestion des secrets, 4.0.3 V2.10) + V7.2.2 (jetons dynamiques, jamais de secret statique) + V10 (OAuth et OIDC)",
         "OAuth 2.0 Security BCP (RFC 9700)"
       ]
     }

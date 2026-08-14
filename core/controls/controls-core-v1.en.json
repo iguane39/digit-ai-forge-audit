@@ -807,7 +807,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V13",
+        "OWASP ASVS 5.0 — V4 (API et services web)",
         "ISO/IEC 27002:2022 — 8.21"
       ]
     },
@@ -950,8 +950,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP Top 10 2021 — A01 à A10",
-        "OWASP ASVS 5.0 — V1 (Architecture, conception, threat modeling)"
+        "OWASP Top 10 2021 — A01 à A10"
       ]
     },
     {
@@ -988,7 +987,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V5 (Validation, Sanitization, Encoding)",
+        "OWASP ASVS 5.0 — V2.2 (validation des entrées) + V1.3 (assainissement) — 4.0.3 V5 scindé entre V1 et V2",
         "OWASP Top 10 2021 — A03:2021 Injection"
       ]
     },
@@ -1064,7 +1063,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V13 (API et services Web)",
+        "OWASP ASVS 5.0 — V2.4.1 (anti-automatisation et limitation de débit)",
         "NIST SP 800-207"
       ]
     },
@@ -1099,7 +1098,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V3 (Session Management)",
+        "OWASP ASVS 5.0 — V7 (Session Management)",
         "NIST SP 800-63B — gestion de session",
         "OWASP Top 10 2021 — A01:2021 Broken Access Control"
       ]
@@ -1135,7 +1134,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V14 (Configuration)",
+        "OWASP ASVS 5.0 — V3.4 (en-têtes de mécanismes de sécurité navigateur)",
         "ISO/IEC 27002:2022 — 8.24"
       ]
     },
@@ -1485,7 +1484,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V2.10",
+        "OWASP ASVS 5.0 — V13.3.1 (gestion des secrets) + V13.2.1/V13.2.3 (authentification de service)",
         "NIST SSDF — PS.1"
       ]
     },
@@ -1599,7 +1598,7 @@
       "derogation": null,
       "standards": [
         "ISO/IEC 27002:2022 — 5.15/5.18",
-        "OWASP ASVS 5.0 — V4"
+        "OWASP ASVS 5.0 — V8.2.1/V8.3.1 (autorisation au niveau fonction, appliquée en couche de confiance)"
       ]
     },
     {
@@ -1744,7 +1743,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V2.10/V3",
+        "OWASP ASVS 5.0 — V13.3.1 (gestion des secrets, 4.0.3 V2.10) + V7.2.2 (jetons dynamiques, jamais de secret statique) + V10 (OAuth et OIDC)",
         "OAuth 2.0 Security BCP (RFC 9700)"
       ]
     },
@@ -2835,7 +2834,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V13",
+        "OWASP ASVS 5.0 — V2.4.1 (anti-automatisation : quotas et limitation de débit)",
         "Site Reliability Engineering (Google) — gestion de la charge"
       ]
     },
@@ -3328,6 +3327,80 @@
       "derogation": null,
       "standards": [
         "FinOps Foundation — cycle Inform/Optimize/Operate"
+      ]
+    },
+    {
+      "id": "CTL-D07-08",
+      "adr_source": [
+        "ADR0107"
+      ],
+      "dimension_audit": "D07",
+      "regle": "FinOps maturity is declared capability by capability (e.g. allocation, forecasting, spend optimization, AI inference optimization) on the Crawl/Walk/Run scale, for each significant spend perimeter (public cloud, SaaS, licenses, AI/inference) — never a single overall maturity score that hides gaps between capabilities.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Request the maturity declaration by capability and by spend perimeter (Crawl/Walk/Run); verify that no single overall score replaces this granularity and that every significant spend perimeter is covered.",
+      "preuve_attendue": "Maturity grid by capability and by spend perimeter, dated, with a justification of the level declared for each.",
+      "grille_verdict": "compliant = maturity declared by capability for all significant perimeters, with justification ; partial = partial declaration or overall score without detail by capability ; non-compliant = no maturity declaration",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the maturity grid by capability and by spend perimeter; attach the document.",
+        "Verify that the granularity by capability is respected (no overall score hiding it) and that the significant perimeters (cloud, SaaS, licenses, AI) are covered.",
+        "If a gap is found: produce the missing maturity grid by capability, or break down an existing overall score."
+      ],
+      "derogation": null,
+      "standards": [
+        "FinOps Foundation — FinOps Framework 2025/2026 (Scopes, maturité Crawl/Walk/Run par capacité)"
+      ]
+    },
+    {
+      "id": "CTL-D07-09",
+      "adr_source": [
+        "ADR0110"
+      ],
+      "dimension_audit": "D07",
+      "regle": "Hosting and sizing decisions document their environmental impact at least qualitatively (choice of region, scheduled shutdown, sizing as close as possible to the actual need); a quantitative measure (e.g. Software Carbon Intensity) is adopted as soon as a technology profile exposes one in a verifiable way.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify that the cost optimization plan (CTL-D07-07) also documents the qualitative environmental impact of the choices made, and that a quantitative measure is used if a technology profile exposes one.",
+      "preuve_attendue": "Environmental section of the optimization plan, or a dedicated document, documenting the choices (region, shutdown, sizing) and their qualitative justification — quantitative measure attached if available.",
+      "grille_verdict": "compliant = environmental impact documented qualitatively for the significant choices (+ quantitative measure if a profile exposes one) ; partial = informal mention without structured documentation ; non-compliant = no documented environmental consideration",
+      "enforcement": "recommendation",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the environmental section of the cost optimization plan or the dedicated document; attach the reference.",
+        "Verify the qualitative justification of the region/shutdown/sizing choices and the presence of a quantitative measure if a profile exposes one.",
+        "If a gap is found: document the missing qualitative environmental impact of the hosting decisions."
+      ],
+      "derogation": null,
+      "standards": [
+        "Green Software Foundation — Software Carbon Intensity (SCI)"
       ]
     },
     {
@@ -6306,6 +6379,156 @@
       "standards": [
         "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
         "RGPD — art. 32.1.c"
+      ]
+    },
+    {
+      "id": "CTL-D17-01",
+      "adr_source": [
+        "ADR0109"
+      ],
+      "dimension_audit": "D17",
+      "regle": "Each AI system in scope (model, agent, assisted feature) is recorded in an inventory and classified according to a documented risk level (e.g. unacceptable, high risk, limited risk, minimal risk), together with the justification for that classification.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Request the inventory of the AI systems in scope and the risk classification of each; verify that the classification justification is documented and consistent with the system's purpose.",
+      "preuve_attendue": "Inventory of AI systems with risk level and justification, dated and kept up to date.",
+      "grille_verdict": "compliant = complete inventory with a justified classification for each system ; partial = partial inventory or unjustified classification ; non-compliant = no inventory and no classification",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the inventory of the AI systems in scope; attach the reference.",
+        "Verify the risk classification of each system and its documented justification.",
+        "If gap: build the inventory and classify each missing system."
+      ],
+      "derogation": null,
+      "standards": [
+        "EU AI Act (Règlement UE 2024/1689) — classification par niveau de risque",
+        "NIST AI RMF 1.0 — fonction Map (contexte et catégorisation du risque)"
+      ]
+    },
+    {
+      "id": "CTL-D17-02",
+      "adr_source": [
+        "ADR0109"
+      ],
+      "dimension_audit": "D17",
+      "regle": "Behavioral drift of an AI system in production (performance degradation, change in the distribution of inputs, quality regression) is monitored with a documented threshold and a defined corrective action (retraining, restriction, withdrawal) when that threshold is exceeded.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of drift monitoring (metric, frequency, threshold) for each system classified above minimal risk, and the definition of the corrective action triggered when the threshold is exceeded.",
+      "preuve_attendue": "Drift monitoring configuration + measurement history + documented corrective action procedure.",
+      "grille_verdict": "compliant = active monitoring with a threshold and a documented corrective action ; partial = active monitoring without a defined corrective action ; non-compliant = no drift monitoring",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the drift monitoring configuration and its measurement history; attach the export.",
+        "Verify the definition of the corrective action triggered when the threshold is exceeded; document the finding.",
+        "If gap: establish the missing monitoring and corrective action."
+      ],
+      "derogation": null,
+      "standards": [
+        "NIST AI RMF 1.0 — fonction Measure (suivi de performance et de dérive)",
+        "ISO/IEC 42001:2023 — 8.2 (évaluation continue du système de management de l'IA)"
+      ]
+    },
+    {
+      "id": "CTL-D17-03",
+      "adr_source": [
+        "ADR0109"
+      ],
+      "dimension_audit": "D17",
+      "regle": "Effective human oversight exists over decisions with significant impact taken or assisted by an AI system: a named human can review, correct, or stop the decision, and this capability is tested periodically (not merely declared).",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a named human oversight role for each system with significant impact, and the execution of a periodic test demonstrating the actual capability to review, correct, or stop.",
+      "preuve_attendue": "Description of the human oversight mechanism (role, scope, mode of intervention) + report of the last test exercising that capability.",
+      "grille_verdict": "compliant = named oversight and a conclusive exercise test less than 12 months old ; partial = named oversight without a recent test ; non-compliant = no human oversight identified",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the description of the human oversight mechanism and the named role responsible for it.",
+        "Request the report of the last test exercising the review/correction/stop capability; verify its date and its conclusion.",
+        "If gap: name the oversight role and run a documented exercise test."
+      ],
+      "derogation": null,
+      "standards": [
+        "EU AI Act (Règlement UE 2024/1689) — art. 14 (supervision humaine)",
+        "ISO/IEC 42001:2023 — Annexe A (contrôles de supervision humaine)"
+      ]
+    },
+    {
+      "id": "CTL-D17-04",
+      "adr_source": [
+        "ADR0109"
+      ],
+      "dimension_audit": "D17",
+      "regle": "Each AI system classified above minimal risk carries an up-to-date compliance documentation sheet (purpose, training/input data, risk measures, end-user information), accessible to the designated compliance authority.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Request the compliance documentation sheet of each AI system above minimal risk; verify its completeness (purpose, data, risk measures, user information) and its last update date.",
+      "preuve_attendue": "Compliance documentation sheet per AI system, dated, accessible to the designated compliance authority.",
+      "grille_verdict": "compliant = complete and up-to-date sheet (< 12 months) for each system concerned ; partial = incomplete or outdated sheet ; non-compliant = no compliance sheet",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Request the compliance documentation sheet of each AI system above minimal risk; attach the documents.",
+        "Verify the completeness and the freshness (< 12 months) of each sheet; document the finding.",
+        "If gap: produce or update the missing or outdated sheets."
+      ],
+      "derogation": null,
+      "standards": [
+        "EU AI Act (Règlement UE 2024/1689) — art. 11 et art. 53 (documentation technique)",
+        "ISO/IEC 42001:2023 — 7.5 (informations documentées)"
       ]
     }
   ]

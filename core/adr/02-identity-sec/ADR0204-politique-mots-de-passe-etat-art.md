@@ -7,7 +7,7 @@ informed: "toutes les équipes produit"
 id: ADR0204
 domain: "02"
 invariant: false
-standards: ["NIST SP 800-63B — §5.1.1 (memorized secrets)", "ISO/IEC 27002:2022 — 5.17", "OWASP ASVS 5.0 — V2.1.7/V2.1.9"]
+standards: ["NIST SP 800-63B — §5.1.1 (memorized secrets)", "ISO/IEC 27002:2022 — 5.17", "OWASP ASVS 5.0 — V6.2.4 + V6.2.10/V6.2.12 (éclats de 4.0.3 V2.1.7) + V6.2.5 (4.0.3 V2.1.9)"]
 derived_controls: [CTL-D02-05]
 ---
 

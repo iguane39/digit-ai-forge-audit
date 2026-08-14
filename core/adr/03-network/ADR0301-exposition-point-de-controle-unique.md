@@ -7,7 +7,7 @@ informed: "équipes produit"
 id: ADR0301
 domain: "03"
 invariant: true
-standards: ["NIST SP 800-207 (zero trust)", "OWASP ASVS 5.0 — V13", "ISO/IEC 27002:2022 — 8.20/8.21/8.22"]
+standards: ["NIST SP 800-207 (zero trust)", "OWASP ASVS 5.0 — V4.1 (sécurité générique des services web) + V2.4.1 (anti-automatisation)", "ISO/IEC 27002:2022 — 8.20/8.21/8.22"]
 derived_controls: [CTL-D02-04]
 ---
 
@@ -73,3 +73,12 @@ Instanciations : `profil:azure` → APIM en tiers de confiance + WAF ;
 autres profils → passerelle équivalente (API gateway managée). Généralise les décisions
 d'exposition du profil de référence (exposition applicative, connectivité comme point de
 contrôle, APIM tiers de confiance).
+
+**Citation ASVS — corrigée le 2026-08-14 (migration vers ASVS 5.0.0).** La citation d'origine
+`OWASP ASVS 5.0 — V13` employait la numérotation 4.0.x : en 4.0.3, V13 = *API and Web
+Service* ; en 5.0.0, V13 = *Configuration*. Cibles retenues : **V4.1** (*Generic Web Service
+Security*) pour la frontière exposée, et **V2.4.1** (*Anti-automation*) pour ce que porte
+réellement le contrôle dérivé CTL-D02-04. Ce contrôle citait lui aussi `V13 (API et services Web)` :
+citation **erronée dans les deux versions**, la limitation de débit n'ayant jamais relevé de
+V13 — elle était en 4.0.3 **V11.1.4** (*Business Logic*), déplacée en 5.0.0 V2.4.1
+(`mapping_v4.0.3_to_v5.0.0.yml` : `v4.0.3-11.1.4: MOVED TO v5.0.0-2.4.1`).

@@ -7,7 +7,7 @@ informed: "all product teams"
 id: ADR0201
 domain: "02"
 invariant: true
-standards: ["ISO/IEC 27002:2022 — 8.24", "OWASP ASVS 5.0 — V2.10", "NIST SSDF — PS.1", "12-Factor — III. Config"]
+standards: ["ISO/IEC 27002:2022 — 8.24", "OWASP ASVS 5.0 — V13.3.1 (gestion des secrets) + V13.2.1/V13.2.3 (authentification de service) — 4.0.3 V2.10 éclatée, V2.10.3 couverte et V2.10.4 fusionnée dans V13.3.1", "NIST SSDF — PS.1", "12-Factor — III. Config"]
 derived_controls: [CTL-D03-02, CTL-D03-03, CTL-D03-04]
 ---
 

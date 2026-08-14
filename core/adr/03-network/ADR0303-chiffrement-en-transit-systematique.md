@@ -7,7 +7,7 @@ informed: "équipes produit"
 id: ADR0303
 domain: "03"
 invariant: true
-standards: ["NIST SP 800-52 (choix et configuration TLS)", "ISO/IEC 27002:2022 — 8.24", "OWASP ASVS 5.0 — V13"]
+standards: ["NIST SP 800-52 (choix et configuration TLS)", "ISO/IEC 27002:2022 — 8.24", "OWASP ASVS 5.0 — V12 (communication sécurisée : V12.1 TLS, V12.2 HTTPS externe, V12.3 service à service)"]
 derived_controls: [CTL-D02-06]
 ---
 
@@ -75,3 +75,11 @@ Instanciations : terminaison gérée par la plateforme d'hébergement ou par le 
 contrôle d'exposition (ADR0301) ; `profil:azure` → certificats gérés + politique de
 version minimale imposée à la passerelle. Spécification ouverte de référence : TLS (IETF),
 admissible au niveau core.
+
+**Citation ASVS — corrigée le 2026-08-14 (migration vers ASVS 5.0.0).** La citation d'origine
+`OWASP ASVS 5.0 — V13` était **erronée dans les deux versions du standard**, et pas
+seulement mal numérotée : en 4.0.3, V13 = *API and Web Service* ; en 5.0.0, V13 =
+*Configuration*. Ni l'un ni l'autre ne porte le chiffrement en transit, qui relève de 4.0.3
+**V9 Communication** → 5.0.0 **V12 Secure Communication** (`mapping_v4.0.3_to_v5.0.0.yml` :
+V9.1.1→V12.2.1, V9.1.2→V12.1.2, V9.1.3→V12.1.1, V9.2.1→V12.3.4, V9.2.2→V12.3.1,
+V9.2.4→V12.1.4).

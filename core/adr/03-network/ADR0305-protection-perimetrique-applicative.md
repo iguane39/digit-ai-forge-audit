@@ -7,7 +7,7 @@ informed: "équipes produit"
 id: ADR0305
 domain: "03"
 invariant: false
-standards: ["OWASP ASVS 5.0 — V13", "OWASP Top 10", "ISO/IEC 27002:2022 — 8.20"]
+standards: ["OWASP ASVS 5.0 — V1.2 (prévention des injections) + V2.2 (validation des entrées) + V2.4 (anti-automatisation)", "OWASP Top 10", "ISO/IEC 27002:2022 — 8.20"]
 derived_controls: [CTL-D02-02]
 ---
 
@@ -77,3 +77,10 @@ d'exposition.
 Instanciations : `profil:azure` → Web Application Firewall sur Front Door/Application
 Gateway + Azure DDoS Protection. S'articule avec le point de contrôle d'exposition unique
 (ADR0301), qui en est l'ancrage naturel.
+
+**Citation ASVS — corrigée le 2026-08-14 (migration vers ASVS 5.0.0).** La citation d'origine
+`OWASP ASVS 5.0 — V13` était **erronée dans les deux versions du standard** : en 4.0.3,
+V13 = *API and Web Service* ; en 5.0.0, V13 = *Configuration*. Aucun des deux ne porte le
+filtrage des attaques applicatives. Cibles retenues, alignées sur ce que décide l'ADR et sur son
+contrôle dérivé CTL-D02-02 : **V1.2** (*Injection Prevention*), **V2.2** (*Input Validation*) et
+**V2.4** (*Anti-automation*) — destinations réelles de 4.0.3 V5, scindé entre V1 et V2 en 5.0.0.

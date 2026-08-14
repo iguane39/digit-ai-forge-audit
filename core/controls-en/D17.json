@@ -1,0 +1,90 @@
+{
+  "dimension": "D17",
+  "label": "AI Governance",
+  "controls": [
+    {
+      "id": "CTL-D17-01",
+      "adr_source": ["ADR0109"],
+      "dimension_audit": "D17",
+      "regle": "Each AI system in scope (model, agent, assisted feature) is recorded in an inventory and classified according to a documented risk level (e.g. unacceptable, high risk, limited risk, minimal risk), together with the justification for that classification.",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Request the inventory of the AI systems in scope and the risk classification of each; verify that the classification justification is documented and consistent with the system's purpose.",
+      "preuve_attendue": "Inventory of AI systems with risk level and justification, dated and kept up to date.",
+      "grille_verdict": "compliant = complete inventory with a justified classification for each system ; partial = partial inventory or unjustified classification ; non-compliant = no inventory and no classification",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the inventory of the AI systems in scope; attach the reference.",
+        "Verify the risk classification of each system and its documented justification.",
+        "If gap: build the inventory and classify each missing system."
+      ],
+      "derogation": null,
+      "standards": ["EU AI Act (Règlement UE 2024/1689) — classification par niveau de risque", "NIST AI RMF 1.0 — fonction Map (contexte et catégorisation du risque)"]
+    },
+    {
+      "id": "CTL-D17-02",
+      "adr_source": ["ADR0109"],
+      "dimension_audit": "D17",
+      "regle": "Behavioral drift of an AI system in production (performance degradation, change in the distribution of inputs, quality regression) is monitored with a documented threshold and a defined corrective action (retraining, restriction, withdrawal) when that threshold is exceeded.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence of drift monitoring (metric, frequency, threshold) for each system classified above minimal risk, and the definition of the corrective action triggered when the threshold is exceeded.",
+      "preuve_attendue": "Drift monitoring configuration + measurement history + documented corrective action procedure.",
+      "grille_verdict": "compliant = active monitoring with a threshold and a documented corrective action ; partial = active monitoring without a defined corrective action ; non-compliant = no drift monitoring",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the drift monitoring configuration and its measurement history; attach the export.",
+        "Verify the definition of the corrective action triggered when the threshold is exceeded; document the finding.",
+        "If gap: establish the missing monitoring and corrective action."
+      ],
+      "derogation": null,
+      "standards": ["NIST AI RMF 1.0 — fonction Measure (suivi de performance et de dérive)", "ISO/IEC 42001:2023 — 8.2 (évaluation continue du système de management de l'IA)"]
+    },
+    {
+      "id": "CTL-D17-03",
+      "adr_source": ["ADR0109"],
+      "dimension_audit": "D17",
+      "regle": "Effective human oversight exists over decisions with significant impact taken or assisted by an AI system: a named human can review, correct, or stop the decision, and this capability is tested periodically (not merely declared).",
+      "criticite": "Bloquant",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "revue",
+      "verification": "Verify the existence of a named human oversight role for each system with significant impact, and the execution of a periodic test demonstrating the actual capability to review, correct, or stop.",
+      "preuve_attendue": "Description of the human oversight mechanism (role, scope, mode of intervention) + report of the last test exercising that capability.",
+      "grille_verdict": "compliant = named oversight and a conclusive exercise test less than 12 months old ; partial = named oversight without a recent test ; non-compliant = no human oversight identified",
+      "enforcement": "blocking",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the description of the human oversight mechanism and the named role responsible for it.",
+        "Request the report of the last test exercising the review/correction/stop capability; verify its date and its conclusion.",
+        "If gap: name the oversight role and run a documented exercise test."
+      ],
+      "derogation": null,
+      "standards": ["EU AI Act (Règlement UE 2024/1689) — art. 14 (supervision humaine)", "ISO/IEC 42001:2023 — Annexe A (contrôles de supervision humaine)"]
+    },
+    {
+      "id": "CTL-D17-04",
+      "adr_source": ["ADR0109"],
+      "dimension_audit": "D17",
+      "regle": "Each AI system classified above minimal risk carries an up-to-date compliance documentation sheet (purpose, training/input data, risk measures, end-user information), accessible to the designated compliance authority.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Request the compliance documentation sheet of each AI system above minimal risk; verify its completeness (purpose, data, risk measures, user information) and its last update date.",
+      "preuve_attendue": "Compliance documentation sheet per AI system, dated, accessible to the designated compliance authority.",
+      "grille_verdict": "compliant = complete and up-to-date sheet (< 12 months) for each system concerned ; partial = incomplete or outdated sheet ; non-compliant = no compliance sheet",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the compliance documentation sheet of each AI system above minimal risk; attach the documents.",
+        "Verify the completeness and the freshness (< 12 months) of each sheet; document the finding.",
+        "If gap: produce or update the missing or outdated sheets."
+      ],
+      "derogation": null,
+      "standards": ["EU AI Act (Règlement UE 2024/1689) — art. 11 et art. 53 (documentation technique)", "ISO/IEC 42001:2023 — 7.5 (informations documentées)"]
+    }
+  ]
+}

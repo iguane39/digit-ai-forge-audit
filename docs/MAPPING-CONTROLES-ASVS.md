@@ -218,12 +218,24 @@ V12.2.2 restent sans contrôle).
 **Hors périmètre de ce document** (aucun contrôle n'est ajouté ici). À porter comme item
 d'extension du corpus, conformément à `EXTENSION-CORPUS.md` §3-4.
 
-## 7. Défaut de citation détecté dans les `standards[]` du corpus (à traiter hors de ce document)
+## 7. Défaut de citation détecté dans les `standards[]` du corpus — **corrigé le 2026-08-14**
 
-Constat de forme, relevé pendant l'établissement du mapping et **non corrigé ici** (le
-périmètre exclut toute modification d'ADR ou de contrôle) :
+> **État au 2026-08-14 : CORRIGÉ.** Le constat ci-dessous a été établi pendant l'établissement
+> du mapping, puis confirmé sur le texte publié (TF-0205), puis **instruit et appliqué**
+> (TF-0221). Décision humaine du 2026-08-14, déléguée au pilot : **le corpus migre vers ASVS
+> 5.0.0** — motif au §7 bis. Les **22 citations** distinctes (44 emplacements avec les miroirs
+> EN) sont **toutes traitées** : 21 réécrites vers leur cible 5.0.0 réelle, 1 supprimée
+> (`CTL-D02-01`, 4.0.3 V1 sans successeur). **Aucune citation ne reste en numérotation 4.0.x**
+> — décompte, table avant/après par classe et preuves dans
+> **`docs/CORRESPONDANCE-ASVS-4.0.x-5.0.0.md` §6**.
+>
+> Le tableau et l'ampleur ci-dessous décrivent l'**état d'origine** : ils sont conservés parce
+> qu'ils sont la pièce qui rend la correction vérifiable.
 
-**Les citations `OWASP ASVS 5.0 — Vxx` du corpus emploient la numérotation de chapitres
+Constat de forme, relevé pendant l'établissement du mapping (le périmètre de *ce* document
+excluait toute modification d'ADR ou de contrôle ; la correction a été portée ailleurs) :
+
+**Les citations `OWASP ASVS 5.0 — Vxx` du corpus employaient la numérotation de chapitres
 d'ASVS 4.0.x, pas celle d'ASVS 5.0.0.** Les libellés accolés aux numéros le démontrent, en
 les confrontant à la structure 5.0.0 attestée par le sous-ensemble curé (S2) :
 
@@ -238,20 +250,17 @@ les confrontant à la structure 5.0.0 attestée par le sous-ensemble curé (S2) 
 | `V13 (API et services Web)` | ASVS 4.0.x — V13 | V13 = Configuration (API and Web Service = **V4**) |
 | `V14 (Configuration)` | ASVS 4.0.x — V14 | V14 = Data Protection (Configuration = **V13**) |
 
-**Ampleur mesurée** (commandes en annexe A.2) : **12 ADR** (miroir anglais : 12 de plus),
-**10 contrôles** du pack FR (10 de plus dans le pack EN), plus les occurrences propagées
-dans les artefacts générés et le CHANGELOG. ADR concernés : ADR0201, ADR0202, ADR0203,
-ADR0204, ADR0207, ADR0301, ADR0303, ADR0305, ADR0701, ADR0702, ADR0703, ADR0706.
+**Ampleur mesurée à l'origine** (commandes en annexe A.2) : **12 ADR** (miroir anglais :
+12 de plus), **10 contrôles** du pack FR (10 de plus dans le pack EN), plus les occurrences
+propagées dans les artefacts générés et le CHANGELOG. ADR concernés : ADR0201, ADR0202,
+ADR0203, ADR0204, ADR0207, ADR0301, ADR0303, ADR0305, ADR0701, ADR0702, ADR0703, ADR0706.
 
-**Conséquence** : un lecteur qui suit une citation `ASVS 5.0 — V13` depuis ADR0303 atterrit
-sur le chapitre **Configuration** et n'y trouve pas le chiffrement en transit qu'il
-cherchait. La traçabilité gouvernance → standard est **rompue en apparence tout en étant
-déclarée**. C'est le même défaut de fond que celui traité par ce mapping, une couche plus
-haut.
+**Conséquence** (avant correction) : un lecteur qui suivait une citation `ASVS 5.0 — V13`
+depuis ADR0303 atterrissait sur le chapitre **Configuration** et n'y trouvait pas le
+chiffrement en transit qu'il cherchait. La traçabilité gouvernance → standard était **rompue
+en apparence tout en étant déclarée**. C'était le même défaut de fond que celui traité par ce
+mapping, une couche plus haut.
 
-**Recommandation** (décision humaine, hors de ce document) : soit renuméroter vers 5.0.0,
-soit rétablir la mention de version exacte `ASVS 4.0.3`. À porter à la revue
-`GOUVERNANCE-STANDARDS.md` (étape 2 « Delta → impact ») et à instruire en item RAF/SemVer.
 ~~**Réserve de méthode** : ce constat est établi par recoupement de pièces internes
 (libellés du corpus × structure 5.0.0 attestée par S2), sans accès au texte publié des
 deux versions. À confirmer sur le texte source avant toute correction de masse.~~
@@ -261,9 +270,39 @@ ci-dessus ont été vérifiées contre le texte publié des deux versions (dép�
 `OWASP/ASVS`, tags `v4.0.3` et `v5.0.0` : noms de fichiers, titres H1 et exports JSON
 officiels). Les huit sont exactes. Voir **`docs/CORRESPONDANCE-ASVS-4.0.x-5.0.0.md`** :
 sources, structures complètes (4.0.3 = **14** chapitres, 5.0.0 = **17**), correspondance
-dérivée chapitre par chapitre, inventaire recalculé des **44** emplacements, et les trois
-classes de citations qui interdisent une correction de masse mécanique. La correction
-elle-même reste **non faite** : c'est une décision humaine.
+dérivée chapitre par chapitre, inventaire des **44** emplacements, et les trois classes de
+citations qui interdisent une correction de masse mécanique.
+
+## 7 bis. Décision et correction appliquée (2026-08-14, TF-0221)
+
+**Décision humaine du 2026-08-14, déléguée au pilot : le corpus MIGRE vers ASVS 5.0.0.**
+L'option « rétablir `ASVS 4.0.3` » est **écartée**.
+
+**Motif à retenir** : l'exécution juge **déjà** sur 5.0.0 — le référentiel curé de la forge de
+sécurité web (source S2, `referentiels/asvs-l1.md`) est un sous-ensemble **L1 d'ASVS 5.0.0**.
+Revenir à 4.0.3 rendrait les citations de gouvernance vraies d'un coup, mais ferait citer à la
+gouvernance **une version que personne n'applique** — et le mapping gouvernance↔exécution
+construit par le présent document deviendrait **inter-versions**, ce qui en ruinerait l'usage.
+La migration aligne les deux bouts de la chaîne sur une version unique.
+
+**Ce qui a été fait** (détail par classe, table avant/après et preuves :
+`docs/CORRESPONDANCE-ASVS-4.0.x-5.0.0.md` §6) :
+
+| Classe | Citations | Traitement |
+|---|---|---|
+| **A** — mésnumérotation prouvée par le libellé | 6 | 6 corrigées (3 le matin : ADR0701→V4, ADR0702→V5, CTL-D02-05→V7 ; 3 ici : CTL-D02-02→V2.2+V1.3, CTL-D02-06→V3.4, **CTL-D02-01 : citation supprimée**) |
+| **B** — sous-section à cibles multiples | 8 | 8 réécrites en **citations multiples**, exigences supprimées/fusionnées nommées |
+| **C** — fausse dans les **deux** versions | 4 | 4 corrigées **et signalées comme erronées** dans le corps de l'ADR porteur (FR + EN) |
+| **hors classe** — numéro nu sans libellé | 4 | 4 vérifiées une par une contre le sujet réel ; **aucune n'était juste en 5.0.0**, 4 corrigées |
+| **Total** | **22** | **21 réécrites · 1 supprimée · 0 laissée en 4.0.x** |
+
+**Incidence sur ce document** : le §3 (table A) et le §6 (trou n°2) citent des exigences
+**5.0.0** issues du sous-ensemble curé — ils étaient déjà en 5.0.0 et **restent inchangés**.
+Seules les citations `standards[]` du corpus bougeaient. L'annexe A.2 rend désormais **9** (et
+non 10) contrôles porteurs d'une citation ASVS : `CTL-D02-01` a perdu la sienne.
+
+À porter à la prochaine revue `GOUVERNANCE-STANDARDS.md` (étape 2 « Delta → impact ») comme
+migration de version actée, et non plus comme recommandation ouverte.
 
 ## 8. Ce que ce document n'est pas
 
@@ -271,8 +310,11 @@ elle-même reste **non faite** : c'est une décision humaine.
   exigence, jamais *qu'elle est tenue*. Le verdict reste celui de l'oracle exécuté.
 - **Pas une couverture ASVS.** 16 exigences curées sur 37 sont réclamées par un contrôle,
   dont 4 outillées. Sur les 17 chapitres d'ASVS 5.0.0, 7 sont curés et 10 ne le sont pas.
-- **Pas une modification du corpus.** Aucun ADR, aucun contrôle, aucune CI n'est touché.
-  Les anomalies des §6.1 et §7 sont **déclarées**, pas corrigées.
+- **Pas une modification du corpus.** Le rattachement établi ici n'ajoute ni contrôle, ni
+  ADR, ni CI. L'anomalie du **§6.1** (ADR0204 décide une politique de mots de passe sans en
+  contrôler aucune clause) reste **déclarée, non corrigée** — elle demande un contrôle
+  nouveau, pas une citation. Celle du **§7** (numérotation 4.0.x) a été **corrigée le
+  2026-08-14** par la migration du §7 bis, hors de ce document.
 - **Pas figé.** Toute évolution du sous-ensemble curé, du corpus ou des oracles périme les
   décomptes de ce document. Les commandes de l'annexe A permettent de les recalculer.
 
@@ -295,7 +337,24 @@ V13 : 1 · V14 : 2 · V15 : 2).
 grep -rl "ASVS" core/adr/    | wc -l      # → 12 ADR (FR)
 grep -rl "ASVS" core/adr-en/ | wc -l      # → 12 ADR (miroir EN)
 node -e "const p=require('./core/controls/controls-core-v1.json');
-console.log(p.constraints.filter(c=>(c.standards||[]).some(s=>/ASVS/.test(s))).length);"   # → 10
+console.log(p.constraints.filter(c=>(c.standards||[]).some(s=>/ASVS/.test(s))).length);"   # → 9 depuis le 2026-08-14 (10 avant : CTL-D02-01 a perdu sa citation, §7 bis)
+```
+
+Contrôle de non-régression de la migration (§7 bis) — **doit rendre 0** :
+
+```bash
+node -e "const p=require('./core/controls/controls-core-v1.json');
+const bad=p.constraints.flatMap(c=>(c.standards||[]).filter(s=>/ASVS/.test(s)))
+  .filter(s=>/— V(1|5|14) \(|— V13(?![.0-9])|— V2\.10|— V4\.[12](?![.0-9])|— V4$/.test(s));
+console.log(bad.length, bad.join(' | '));"   # → 0
+```
+
+Idem côté ADR (frontmatter seul — les notes de correction du §7 bis *citent* les anciens
+numéros dans le corps, à dessein) :
+
+```bash
+grep -rh "^standards:" core/adr/ core/adr-en/ \
+  | grep -oE "OWASP ASVS 5\.0 — V[0-9./]*" | sort | uniq -c   # aucun V13 nu, aucun V2.10, aucun V4.1/V4.2
 ```
 
 ### A.3 Périmètre des contrôles confrontés (§2)

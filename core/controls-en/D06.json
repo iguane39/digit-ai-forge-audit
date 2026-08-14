@@ -42,7 +42,7 @@
         "If a gap is found: negotiate/document the missing quotas and implement a degradation plan."
       ],
       "derogation": null,
-      "standards": ["OWASP ASVS 5.0 — V13", "Site Reliability Engineering (Google) — gestion de la charge"]
+      "standards": ["OWASP ASVS 5.0 — V2.4.1 (anti-automatisation : quotas et limitation de débit)", "Site Reliability Engineering (Google) — gestion de la charge"]
     },
     {
       "id": "CTL-D06-03",

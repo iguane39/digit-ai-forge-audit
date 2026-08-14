@@ -457,7 +457,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V13",
+        "OWASP ASVS 5.0 — V4 (API et services web)",
         "ISO/IEC 27002:2022 — 8.21"
       ]
     },

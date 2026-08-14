@@ -7,7 +7,7 @@ informed: "product teams"
 id: ADR0303
 domain: "03"
 invariant: true
-standards: ["NIST SP 800-52 (choix et configuration TLS)", "ISO/IEC 27002:2022 — 8.24", "OWASP ASVS 5.0 — V13"]
+standards: ["NIST SP 800-52 (choix et configuration TLS)", "ISO/IEC 27002:2022 — 8.24", "OWASP ASVS 5.0 — V12 (communication sécurisée : V12.1 TLS, V12.2 HTTPS externe, V12.3 service à service)"]
 derived_controls: [CTL-D02-06]
 ---
 
@@ -75,3 +75,10 @@ flows unencrypted; non-compliant = any unencrypted external flow.
 Instantiations: termination managed by the hosting platform or by the exposure control
 point (ADR0301); `profil:azure` → managed certificates + minimum version policy enforced
 at the gateway. Reference open specification: TLS (IETF), admissible at the core level.
+
+**ASVS citation — corrected on 2026-08-14 (migration to ASVS 5.0.0).** The original citation
+`OWASP ASVS 5.0 — V13` was **wrong in both versions of the standard**, not merely
+misnumbered: in 4.0.3, V13 = *API and Web Service*; in 5.0.0, V13 = *Configuration*. Neither
+carries encryption in transit, which belongs to 4.0.3 **V9 Communication** → 5.0.0 **V12 Secure
+Communication** (`mapping_v4.0.3_to_v5.0.0.yml`: V9.1.1→V12.2.1, V9.1.2→V12.1.2,
+V9.1.3→V12.1.1, V9.2.1→V12.3.4, V9.2.2→V12.3.1, V9.2.4→V12.1.4).

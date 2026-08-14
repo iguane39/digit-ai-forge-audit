@@ -7,7 +7,7 @@ informed: "toutes les équipes produit"
 id: ADR0207
 domain: "02"
 invariant: true
-standards: ["ISO/IEC 27002:2022 — 5.15/5.18", "OWASP ASVS 5.0 — V4.1/V4.2", "NIST SP 800-53 — AC-2(j)"]
+standards: ["ISO/IEC 27002:2022 — 5.15/5.18", "OWASP ASVS 5.0 — V8.2.1/V8.2.2/V8.3.1 — 4.0.3 V4.1/V4.2 (V4.1.5 déplacée en V16.5.3, V4.2.2 en V3.5.1, V4.1.2 supprimée)", "NIST SP 800-53 — AC-2(j)"]
 derived_controls: [CTL-D03-05, CTL-D04-06, CTL-D12-08]
 ---
 

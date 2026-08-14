@@ -34,8 +34,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP Top 10 2021 — A01 à A10",
-        "OWASP ASVS 5.0 — V1 (Architecture, conception, threat modeling)"
+        "OWASP Top 10 2021 — A01 à A10"
       ]
     },
     {
@@ -72,7 +71,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V5 (Validation, Sanitization, Encoding)",
+        "OWASP ASVS 5.0 — V2.2 (validation des entrées) + V1.3 (assainissement) — 4.0.3 V5 scindé entre V1 et V2",
         "OWASP Top 10 2021 — A03:2021 Injection"
       ]
     },
@@ -148,7 +147,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V13 (API et services Web)",
+        "OWASP ASVS 5.0 — V2.4.1 (anti-automatisation et limitation de débit)",
         "NIST SP 800-207"
       ]
     },
@@ -219,7 +218,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V14 (Configuration)",
+        "OWASP ASVS 5.0 — V3.4 (en-têtes de mécanismes de sécurité navigateur)",
         "ISO/IEC 27002:2022 — 8.24"
       ]
     },

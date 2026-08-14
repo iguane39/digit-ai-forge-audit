@@ -4,6 +4,32 @@ Versionnement SemVer (PADR-0005) : MAJEUR = rupture de schéma / retrait de cont
 MINEUR = nouveaux contrôles/ADR · PATCH = corrections. Chaque release liste les standards
 sources mis à jour.
 
+## [Non publié] — 2026-08-14
+
+> Numéro de version à figer à la release. **PATCH** au sens de PADR-0005 : corrections de
+> citations et complétion d'un corpus de traduction — aucun contrôle ajouté ni retiré, aucun
+> schéma touché.
+
+### Corrigé
+- **Migration des citations `standards[]` vers ASVS 5.0.0** (TF-0221, PADR-0010). Les 22
+  citations `OWASP ASVS 5.0 — Vxx` employaient la numérotation de chapitres d'**ASVS 4.0.x** :
+  **21 réécrites** vers leur cible 5.0.0 réelle, **1 supprimée** (`CTL-D02-01` — 4.0.3 V1
+  n'a aucun successeur en 5.0.0), **0 laissée** en 4.0.x. Chaque cible est suivie *exigence par
+  exigence* dans le fichier officiel `mapping_v4.0.3_to_v5.0.0.yml`, jamais par translation de
+  chapitre : une exigence éclatée donne une **citation multiple**. Quatre citations étaient
+  **fausses dans les deux versions** (`ADR0303` TLS, `ADR0305`, `ADR0706` et `CTL-D02-04`
+  limitation de débit) — corrigées **et** signalées comme erronées dans le corps de l'ADR
+  porteur (FR et EN). Détail par classe et preuves :
+  `docs/CORRESPONDANCE-ASVS-4.0.x-5.0.0.md` §6, `docs/MAPPING-CONTROLES-ASVS.md` §7 bis.
+  Contrôles porteurs d'une citation ASVS : 10 → **9**.
+
+### Ajouté
+- **Corpus EN complété, pack anglais de nouveau émis** (TF-0220, PADR-0011) :
+  `core/controls-en/D17.json` créé (4 contrôles de gouvernance IA) et `CTL-D07-08`/`CTL-D07-09`
+  ajoutés à `core/controls-en/D07.json`. `assemble-core.mjs` refusait d'émettre
+  `controls-core-v1.en.json` depuis l'ajout de D17 (169/175) : les **deux packs sortent à
+  nouveau** (175 FR + 175 EN), parité FR/EN vérifiée contrôle à contrôle.
+
 ## [1.7.0] — 2026-08-12
 
 > TF-0110 : gouvernance IA, policy-as-code, réalignement FinOps, pilier soutenabilité.

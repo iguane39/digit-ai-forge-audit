@@ -7,7 +7,7 @@ informed: "product teams"
 id: ADR0703
 domain: "07"
 invariant: true
-standards: ["OWASP ASVS 5.0 — V2.10 (secrets côté client)", "OAuth2 BCP (Best Current Practice)", "ISO/IEC 27002:2022 — 8.24 (usage de la cryptographie)"]
+standards: ["OWASP ASVS 5.0 — V13.3.1 (gestion des secrets, 4.0.3 V2.10) + V7.2.2 (jetons dynamiques, jamais de secret statique) + V10 (OAuth et OIDC)", "OAuth2 BCP (Best Current Practice)", "ISO/IEC 27002:2022 — 8.24 (usage de la cryptographie)"]
 derived_controls: [CTL-D03-09]
 ---
 
