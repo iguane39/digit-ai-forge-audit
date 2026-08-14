@@ -7,7 +7,7 @@ informed: "équipes produit"
 id: ADR0701
 domain: "07"
 invariant: true
-standards: ["OWASP ASVS 5.0 — V13 (API et services web)", "ISO/IEC 27002:2022 — 8.21 (sécurité des services réseau)", "NIST SP 800-207 (zero trust)"]
+standards: ["OWASP ASVS 5.0 — V4 (API et services web)", "ISO/IEC 27002:2022 — 8.21 (sécurité des services réseau)", "NIST SP 800-207 (zero trust)"]
 derived_controls: [CTL-D01-12]
 ---
 

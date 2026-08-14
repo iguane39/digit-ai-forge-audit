@@ -14,7 +14,7 @@ families:
 scoring:
   scale: { 1: "Bloquant", 2: "Insuffisant", 3: "Acceptable", 4: "Solide", 5: "État de l'art" }
   rule: "pas de score sans preuve"          # invariant
-  global: "moyenne pondérée sur les 17 dimensions"
+  global: "moyenne pondérée sur les 18 dimensions"
   blockers: "dimensions notées <= 2 ou criticité Fatal"
 gates:
   - { key: gate1a, label: "Revue consultative", decision: false }

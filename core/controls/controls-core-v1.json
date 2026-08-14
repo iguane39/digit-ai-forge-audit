@@ -1105,7 +1105,7 @@
       ],
       "derogation": null,
       "standards": [
-        "OWASP ASVS 5.0 — V3 (Session Management)",
+        "OWASP ASVS 5.0 — V7 (Session Management)",
         "NIST SP 800-63B — gestion de session",
         "OWASP Top 10 2021 — A01:2021 Broken Access Control"
       ]

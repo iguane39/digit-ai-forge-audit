@@ -7,7 +7,7 @@ informed: "product teams"
 id: ADR0702
 domain: "07"
 invariant: true
-standards: ["ISO/IEC 27002:2022 — 8.21 (sécurité des services réseau)", "OWASP ASVS 5.0 — V12 (fichiers et ressources)", "ISO/IEC 27002:2022 — 8.12 (prévention de la fuite de données)"]
+standards: ["ISO/IEC 27002:2022 — 8.21 (sécurité des services réseau)", "OWASP ASVS 5.0 — V5 (gestion des fichiers)", "ISO/IEC 27002:2022 — 8.12 (prévention de la fuite de données)"]
 derived_controls: [CTL-D01-13]
 ---
 
