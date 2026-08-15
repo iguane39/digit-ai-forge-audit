@@ -218,6 +218,12 @@ titre de chapitre). Ces cas demandent un arbitrage **de fond**, pas de forme.
 **Décision humaine du 2026-08-14, déléguée au pilot** (option 2 des trois qui étaient
 ouvertes ; les options « rétablir 4.0.3 » et « les deux par étapes » sont **écartées**).
 
+> **Confirmée en propre par l'humain le 2026-08-15.** La direction avait été tranchée par le
+> pilot sous délégation (« traite tout »), puis soumise en choix fermé à la clôture ; elle est
+> désormais assumée à la source, et non plus tenue par une délégation. La distinction n'est pas
+> protocolaire : une décision déléguée reste ouverte tant que le mandant ne l'a pas vue, et
+> celle-ci engage la version que citera toute la gouvernance.
+
 **Motif.** L'exécution juge déjà sur 5.0.0 : le référentiel curé de la forge de sécurité web
 est `asvs-l1.md`, sous-ensemble **L1 d'ASVS 5.0.0**. Revenir à 4.0.3 rendrait le corpus vrai
 d'un coup — mais ferait citer à la gouvernance une version que **personne n'applique**, et le
