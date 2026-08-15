@@ -24,6 +24,41 @@ sources mis à jour.
   Contrôles porteurs d'une citation ASVS : 10 → **9**.
 
 ### Ajouté
+- **Le rapport d'audit se lit par VUES** — doctrine « restitution lisible » portée dans le
+  moteur de rendu (TF-0235 volet P4, référentiel `REFERENTIEL-RESTITUTION.md` de forge-design,
+  famille `rapport`). Le livrable, c'est le GÉNÉRATEUR : la refonte entre dans
+  `tools/rapport-engine.mjs` et `tools/verifier-rapport-html.mjs`, jamais dans un HTML produit.
+  Les onglets à plat deviennent **7 vues naviguées**, une question par vue, servant trois
+  lecteurs nommés — commanditaire, metteur en œuvre, expert : *Synthèse · Plan d'action ·
+  Constats par dimension · Toutes les règles · Architecture & BDD · Données analysées ·
+  Méthode & lecture*. Une vue sans donnée n'existe pas et son absence se **déclare**.
+  Composants du référentiel : `<body data-restitution="rapport">` ; navigation `[data-vue]`
+  tenant aussi le rôle de sommaire du socle (annonce `.toc-d`) ; **routeur à ancres** — un
+  renvoi vers `#D05` ouvre la vue qui contient D05 avant d'y défiler, sans quoi les 22 liens
+  internes du rapport seraient des affordances mortes ; **4 KPI complets** (valeur, définition,
+  repère de lecture, lien d'action) là où trois chiffres s'affichaient nus ; **2 figures à
+  question interrogative** (répartition par famille, répartition des verdicts, segments
+  juxtaposés et jamais superposés) ; **chemins d'entrée par lecteur** ; **manifeste d'écarts
+  calculé** sur l'état réel de la mission — « aucun écart » se déclare aussi.
+  **Iso-contenu strict, mesuré** : aucune valeur des données d'audit n'est perdue (relevé
+  jeton à jeton sur les deux fixtures) ; le générique — barèmes de score, définitions des
+  verdicts, des criticités et des priorités, provenance — quitte les onglets pour vivre **une
+  seule fois** en vue Méthode, où les chiffres y renvoient par `aria-describedby`. Deux
+  reformulations assumées : la colonne « Note » du dictionnaire ERD devient « Remarque »
+  (ce n'est pas une colonne calculée), et la légende ERD cite ses mots-clés SQL en `<code>`.
+- **Tableaux longs exploitables** : au-delà de 8 lignes, tout tableau du rapport porte le
+  composant de filtres de colonne du socle (asset vendoré `tools/table-filters.mjs`,
+  checklist G1-G6 : `data-filterable`, `id`, `<thead>`, compteur `aria-live`, réaffichage des
+  lignes filtrées à l'impression) et une recherche libre qui **se compose** avec les filtres
+  au lieu de les écraser. Un tableau qui ne doit pas être filtré porte son motif — sans motif,
+  ce n'est pas une exemption.
+- **Le gate de rendu contrôle le contrat de restitution** (`verifier-rapport-html.mjs`) avec la
+  même exigence de preuve que le reste : famille déclarée, KPI complets et reliés à leur repère,
+  **appariement exact sommaire ↔ vues** (une vue sans entrée de sommaire est un chapitre perdu,
+  une entrée sans section un lien mort — les deux font échouer la génération), figures
+  interrogatives, chemins de lecteur, manifeste non vide, câblage des tableaux longs. Le moteur
+  est toujours COMPILÉ puis EXÉCUTÉ, et **chaque vue déclarée est pilotée** comme au clic.
+  Batterie des oracles : 55 → **62 tests**, chaque règle nouvelle ayant sa fixture rouge.
 - **Corpus EN complété, pack anglais de nouveau émis** (TF-0220, PADR-0011) :
   `core/controls-en/D17.json` créé (4 contrôles de gouvernance IA) et `CTL-D07-08`/`CTL-D07-09`
   ajoutés à `core/controls-en/D07.json`. `assemble-core.mjs` refusait d'émettre

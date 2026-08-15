@@ -54,5 +54,5 @@ format).
 
 - Une règle `sans_objet` reste sur la matrice avec son motif d'applicabilité — jamais simplement
   retirée (contrat de complétude du référentiel).
-- Cette matrice alimente à l'identique l'onglet transversal « Toutes les règles » et les matrices
+- Cette matrice alimente à l'identique la vue transversale « Toutes les règles » et les matrices
   intégrées par dimension du rapport d'audit — même source, plusieurs vues.

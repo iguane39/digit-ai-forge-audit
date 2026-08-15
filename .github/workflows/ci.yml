@@ -58,7 +58,13 @@ jobs:
         run: |
           node tools/build-rapport.mjs tests/fixtures/rapport-data-valid.json --tenant config/tenants/exemple/tenant.yaml --out /tmp/rapport.html
           node tools/build-catalogue.mjs config/tenants/exemple/tenant.yaml --out /tmp/catalogue.html
-          grep -q "Toutes les règles" /tmp/rapport.html && grep -q "Catalogue ADR" /tmp/catalogue.html
+          grep -q 'id="v-regles"' /tmp/rapport.html && grep -q "Catalogue ADR" /tmp/catalogue.html
+
+      # Le rendu produit passe son PROPRE gate : contrat de restitution (vues appariées au
+      # sommaire, KPI complets, manifeste d'écarts, tableaux longs filtrables) ET moteur JS
+      # compilé, exécuté, chaque vue pilotée. Un rendu qui casse au clic sort 1 ici.
+      - name: Gate de rendu du rapport (restitution + moteur exécuté)
+        run: node tools/verifier-rapport-html.mjs /tmp/rapport.html
 
   # ── Oracles PROJET (ECR-01/03) : contrôles exécutés contre le système audité.
   # Matrice {ubuntu, windows} exigée : `runCmd` porte des gardes spécifiques Windows
@@ -80,5 +86,5 @@ jobs:
       - name: Dépendances outillage
         run: npm ci || npm install
 
-      - name: Batterie des oracles (55 tests — projet, rendu du rapport, porte de clôture)
+      - name: Batterie des oracles (62 tests — projet, rendu du rapport, porte de clôture)
         run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-rapport-html.test.mjs

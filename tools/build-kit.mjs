@@ -89,7 +89,13 @@ const initStandalone = [
 ].join('\n');
 
 // ── 3ter. Moteur de rendu de rapport AUTONOME (M5) — source du moteur inliné + config bakée
+// Le moteur importe l'asset VENDORÉ des filtres de tableau. Le kit est un fichier unique :
+// on inline l'asset AVANT le moteur et on retire l'import — sans quoi le standalone
+// tomberait sur un module introuvable chez le client.
+const filtresSrc = fs.readFileSync(rel('tools', 'table-filters.mjs'), 'utf-8')
+  .replace(/^export const TABLE_FILTERS_JS/m, 'const TABLE_FILTERS_JS');
 const engineSrc = fs.readFileSync(rel('tools', 'rapport-engine.mjs'), 'utf-8')
+  .replace(/^import \{ TABLE_FILTERS_JS \} from '\.\/table-filters\.mjs';\r?\n/m, '')
   .replace(/^export function renderRapport/m, 'function renderRapport');
 const kitLang = cfg.tenant.language === 'en' ? 'en' : 'fr';
 const dimsPack = loadYaml(rel('core', 'dimensions', 'dimensions.yaml'));
@@ -105,6 +111,7 @@ const rapportStandalone = [
   '// Usage: node build-rapport-standalone.mjs <rapport-data.json> [--out <fichier.html>]',
   '// Gate machine AVANT diffusion : node verifier-rapport-standalone.mjs <rapport-data.json>',
   "import fs from 'node:fs';",
+  filtresSrc,
   engineSrc,
   `const TENANT=${JSON.stringify(tenant)}, CORE=${JSON.stringify(String(cfg.core_version))}, SHORT=${JSON.stringify(cfg.tenant.short_code)};`,
   `const DIMS=${JSON.stringify(bakedDims)}, FAMS=${JSON.stringify(bakedFams)}, LANG=${JSON.stringify(kitLang)};`,

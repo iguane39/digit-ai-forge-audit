@@ -54,7 +54,7 @@ Audit conduit le {{date_longue}} par {{auditeur.nom}} · {{synthese.audit.nb_sca
 | FinOps | {{famille.finops.score}} |
 | Opérations | {{famille.operations.score}} |
 
-## Familles → Dimensions (onglets)
+## Familles → Dimensions (vue « Constats par dimension »)
 
 Catalogue core par famille (relabel cosmétique autorisé, suppression interdite) :
 - Fonctionnel : D00 · Architecture : D01, D06, D09 · Sécurité : D02, D03, D04
@@ -81,7 +81,7 @@ Périmètre : {{dim.perimetre}} *(omis si redondant avec D00 — règle éditori
 
 Note de l'autorité : {{dim.note_da}}
 
-## Toutes les règles (onglet transversal)
+## Toutes les règles (vue transversale)
 
 > 100 % des règles applicables renseignées — le vérificateur bloque la diffusion sinon.
 
