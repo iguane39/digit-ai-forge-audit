@@ -17,3 +17,9 @@ oracles/*.remediation-plan.json
 # Sous-produits de build par tenant (regénérables par build-theme / merge-packs)
 config/tenants/*/merged.json
 config/tenants/*/theme/
+
+# journaux du hook qualité (TF-0065) : sidecars d'oracles hors dépôt — les preuves
+# vivent dans les rapports et les recettes, pas en fichiers regénérables à la racine
+*.oracles.json
+*.oracles-cache.json
+*.oracles-historique.jsonl
