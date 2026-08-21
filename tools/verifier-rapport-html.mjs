@@ -36,7 +36,7 @@ const txt = (s) => String(s ?? '').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi
 const ph = h.match(/\{\{[^}]+\}\}/g) ?? [];
 if (ph.length) errors.push(`${ph.length} placeholder(s) résiduel(s) — ex: ${[...new Set(ph)].slice(0, 3).join(', ')}`);
 if (!/class="gate (std|maj|fatal)"/.test(h)) errors.push('bandeau de verdict gate absent');
-if (!/<svg viewBox="0 0 460/.test(h)) errors.push('radar par famille absent');
+if (!/<svg viewBox="0 0 460(?![0-9])/.test(h)) errors.push('radar par famille absent');   // garde TF-0438
 
 const dims = loadYaml(rel('core', 'dimensions', 'dimensions.yaml')).dimensions.map(d => d.id);
 const missing = dims.filter(d => !h.includes(`id="${d}"`));

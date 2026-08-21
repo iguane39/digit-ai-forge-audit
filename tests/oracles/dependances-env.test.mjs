@@ -63,8 +63,10 @@ test('exécuté : blob présent en dev (200) mais ABSENT en qualif (404) → BLO
   const { code, out } = await execManifest(man);
   dev.close(); qualif.close();
   assert.equal(code, 1, 'un blob manquant dans un env doit bloquer');
-  assert.match(out, /smoke qualif.*404/s);
-  assert.doesNotMatch(out, /smoke dev.*echec|smoke dev.*404/s, 'dev reste vert');
+  // Gardes de chiffre (TF-0438, 21/08) : « 404 » nu matche « 4040 » — a l'affirmation comme
+  // a la negation, le code cherche doit etre le code, pas son prefixe.
+  assert.match(out, /smoke qualif.*[^0-9]404(?![0-9])/s);
+  assert.doesNotMatch(out, /smoke dev.*echec|smoke dev.*[^0-9]404(?![0-9])/s, 'dev reste vert');
 });
 
 test('exécuté : dérive de config par env — en-tête CSP servi ne contient pas l\'hôte requis → BLOQUANT', async () => {

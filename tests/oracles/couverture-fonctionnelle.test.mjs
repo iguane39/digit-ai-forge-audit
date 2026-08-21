@@ -30,7 +30,7 @@ test('complet + source → OK : chaque point relié à un test exécuté au bon 
   const r = run(['--manifest', path.join(FIX, 'complet.json'), '--source', path.join(FIX, 'src')]);
   assert.equal(r.status, 0);
   assert.match(r.stdout, /verdict : OK/);
-  assert.match(r.stdout, /back 4\/4/);
+  assert.match(r.stdout, /back 4\/4(?![0-9])/);   // garde TF-0438 : « 4/4 » ne doit pas matcher « 4/40 »
 });
 
 test('ratchet : la couverture ne peut que monter (régression → BLOQUANT)', () => {

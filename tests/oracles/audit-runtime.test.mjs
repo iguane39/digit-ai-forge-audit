@@ -80,7 +80,9 @@ test('smoke : un 500 sur un parcours critique → BLOQUANT (exit 1), interdit le
   const { code, out } = await smoke({ '/listings': 200, '/listing/1': 500 });
   assert.equal(code, 1, 'un 500 critique doit interdire le GO');
   assert.match(out, /BLOQUANT/);
-  assert.match(out, /\/listing\/1.*500/s);
+  // Gardes de chiffre (TF-0438, 21/08) : « /listing/1 » matchait « /listing/12 » et « 500 »
+  // matchait « 5000 » (une duree en ms) — le test aurait dit vrai pour le mauvais fait.
+  assert.match(out, /\/listing\/1(?![0-9]).*[^0-9]500(?![0-9])/s);
   assert.match(out, /NO GO/);
 });
 
