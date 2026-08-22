@@ -1,14 +1,30 @@
 #!/usr/bin/env node
 // AuditCore — build-fiche (RAF-004 / M9) : fiche sécurité de mise à disposition rendue en HTML
 // thémé. Sans données → squelette à compléter ({{placeholders}}) ; avec --data <json> → rempli.
-// Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>] [--out <fichier.html>]
+// Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>]
+//                                    (--produit <racine> | --out <fichier.html>)
+//
+// OU LE LIVRABLE VA (TF-0505, 22/08/2026). La destination par defaut etait
+// `deliverables/generated/<tenant>/fiche-securite.html`, c'est-a-dire DANS LE DEPOT DE LA FORGE,
+// sous une arborescence de travail. TF-0319 nomme ce cas mot pour mot : « pas au fond de dossiers
+// de travail imbriques ou l'utilisateur doit naviguer et finit par se perdre ». `--out` existait,
+// mais RIEN N'EXIGEAIT DE S'EN SERVIR — et un chemin par defaut est le chemin qui sera pris.
+// Mesure : la fiche du 22/08 a fini a la racine du produit, hors `output\`, en violation de R-2 et
+// R-39, et aucun oracle ne pouvait le voir faute de marque de destinataire (TF-0504).
+//
+// La regle est desormais : `--produit <racine>` resout la famille `NN-audit` d'`output\` du
+// PRODUIT (R-39 al. 1-2 : numero local stable, reutilise s'il existe) ; `--out` reste pour les cas
+// particuliers, dont `build-kit.mjs` qui rend dans un temporaire. Et SANS L'UN DES DEUX, LE
+// GENERATEUR REFUSE : il n'ecrit plus jamais un livrable dans le depot de la forge. Un defaut
+// commode est ce qui a produit le defaut.
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { rel, loadTenant, loadJson } from './lib.mjs';
 
 const tenantYaml = process.argv[2];
-if (!tenantYaml) { console.error('Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>] [--out <fichier.html>]'); process.exit(2); }
+const USAGE = 'Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>] (--produit <racine> | --out <fichier.html>)';
+if (!tenantYaml) { console.error(USAGE); process.exit(2); }
 const { cfg, tenantDir } = loadTenant(tenantYaml);
 const dIdx = process.argv.indexOf('--data');
 const outIdx = process.argv.indexOf('--out');
@@ -26,7 +42,12 @@ const S = (titre, rows) => `<section><h2>${titre}</h2><table><tbody>
 ${rows.map(([label, key, ph]) => `<tr><th>${label}</th><td>${V(key, ph)}</td></tr>`).join('')}
 </tbody></table></section>`;
 
+// MARQUE DE DESTINATAIRE (corollaire de TF-0504, 22/08/2026) : un generateur qui rend un livrable
+// pose la marque s'il ne l'herite pas d'un gabarit. Sans elle, la regle R-2 du pilot ne voit pas le
+// document et son mauvais rangement passe inapercu — c'est ce qui s'est produit le 22/08. C'est une
+// ligne, et elle est ici plutot que dans la memoire du producteur.
 const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="destinataire" content="humain">
 <title>${esc(cfg.tenant.name)} — Fiche sécurité de mise à disposition (DEV)</title><style>${themeCss}
 .wrap{max-width:960px;margin:0 auto;padding:24px}h1{font-size:22px}h2{font-size:15px;margin:22px 0 6px;color:var(--accent)}
 table{border-collapse:collapse;width:100%}th,td{border:1px solid var(--line);padding:7px 10px;font-size:12.5px;text-align:left;vertical-align:top}
@@ -66,8 +87,42 @@ ${S('8 · FinOps', [['Étiquetage / imputation', 'tags'], ['Budget & alertes de 
 Généré par AuditCore build-fiche (M9) pour ${esc(cfg.tenant.name)} — 0 placeholder exigé avant diffusion (les champs <span class="ph">{{…}}</span> sont à compléter).</footer>
 </div></body></html>`;
 
-const out = outIdx > -1 ? path.resolve(process.argv[outIdx + 1])
-  : rel('deliverables', 'generated', cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 'fiche-securite.html');
+// La famille `NN-audit` d'`output\` du produit : reutilisee si elle existe (le numero est
+// LOCALEMENT stable, R-39 al. 2), sinon creee au premier numero libre. On ne renumerote jamais une
+// famille existante — un chemin qui bouge casse tous les liens deja ecrits.
+const familleAudit = (racine) => {
+  const output = path.join(path.resolve(racine), 'output');
+  const existante = fs.existsSync(output)
+    ? fs.readdirSync(output, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && /^\d{2}-.*audit/i.test(e.name))
+        .map((e) => e.name).sort()[0]
+    : null;
+  if (existante) return path.join(output, existante);
+  const pris = fs.existsSync(output)
+    ? new Set(fs.readdirSync(output, { withFileTypes: true })
+        .filter((e) => e.isDirectory()).map((e) => e.name.slice(0, 2)))
+    : new Set();
+  let n = 1;
+  while (pris.has(String(n).padStart(2, '0'))) n++;
+  return path.join(output, `${String(n).padStart(2, '0')}-audit`);
+};
+
+const produitIdx = process.argv.indexOf('--produit');
+const slug = cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+let out;
+if (outIdx > -1) out = path.resolve(process.argv[outIdx + 1]);
+else if (produitIdx > -1) {
+  const racine = process.argv[produitIdx + 1];
+  if (!racine || !fs.existsSync(racine)) { console.error(`racine de produit introuvable : ${racine}\n${USAGE}`); process.exit(2); }
+  out = path.join(familleAudit(racine), `fiche-securite-${slug}.html`);
+} else {
+  // Le refus est le correctif. Ecrire « quelque part par defaut » a produit un livrable hors
+  // `output\`, invisible au controle, trouve par relecture humaine.
+  console.error('destination non dite : un livrable ne nait pas dans le depot de la forge (TF-0505).\n' +
+    "Donner `--produit <racine du produit>` pour rendre dans la famille `NN-audit` de son `output\\`, " +
+    'ou `--out <fichier.html>` pour un cas particulier.\n' + USAGE);
+  process.exit(2);
+}
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');
 console.log(`✔ fiche sécurité: 8 sections ${dIdx > -1 ? '(remplie)' : '(squelette à compléter)'} → ${out}`);
