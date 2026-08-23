@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// promesses-verifiees — ce fichier ADHÈRE au contrôle des promesses de commentaire
+// (`oracle-promesses`, règle PR1 du pilot) : une classe ou un attribut nommé dans un commentaire
+// ici DOIT exister dans le code. Un générateur de page est l'endroit où une promesse de prose coûte
+// le plus cher — elle s'y lit comme une garantie de ce que la page contient. Signé le 23/08/2026,
+// choix humain « signer tout ce qui est propre dans les forges » ; joué avant signature, zéro constat.
+//
 // AuditCore — build-fiche (RAF-004 / M9) : fiche sécurité de mise à disposition rendue en HTML
 // thémé. Sans données → squelette à compléter ({{placeholders}}) ; avec --data <json> → rempli.
 // Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>]

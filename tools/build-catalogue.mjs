@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+// promesses-verifiees — ce fichier ADHÈRE au contrôle des promesses de commentaire
+// (`oracle-promesses`, règle PR1 du pilot) : une classe ou un attribut nommé dans un commentaire
+// ici DOIT exister dans le code. Un générateur de page est l'endroit où une promesse de prose coûte
+// le plus cher — elle s'y lit comme une garantie de ce que la page contient. Signé le 23/08/2026,
+// choix humain « signer tout ce qui est propre dans les forges » ; joué avant signature, zéro constat.
+//
 // AuditCore — build-catalogue (M7) : corpus ADR core + fusion tenant → catalogue HTML
 // navigable thémé (filtre par domaine, recherche, cartes ADR avec règles dérivées).
 // Usage: node tools/build-catalogue.mjs <tenant.yaml> [--out <fichier.html>]

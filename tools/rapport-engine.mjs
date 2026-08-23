@@ -1,3 +1,9 @@
+// promesses-verifiees — ce fichier ADHÈRE au contrôle des promesses de commentaire
+// (`oracle-promesses`, règle PR1 du pilot) : une classe ou un attribut nommé dans un commentaire
+// ici DOIT exister dans le code. Un générateur de page est l'endroit où une promesse de prose coûte
+// le plus cher — elle s'y lit comme une garantie de ce que la page contient. Signé le 23/08/2026,
+// choix humain « signer tout ce qui est propre dans les forges » ; joué avant signature, zéro constat.
+//
 // AuditCore — moteur de rendu du rapport d'audit (M5 v1).
 // Fonction PURE : (rapport-data, options) → HTML autonome thémé. Aucune E/S ici —
 // consommée par build-rapport.mjs (repo) et inlinée dans les kits (standalone).
