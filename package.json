@@ -8,7 +8,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node tools/lint-agnostic.mjs && node tools/validate-config.mjs config/tenants/exemple/tenant.yaml --quiet && node tools/validate-config.mjs tests/fixtures/tenant-valid-min.yaml --quiet && node tests/test-golden-buckets.mjs && node --test tests/oracles/build-fiche-destination.test.mjs",
+    "test": "node tools/lint-agnostic.mjs && node tools/validate-config.mjs config/tenants/exemple/tenant.yaml --quiet && node tools/validate-config.mjs tests/fixtures/tenant-valid-min.yaml --quiet && node tests/test-golden-buckets.mjs && node --test tests/oracles/build-fiche-destination.test.mjs tests/oracles/verifier-pdf.test.mjs",
     "test:ci": "npm test"
   },
   "keywords": [],

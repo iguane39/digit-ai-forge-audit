@@ -19,11 +19,11 @@
 // commode est ce qui a produit le defaut.
 import fs from 'node:fs';
 import path from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { rel, loadTenant, loadJson } from './lib.mjs';
 
 const tenantYaml = process.argv[2];
-const USAGE = 'Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>] (--produit <racine> | --out <fichier.html>)';
+const USAGE = 'Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>] (--produit <racine> | --out <fichier.html>) [--sans-pdf]';
 if (!tenantYaml) { console.error(USAGE); process.exit(2); }
 const { cfg, tenantDir } = loadTenant(tenantYaml);
 const dIdx = process.argv.indexOf('--data');
@@ -126,3 +126,77 @@ else if (produitIdx > -1) {
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');
 console.log(`✔ fiche sécurité: 8 sections ${dIdx > -1 ? '(remplie)' : '(squelette à compléter)'} → ${out}`);
+
+// ---- LES DEUX FORMATS DANS LA MEME PASSE (TF-0506, 23/08/2026) ---------------------------
+//
+// Le catalogue de la bibliotheque declare deux formats pour cette famille — html ET pdf — et la
+// forge n'en produisait qu'un. Ce n'etait pas une omission de documentation : LE JEU DE
+// LIVRABLES A ETE REMIS INCOMPLET le 22/08, et c'est LE COMMANDITAIRE qui a du reclamer le
+// second format. Le PDF est ce qui circule en piece jointe et ce qui s'imprime ; le HTML est ce
+// qui reste sur le poste. Un jeu incomplet ne se remet pas : les deux formats se rendent dans la
+// MEME passe, ou la passe le dit.
+//
+// Aucune dependance, aucun binaire embarque : le moteur d'impression du navigateur DEJA PRESENT
+// sur le poste, et la feuille de style du gabarit qui fait foi pour les marges (@page A4).
+//
+// TROIS GARDE-FOUS, tous les trois payes par un defaut reel du 22/08 :
+//   1. le format et le nombre de pages sont RELUS DANS LE PDF PRODUIT, jamais deduits de la
+//      commande — un code de retour 0 ne prouve pas qu'un octet a ete ecrit ;
+//   2. la FRAICHEUR est verifiee (posterieur au lancement, posterieur a sa source) : c'est ce
+//      controle qui attrape le verrou Windows, ou une visionneuse ouverte fait echouer
+//      l'ecriture EN SILENCE et laisse revalider l'ancien tirage ;
+//   3. SKIP MOTIVE si aucun navigateur n'est present — jamais un PASS silencieux, jamais un
+//      echec impute au livrable. C'est deja la doctrine d'oracle-sca chez forge-websec.
+const sansPdf = process.argv.includes('--sans-pdf');
+const NAVIGATEURS = [
+  process.env.FORGE_NAVIGATEUR,
+  'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
+  'C:/Program Files/Google/Chrome/Application/chrome.exe',
+  'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+  '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser',
+].filter(Boolean);
+
+if (sansPdf) {
+  // Un ecart DECLARE, pas un oubli : le drapeau existe pour que « HTML seul » soit un choix
+  // qu'on lit dans la commande, jamais un silence qu'on decouvre a la remise.
+  console.log('— PDF non rendu : --sans-pdf demande. Le jeu remis est INCOMPLET au regard du ' +
+    'catalogue (formats html + pdf) — le dire au destinataire fait partie de la remise.');
+} else {
+  const navigateur = NAVIGATEURS.find((n) => { try { return fs.existsSync(n); } catch { return false; } });
+  const pdf = out.replace(/\.html?$/i, '.pdf');
+  if (!navigateur) {
+    console.error('— PDF NON RENDU : aucun moteur d\'impression trouve. Cherches : ' +
+      NAVIGATEURS.join(', ') + '. Poser FORGE_NAVIGATEUR sur le chemin d\'un navigateur ' +
+      'Chromium, ou assumer l\'ecart avec --sans-pdf. Le HTML, lui, est ecrit : ' + out);
+    process.exit(3);   // ni 0 (le jeu est incomplet) ni 1 (le livrable n'a rien fait de mal)
+  }
+  const lancement = Date.now();
+  // Un ancien tirage encore la fausserait la relecture : on le retire AVANT, et si le retrait
+  // echoue c'est deja le verrou — autant le dire tout de suite.
+  if (fs.existsSync(pdf)) {
+    try { fs.unlinkSync(pdf); } catch (e) {
+      console.error(`— PDF NON RENDU : le tirage precedent ne peut pas etre remplace (${e.code}). ` +
+        'Sous Windows, un PDF ouvert dans une visionneuse VERROUILLE le fichier : le navigateur ' +
+        'echouerait a l\'ecrire sans le dire, et la relecture porterait sur l\'ancien tirage. ' +
+        `Fermer la visionneuse et rejouer. HTML ecrit : ${out}`);
+      process.exit(1);
+    }
+  }
+  const r = spawnSync(navigateur, ['--headless=new', '--disable-gpu', '--no-pdf-header-footer',
+    `--print-to-pdf=${pdf}`, out], { encoding: 'utf-8', timeout: 120000 });
+  const verif = spawnSync(process.execPath, [rel('oracles', 'verifier-pdf.mjs'), pdf,
+    '--format', 'A4', '--apres', String(lancement), '--source', out, '--json-only'],
+    { encoding: 'utf-8' });
+  let rapport = null;
+  try { rapport = JSON.parse((verif.stdout || '').trim()); } catch { /* illisible : traite plus bas */ }
+  if (!rapport || rapport.verdict !== 'PASS') {
+    console.error(`— PDF REFUSE (${rapport ? rapport.verdict : 'oracle illisible'}) : ` +
+      (rapport ? rapport.findings.filter((f) => f.statut === 'FAIL').map((f) => `${f.regle} ${f.message}`).join(' | ')
+               : (verif.stdout || verif.stderr || '').slice(0, 300)) +
+      (r.status ? ` [moteur d'impression : code ${r.status}]` : ''));
+    process.exit(1);
+  }
+  const ok = rapport.findings.filter((f) => f.statut === 'PASS').map((f) => f.regle).join('+');
+  console.log(`✔ fiche sécurité (PDF) → ${pdf}  [relu dans le fichier : ${ok}]`);
+}

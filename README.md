@@ -55,6 +55,17 @@ node tools/merge-packs.mjs   --iso-test                           # preuve d'iso
 node tools/init-audit-workspace.mjs <dossier> --tenant exemple    # espace de travail d'audit
 node tools/forge-adapter.mjs tests/fixtures/remediation-actions.example.yaml --out <repo-cible>
 node tools/build-kit.mjs     config/tenants/exemple/tenant.yaml --kind both # kits zip distribuables
+node tools/build-fiche.mjs   config/tenants/exemple/tenant.yaml --produit <racine>  # fiche securite : HTML **ET PDF**
+#   les DEUX formats dans la MEME passe (TF-0506) : le catalogue en declare deux, un jeu incomplet
+#   ne se remet pas — c'est le commanditaire qui avait du reclamer le PDF le 22/08. Rendu par le
+#   moteur d'impression du navigateur du poste (Edge sinon Chrome), la feuille de style du gabarit
+#   faisant foi pour les marges. Aucune dependance, aucun binaire embarque.
+#   `--sans-pdf` assume l'ecart et le DIT ; sans navigateur : code 3 et motif ecrit, jamais un
+#   PASS silencieux.
+node oracles/verifier-pdf.mjs <fichier.pdf> --format A4 --apres <ms> --source <html>
+#   ON RELIT LE FICHIER, ON NE CROIT PAS LA COMMANDE. P1 complet (%%EOF) · P2 format lu dans
+#   /MediaBox · P3 pages comptees · P4 FRAICHEUR — c'est P4 qui attrape le verrou Windows, ou une
+#   visionneuse ouverte fait echouer l'ecriture EN SILENCE et laisse revalider l'ancien tirage.
 node tools/build-catalogue.mjs config/tenants/exemple/tenant.yaml           # catalogue ADR navigable (M7)
 node tools/build-rapport.mjs <rapport-data.json> --tenant config/tenants/exemple/tenant.yaml # rendu rapport (M5)
 #   --kind compliance : la part du PROJET AUDITÉ (contraintes fusionnées, banc, vérificateur AUTONOME,
