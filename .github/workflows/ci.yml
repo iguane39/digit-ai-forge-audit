@@ -87,4 +87,8 @@ jobs:
         run: npm ci || npm install
 
       - name: Batterie des oracles (62 tests — projet, rendu du rapport, porte de clôture)
-        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-rapport-html.test.mjs
+        # TF-0553 (24/08) : les DEUX ensembles etaient disjoints DANS LES DEUX SENS. La CI jouait
+        # sept fichiers d'oracles, le `npm test` local en jouait deux AUTRES — build-fiche-destination
+        # et verifier-pdf n'etaient donc joues par AUCUNE chaine automatique. Ils entrent ici, et le
+        # `npm test` local rejoue desormais ce workflow au lieu d'en tenir sa propre liste.
+        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/build-fiche-destination.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-pdf.test.mjs tests/oracles/verifier-rapport-html.test.mjs
