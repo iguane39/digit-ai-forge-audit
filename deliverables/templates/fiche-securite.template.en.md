@@ -36,7 +36,16 @@
 | Identity provider | {{auth.idp}} |
 | MFA | {{auth.mfa — activé/non}} |
 | Test accounts | {{auth.comptes_test — nombre, portée, expiration}} |
-| Authorization model | {{auth.rbac — rôles, granularité}} |
+| Authorization model | {{auth.rbac — rôles, granularité, ou « aucun rôle, aucune granularité » }} |
+| **Population actually admitted** | {{auth.population_admise — WHO gets in, and HOW MANY: "tenant staff (N)", "any account from the identity provider, guests included (N of which M guests)"… }} |
+| **Effective access restriction** | {{auth.restriction — role assignment required yes/no · allow-list populated yes/no and its content · or "none: any authenticated account gets in" }} |
+| **External / guest accounts in scope** | {{auth.invites — count as of the sheet's date, and the command or screen that produced it }} |
+
+> **Authenticating is not being admitted.** The three bold fields exist because a sheet once told
+> the truth and conveyed a falsehood: "single-tenant identity provider, sign-in required" read as
+> "restricted audience" while role assignment was off, allow-lists empty, and 3,128 directory guest
+> accounts admitted on the same footing as staff. A control mechanism is described by WHAT IT LETS
+> THROUGH, counted; "no restriction" is a valid answer and a finding for the report, never a blank.
 
 ## Data
 
@@ -63,6 +72,26 @@
 - {{durcissement.puce_2 — ex. scan de dépendances vulnérables en CI}}
 - {{durcissement.puce_3 — ex. en-têtes de sécurité HTTP, limitation de débit}}
 - Remaining work: {{durcissement.gaps}}
+
+## Service commitment
+
+| Field | Value |
+|---|---|
+| Nature of the value | {{sla.nature — "objective" (targeted, not binding) or "commitment" (binding) }} |
+| Availability | {{sla.disponibilite}} |
+| Recovery time (RTO) | {{sla.rto — value, and its nature: target or commitment}} |
+| Tolerated data loss (RPO) | {{sla.rpo — value, and its nature: target or commitment}} |
+| Outage on each release | {{sla.coupure_livraison — duration, or "unknown"; never "none" without a measurement}} |
+| Evidence it is attainable | {{sla.preuve — service plan, instance count, zone redundancy, deployment slots; THIS line is what licenses the word "commitment"}} |
+| Approved by | {{sla.valide_par — who, when}} |
+
+> **A commitment with no architectural evidence making it attainable is a mis-named objective.**
+> This section exists because a sheet recorded "99.5 % availability, commitments approved by the
+> owner, therefore binding" for a single-instance service with no zone redundancy and no deployment
+> slot: every release restarted the only container. The commitment was not attainable, and nothing
+> had required citing the measurement that would have shown it. **A target and a one-off measurement
+> never mix** — "recovery targeted at 2-4 min" and "45 s observed on one failover" are two
+> sentences, two rows, two natures.
 
 ## Contacts
 

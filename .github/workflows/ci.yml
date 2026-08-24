@@ -63,6 +63,11 @@ jobs:
       # Le rendu produit passe son PROPRE gate : contrat de restitution (vues appariées au
       # sommaire, KPI complets, manifeste d'écarts, tableaux longs filtrables) ET moteur JS
       # compilé, exécuté, chaque vue pilotée. Un rendu qui casse au clic sort 1 ici.
+      - name: Parité FR/EN des gabarits (TF-0563 — un champ d'un seul côté est un champ absent)
+        run: |
+          node oracles/verifier-parite-gabarits.mjs --self-test
+          node oracles/verifier-parite-gabarits.mjs
+
       - name: Gate de rendu du rapport (restitution + moteur exécuté)
         run: node tools/verifier-rapport-html.mjs /tmp/rapport.html
 
