@@ -115,3 +115,105 @@ test("l'auto-test interne détecte une règle non conforme sans action de reméd
   assert.equal(g.status, 1, 'incohérence interne non détectée');
   assert.match(g.stderr, /auto-test interne/);
 });
+
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+// TF-0624 et TF-0625 (lot bourse-aux-vacants du 25/08/2026) — LA COHÉRENCE DU PLAN.
+//
+// Le fait mesuré par le produit : un plan annonçait 64 actions pour 33 distinctes, onze paires
+// disant exactement la même chose. La porte machine a rendu « CONFORME — rapport diffusable » :
+// son périmètre est la FORME, et le plan est une DONNÉE destinée à être consommée par le projet.
+//
+// Les deux sens sont joués sur la logique elle-même, extraite du moteur, plutôt que sur un
+// rapport complet : une fixture de rapport à 64 actions coûterait cher à maintenir et prouverait
+// moins — ce qu'on veut savoir est si le seuil trie juste, et il se mesure sur des textes.
+// ─────────────────────────────────────────────────────────────────────────────────────────────
+const moteur = fs.readFileSync(path.join(ROOT, 'tools', 'rapport-engine.mjs'), 'utf8');
+
+/** Extrait les trois fonctions du moteur et les rend jouables ici — un seul jeu de règles. */
+const logiqueCoherence = () => {
+  const debut = moteur.indexOf('function motsUtiles(');
+  const fin = moteur.indexOf('function auditSelfTest(');
+  assert.ok(debut > 0 && fin > debut, 'les fonctions de cohérence doivent vivre dans le moteur');
+  const src = moteur.slice(debut, fin);
+  // eslint-disable-next-line no-new-func
+  return new Function(src + '\nreturn { coherencePlan, recouvrement, SEUIL_REDITE, SEUIL_REDITE_MEME_DOMAINE };')();
+};
+
+test('TF-0624 rouge — deux actions au texte quasi identique sont SIGNALÉES', () => {
+  const { coherencePlan } = logiqueCoherence();
+  const e = coherencePlan([
+    { id: 'REM-D01-01', action: 'Placer le front derriere un WAF' },
+    { id: 'REM-ADR0307', action: 'Placer le front derriere un WAF (Application Gateway ou Front Door)' },
+  ]);
+  assert.ok(e.length >= 1, 'la redite doit être signalée');
+  assert.match(e[0], /REM-D01-01 ~ REM-ADR0307/, 'les deux identifiants doivent être nommés');
+  assert.match(e[0], /DEUX CHARGES/, 'le motif doit dire ce que le doublon coûte');
+});
+
+test('TF-0624 vert — deux actions RÉELLEMENT différentes ne sont pas rapprochées', () => {
+  const { coherencePlan } = logiqueCoherence();
+  const e = coherencePlan([
+    { id: 'REM-A', action: 'Placer le front derriere un pare-feu applicatif' },
+    { id: 'REM-B', action: 'Documenter les durees de conservation des journaux applicatifs' },
+  ]);
+  assert.equal(e.length, 0, 'un rapprochement à tort ferait ignorer le contrôle : ' + e.join(' | '));
+});
+
+test('TF-0624 — les DEUX seuils viennent de la mesure, et l écart mince est la raison du second', () => {
+  const { recouvrement, SEUIL_REDITE, SEUIL_REDITE_MEME_DOMAINE } = logiqueCoherence();
+  assert.equal(SEUIL_REDITE, 0.45, 'le seuil global mesuré ne doit pas dériver sans mesure');
+  assert.equal(SEUIL_REDITE_MEME_DOMAINE, 0.25, 'le seuil intra-domaine mesuré ne doit pas dériver sans mesure');
+
+  // Les quatre paires que le produit cite comme redites RÉELLES, mesurées avec cette tokenisation.
+  const vraies = [
+    ['Placer le front derriere un WAF', 'Placer le front derriere un WAF (Application Gateway ou Front Door)'],
+    ['Implementer la purge automatique des donnees', 'Specifier les durees de conservation et implementer une purge automatique'],
+    ['Nommer un Data Owner pour chaque domaine', 'Designer un Data Owner par domaine de donnees'],
+    ['Alimenter la CMDB', 'Alimenter la CMDB depuis le referentiel dinventaire'],
+  ].map(([a, b]) => recouvrement(a, b));
+  assert.ok(Math.min(...vraies) >= SEUIL_REDITE_MEME_DOMAINE,
+    'toutes les redites réelles doivent franchir le seuil intra-domaine : ' + vraies.join(', '));
+
+  // LE PIÈGE MESURÉ, et la raison pour laquelle un seuil unique bas serait faux : deux actions du
+  // MÊME sujet et pourtant distinctes. Il doit rester SOUS le seuil intra-domaine.
+  const piege = recouvrement('Chiffrer les donnees au repos', 'Chiffrer les echanges en transit');
+  assert.ok(piege < SEUIL_REDITE_MEME_DOMAINE, 'le piège « au repos / en transit » doit rester sous le seuil (' + piege + ')');
+  assert.ok(piege < Math.min(...vraies), 'l écart entre la plus faible vraie et la pire fausse justifie deux seuils');
+
+  const etranger = recouvrement('Placer le front derriere un WAF', 'Nommer un Data Owner pour chaque domaine');
+  assert.equal(etranger, 0, 'deux sujets étrangers ne partagent aucun vocabulaire plein');
+});
+
+test('TF-0625 — une redite DANS LE MÊME domaine est dite à part : c est le cas le plus fréquent', () => {
+  const { coherencePlan } = logiqueCoherence();
+  const e = coherencePlan([
+    { id: 'REM-D05-01', domaine: 'D05', action: 'Nommer un Data Owner pour chaque domaine' },
+    { id: 'REM-ADR0601', domaine: 'D05', action: 'Designer un Data Owner par domaine de donnees' },
+  ]);
+  assert.ok(e.some((m) => /MEME domaine/.test(m)), 'le cas le plus fréquent doit être distingué : ' + e.join(' | '));
+  assert.ok(e.some((m) => /CONSTAT de dimension/.test(m)), 'le geste qui répare doit être nommé');
+});
+
+test('TF-0625 — deux actions du MÊME sujet mais distinctes ne sont PAS rapprochées, même dans un domaine', () => {
+  const { coherencePlan } = logiqueCoherence();
+  const e = coherencePlan([
+    { id: 'REM-D03-01', domaine: 'D03', action: 'Chiffrer les donnees au repos' },
+    { id: 'REM-D03-02', domaine: 'D03', action: 'Chiffrer les echanges en transit' },
+  ]);
+  assert.equal(e.length, 0, 'le piège mesuré ne doit pas être signalé : ' + e.join(' | '));
+});
+
+test('TF-0625 — un plan SAIN ne produit aucun constat : un contrôle qui crie toujours se fait ignorer', () => {
+  const { coherencePlan } = logiqueCoherence();
+  const e = coherencePlan([
+    { id: 'REM-1', domaine: 'D01', action: 'Placer le front derriere un pare-feu applicatif' },
+    { id: 'REM-2', domaine: 'D04', action: 'Specifier les durees de conservation des journaux' },
+    { id: 'REM-3', domaine: 'D12', action: 'Alimenter la base de configuration depuis le referentiel' },
+  ]);
+  assert.equal(e.length, 0, 'aucun constat attendu sur un plan sain : ' + e.join(' | '));
+});
+
+test('TF-0625 — le contrôle est CÂBLÉ à l auto-test dont la porte hérite du verdict', () => {
+  assert.match(moteur, /coherencePlan\(p\)\.forEach/,
+    'un contrôle que l auto-test n appelle pas est un contrôle que la porte ne verra jamais');
+});

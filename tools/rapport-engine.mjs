@@ -934,6 +934,82 @@ var REMEDIATION_PLAN=buildRemediationPlan();
 try{window.REMEDIATION_PLAN=REMEDIATION_PLAN;}catch(_){}
 /* ECR-02 check 9 — AUTO-TEST INTERNE. Le gate externe hérite de son verdict : tout
    contrôle ajouté ici est couvert automatiquement, sans toucher au vérificateur. */
+/* TF-0624 et TF-0625 (lot bourse-aux-vacants du 25/08/2026) — LA COHERENCE DU PLAN.
+
+   LE FAIT MESURE PAR LE PRODUIT : un plan annoncait 64 actions, il en contenait 33 DISTINCTES.
+   ONZE PAIRES disaient exactement la meme chose, sept autres se recouvraient partiellement. La
+   cause est structurelle : le plan concatene les plan_action des dimensions ET les remediations
+   des ADR non conformes, en attribuant un identifiant a chacune — deux textes identiques
+   produisent deux identifiants, deux lignes, deux charges.
+
+   CE QUE LE DOUBLE COMPTAGE COUTE, et ce n'est pas cosmetique : la charge est FAUSSE (deux
+   actions Terraform a 8 jours pour une seule chose a faire) ; le suivi de cloture devient
+   intenable, puisqu'il exige une preuve par identifiant et refuse une remediation pourtant FAITE
+   si une seule des deux lignes est cochee ; et le doublon est INVISIBLE a la lecture, le tri par
+   priorite eloignant les deux lignes l'une de l'autre.
+
+   POURQUOI CE CONTROLE VIT ICI. La porte machine a raison de ne juger que la FORME — et elle a
+   deja eu raison contre un auditeur, refusant un nombre de bloquants saisi a 6 quand le moteur en
+   calculait 7. Mais le plan de remediation est une DONNEE PRODUITE par le rapport et destinee a
+   etre CONSOMMEE par le projet : le gabarit l'ecrit lui-meme, « le projet recupere la remediation
+   exhaustive sans export manuel ». Une donnee destinee a etre consommee merite un controle de
+   COHERENCE, pas seulement de forme.
+
+   IL NE DECIDE PAS A LA PLACE DE L'AUDITEUR : il refuse de laisser passer EN SILENCE ce qu'une
+   machine sait voir. Le seuil de 45 % de recouvrement de vocabulaire vient de la mesure du
+   produit — il a trouve les onze paires exactes SANS un seul faux positif sur ce rapport. */
+function motsUtiles(t){
+ var bruts=String(t||'').toLowerCase().split(/[^a-z0-9]+/), mots=[], i;
+ for(i=0;i<bruts.length;i++){ if(bruts[i].length>=5 && mots.indexOf(bruts[i])<0) mots.push(bruts[i]); }
+ return mots;
+}
+function recouvrement(a,b){
+ /* Jaccard sur les mots pleins. Le vocabulaire de metier est partage par tout le plan, donc un
+    recouvrement bas ne dit rien — c'est le seuil, mesure, qui tranche. */
+ var ma=motsUtiles(a), mb=motsUtiles(b), communs=0, i;
+ if(!ma.length || !mb.length) return 0;
+ for(i=0;i<ma.length;i++) if(mb.indexOf(ma[i])>=0) communs++;
+ return communs/(ma.length+mb.length-communs);
+}
+/* LES DEUX SEUILS VIENNENT DE LA MESURE, ET IL EN FAUT DEUX. Les cinq paires que le produit a
+   citees comme redites reelles rendent, avec cette tokenisation, 0.600 / 0.429 / 0.333 / 0.333 /
+   0.250 ; les quatre paires temoins construites comme pieges rendent 0.000 / 0.000 / 0.000 /
+   0.200 — la derniere etant « chiffrer au repos » contre « chiffrer en transit », deux actions du
+   MEME sujet et pourtant distinctes. L'ecart entre la plus faible vraie (0.250) et la pire fausse
+   (0.200) est donc trop MINCE pour un seuil unique : le poser a 0.22 attraperait le piege.
+
+   D'ou deux seuils, et le second ne vaut que la ou la probabilite a priori est bien plus haute :
+     · TOUTE paire, seuil 0.45 — la redite est manifeste, le texte est quasi le meme ;
+     · paire du MEME DOMAINE, seuil 0.25 — c'est le cas que le produit decrit comme « le plus
+       frequent ici, et le plus mecaniquement detectable » : une action de dimension qui redit la
+       remediation d un ADR de la meme dimension. Dans un domaine, deux textes qui se recouvrent a
+       un quart parlent presque toujours de la meme chose.
+
+   CE QUI N EST PAS ATTRAPE, et c'est declare : une redite entre domaines DIFFERENTS au recouvrement
+   faible. Baisser le seuil global pour l'attraper ferait entrer le piege mesure, et un controle
+   bruyant se fait contourner au lieu d'etre corrige. */
+var SEUIL_REDITE=0.45;
+var SEUIL_REDITE_MEME_DOMAINE=0.25;
+function domaineDe(a){ return String(a.domaine||a.source||'').slice(0,3); }
+function coherencePlan(p){
+ var e=[], i, j, franches=[], memeDomaine=[], texte=function(a){return String(a.action||'')+' '+String(a.titre||'');};
+ for(i=0;i<p.length;i++) for(j=i+1;j<p.length;j++){
+  var r=recouvrement(texte(p[i]),texte(p[j]));
+  var da=domaineDe(p[i]), db=domaineDe(p[j]);
+  var pct=Math.round(r*100);
+  if(r>=SEUIL_REDITE) franches.push(p[i].id+' ~ '+p[j].id+' ('+pct+' %)');
+  else if(da && db && da===db && r>=SEUIL_REDITE_MEME_DOMAINE) memeDomaine.push(p[i].id+' ~ '+p[j].id+' ('+pct+' %)');
+ }
+ if(franches.length) e.push(franches.length+' paire(s) d actions se redisent (recouvrement >= 45 %) : '+franches.slice(0,5).join(' · ')
+  +'. Deux actions au texte quasi identique produisent deux identifiants, deux lignes et DEUX CHARGES ;'
+  +' le suivi de cloture exige alors une preuve par identifiant et refuse une remediation pourtant faite'
+  +' si une seule des deux lignes est cochee. Rapprocher, ou dire pourquoi les deux sont distinctes.');
+ if(memeDomaine.length) e.push(memeDomaine.length+' redite(s) probable(s) DANS LE MEME domaine (recouvrement >= 25 %) : '
+  +memeDomaine.slice(0,5).join(' · ')+'. C est le cas le plus frequent et le plus mecaniquement detectable :'
+  +' une action de dimension qui redit la remediation d un ADR de la MEME dimension. Un ecart ADR se reporte'
+  +' en CONSTAT de dimension, pas en action du plan — sans quoi la dimension et son ADR facturent deux fois.');
+ return e;
+}
 function auditSelfTest(){
  var e=[], d=__auditJson('audit-selftest-data')||{}, p=buildRemediationPlan();
  var calc=(d.dimensions_nogo||[]).length? 'NO-GO' : ((d.bloquants||[]).length? 'GO SOUS RÉSERVE':'GO');
@@ -946,6 +1022,7 @@ function auditSelfTest(){
  if((d.analyses_sans_version||[]).length)
   e.push('inventaire ANALYSES: '+d.analyses_sans_version.length+' entree(s) sans version utilisee — outillage non execute, ou revue humaine mal rangee (deplacer en constat de dimension)');
  if((d.vues||[]).length<2) e.push('restitution: moins de deux vues declarees — une restitution ne se lit pas a plat');
+ coherencePlan(p).forEach(function(m){e.push(m);});
  return {ok:e.length===0, errors:e};
 }
 </script></body></html>`;
