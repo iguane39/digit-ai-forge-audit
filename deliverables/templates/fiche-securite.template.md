@@ -1,4 +1,14 @@
 <!-- AuditCore template v1 — généré pour {{tenant.name}} via la config ; ne pas éditer les livrables produits à la main -->
+<!-- UN GABARIT EST UN LIVRABLE : il suit la règle des versions datées (TF-0697, 27/08/2026).
+     Corriger un gabarit se fait en CRÉANT une version datée (`…-AAAAMMJJa`) ; la précédente reste
+     INTACTE, parce que des livrables déjà remis s'y réfèrent et qu'une correction rétroactive
+     réécrirait leur histoire. Rien dans cette famille ne le rappelait, et le réflexe naturel est
+     de l'éditer en place — c'est pour cela que le rappel est ici, dans le fichier qu'on ouvre
+     pour le modifier, et pas dans une note que personne ne relit. -->
+<!-- DEUX SORTIES, ET LE PDF EST IMPRIMÉ (TF-0700) : `.html` de référence + `.pdf` de diffusion,
+     ce dernier IMPRIMÉ depuis le HTML (`node fiche-en-pdf.mjs <fiche.html>`), JAMAIS capturé, et
+     du MÊME INDICE que lui. Porte avant diffusion : `node oracles/verifier-fiche-securite.mjs
+     <fiche.html>` → exit 0. -->
 
 # {{tenant.name}} — Fiche sécurité de mise à disposition — {{projet.nom}} — {{date}}{{indice}}
 
@@ -11,12 +21,20 @@
 | Champ | Valeur |
 |---|---|
 | Projet / application | {{projet.nom}} |
-| Porteur | {{porteur.nom}} ({{porteur.email}}) |
+| Porteur (construit) | {{porteur.nom}} ({{porteur.email}}) |
+| **Business Owner (valide)** | {{business_owner.nom — QUI VALIDE la mise à disposition. Si c'est le porteur lui-même, l'ÉCRIRE : « même personne que le porteur » }} |
 | Direction / équipe | {{porteur.direction}} |
 | Type de solution | {{projet.type}} *(web-app · api · data · mobile · ml · infra)* |
 | Environnement concerné | {{environnement.label}} ({{environnement.code}}) |
 | Date de mise à disposition | {{date}} |
 | URL / point d'accès | {{environnement.url}} |
+
+> **Porteur et Business Owner ne se remplissent pas à l'identique en silence.** Quand les deux
+> rôles sont tenus par la même personne, il n'y a AUCUNE relecture croisée entre construire et
+> valider — c'est un fait que le responsable sécurité doit LIRE, pas déduire en comparant deux
+> lignes. La phrase a dû être ajoutée à la main sur une fiche livrée le 27/08/2026 ; le canevas
+> pose désormais la question. « Même personne » est une réponse valide, et c'est un constat à
+> porter au rapport, jamais une case à laisser vide.
 
 ## Exposition
 

@@ -15,9 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Node 22 (LTS) et non 20 : le tirage PDF de la fiche securite pilote le moteur
+      # d impression par le protocole DevTools, qui passe par un WebSocket. Node 22 lexpose
+      # nativement ; sur Node 20 il faut --experimental-websocket, et lauto-test se degraderait
+      # en SKIP MOTIVE — la mesure de preferCSSPageSize ne serait plus jouee en integration,
+      # donc plus protegee. Un controle saute nest pas un controle vert.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Dépendances outillage
         run: npm ci || npm install
@@ -68,6 +73,16 @@ jobs:
           node oracles/verifier-parite-gabarits.mjs --self-test
           node oracles/verifier-parite-gabarits.mjs
 
+      # TF-0701 : le rapport d'audit avait une porte bloquante, la fiche sécurité n'en avait
+      # aucune — alors que ses règles écrites sont mécaniques, et que ce qui est DIFFUSÉ (le PDF)
+      # n'était relu par personne. TF-0700 : le PDF doit être IMPRIMÉ, jamais capturé, et le
+      # drapeau `preferCSSPageSize` est mesuré par l'auto-test (sans lui, le @page du gabarit est
+      # jeté). Les deux auto-tests portent leurs fixtures rouge ET verte.
+      - name: Portes de la fiche sécurité (auto-tests à double sens — TF-0700 / TF-0701)
+        run: |
+          node oracles/verifier-fiche-securite.mjs --self-test
+          node tools/fiche-en-pdf.mjs --self-test
+
       - name: Gate de rendu du rapport (restitution + moteur exécuté)
         run: node tools/verifier-rapport-html.mjs /tmp/rapport.html
 
@@ -84,16 +99,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Node 22 (LTS) et non 20 : le tirage PDF de la fiche securite pilote le moteur
+      # d impression par le protocole DevTools, qui passe par un WebSocket. Node 22 lexpose
+      # nativement ; sur Node 20 il faut --experimental-websocket, et lauto-test se degraderait
+      # en SKIP MOTIVE — la mesure de preferCSSPageSize ne serait plus jouee en integration,
+      # donc plus protegee. Un controle saute nest pas un controle vert.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Dépendances outillage
         run: npm ci || npm install
 
-      - name: Batterie des oracles (62 tests — projet, rendu du rapport, porte de clôture)
+      - name: Batterie des oracles (94 tests — projet, rendu du rapport, porte de clôture)
         # TF-0553 (24/08) : les DEUX ensembles etaient disjoints DANS LES DEUX SENS. La CI jouait
         # sept fichiers d'oracles, le `npm test` local en jouait deux AUTRES — build-fiche-destination
         # et verifier-pdf n'etaient donc joues par AUCUNE chaine automatique. Ils entrent ici, et le
         # `npm test` local rejoue desormais ce workflow au lieu d'en tenir sa propre liste.
-        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/build-fiche-destination.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-pdf.test.mjs tests/oracles/verifier-rapport-html.test.mjs
+        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/build-fiche-destination.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/fiche-securite.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-pdf.test.mjs tests/oracles/verifier-rapport-html.test.mjs

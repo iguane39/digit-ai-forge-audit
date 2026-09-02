@@ -1,4 +1,13 @@
 <!-- AuditCore template v1 — generated for {{tenant.name}} via the config; do not manually edit the produced deliverables -->
+<!-- A TEMPLATE IS A DELIVERABLE: it follows the dated-version rule (TF-0697, 27/08/2026).
+     Fixing a template means CREATING a dated version (`…-YYYYMMDDa`); the previous one stays
+     INTACT, because already-delivered artefacts refer to it and a retroactive fix would rewrite
+     their history. Nothing in this family used to say so, and the natural reflex is to edit it
+     in place — hence the reminder here, in the very file one opens to change it. -->
+<!-- TWO OUTPUTS, AND THE PDF IS PRINTED (TF-0700): `.html` of record + `.pdf` for distribution,
+     the latter PRINTED from the HTML (`node fiche-en-pdf.mjs <sheet.html>`), NEVER captured, and
+     carrying the SAME INDEX. Gate before release: `node oracles/verifier-fiche-securite.mjs
+     <sheet.html>` → exit 0. -->
 
 # {{tenant.name}} — Deployment Security Sheet — {{projet.nom}} — {{date}}{{indice}}
 
@@ -11,12 +20,19 @@
 | Field | Value |
 |---|---|
 | Project / application | {{projet.nom}} |
-| Owner | {{porteur.nom}} ({{porteur.email}}) |
+| Owner / builder | {{porteur.nom}} ({{porteur.email}}) |
+| **Business Owner (approves)** | {{business_owner.nom — WHO APPROVES the deployment. If this is the owner themselves, WRITE IT: "same person as the owner" }} |
 | Department / team | {{porteur.direction}} |
 | Solution type | {{projet.type}} *(web-app · api · data · mobile · ml · infra)* |
 | Environment | {{environnement.label}} ({{environnement.code}}) |
 | Deployment date | {{date}} |
 | URL / access point | {{environnement.url}} |
+
+> **Owner and Business Owner must not be filled in identically in silence.** When one person
+> holds both roles, there is NO cross-review between building and approving — a fact the security
+> officer must READ, not infer by comparing two lines. The sentence had to be added by hand to a
+> sheet delivered on 27/08/2026; the canvas now asks the question. "Same person" is a valid
+> answer, and it is a finding for the report — never a field left blank.
 
 ## Exposure
 
