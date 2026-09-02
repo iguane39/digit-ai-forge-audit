@@ -17,6 +17,10 @@
 //   4. le livrable porte `<meta name="destinataire" content="humain">` — sans quoi R-2 ne le voit
 //      pas, et son mauvais rangement passe inaperçu par construction.
 //
+// Ce test porte sur les DESTINATIONS, pas sur l'impression : il passe donc --sans-pdf partout
+// (02/09/2026). Sans lui, une batterie de destinations echouerait sur un poste sans navigateur —
+// un test qui exige autre chose que ce qu'il pretend juger est un test qui ment sur son motif.
+// Le tirage PDF, lui, est juge par tests/oracles/fiche-securite.test.mjs.
 // Lancer : node --test tests/oracles/build-fiche-destination.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -59,14 +63,16 @@ test('--produit rend dans la famille NN-audit d\'output\\, et RIEN d\'autre n\'a
   try {
     fs.mkdirSync(path.join(prod, 'output', '01-revues'), { recursive: true });
     const avantForge = fichiers(path.join(RACINE, 'deliverables', 'generated'));
-    const r = lancer('--produit', prod);
+    const r = lancer('--produit', prod, '--sans-pdf');
     assert.equal(r.status, 0, `exit ${r.status} : ${r.stderr}`);
 
     const produits = fichiers(prod).filter(f => f.endsWith('.html'));
     assert.equal(produits.length, 1, `${produits.length} fichier(s) HTML — un seul livrable attendu`);
     // `01-revues` occupe le 01 : la famille prend le premier numéro libre, et pas un numéro fixe.
-    assert.match(produits[0].split(path.sep).join('/'), /^output\/02-audit\/fiche-securite-acme\.html$/,
-      `rendu à « ${produits[0]} » — attendu sous output/NN-audit/`);
+    // Le nom porte son JOUR et son INDICE depuis TF-0693 : quatre écrasements du même nom en
+    // 80 minutes, dont deux poussés, avaient été payés sur un produit faute de cette lettre.
+    assert.match(produits[0].split(path.sep).join('/'), /^output\/02-audit\/fiche-securite-acme-\d{8}[a-z]\.html$/,
+      `rendu à « ${produits[0]} » — attendu sous output/NN-audit/, daté et indicé`);
     assert.deepEqual(fichiers(path.join(RACINE, 'deliverables', 'generated')), avantForge,
       'le dépôt de la forge a reçu quelque chose alors que la cible est le produit');
   } finally { fs.rmSync(prod, { recursive: true, force: true }); }
@@ -77,7 +83,7 @@ test('une famille NN-audit EXISTANTE est réutilisée — un numéro local ne se
   try {
     // 07 est un numéro arbitraire déjà attribué : le générateur doit le RETROUVER, pas en créer un.
     fs.mkdirSync(path.join(prod, 'output', '07-audit'), { recursive: true });
-    const r = lancer('--produit', prod);
+    const r = lancer('--produit', prod, '--sans-pdf');
     assert.equal(r.status, 0, `exit ${r.status} : ${r.stderr}`);
     const produits = fichiers(prod).filter(f => f.endsWith('.html'));
     assert.match(produits[0].split(path.sep).join('/'), /^output\/07-audit\//,
@@ -89,7 +95,7 @@ test('le livrable porte la marque de destinataire — sans elle, R-2 ne le voit 
   const prod = fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-prod-'));
   try {
     const cible = path.join(prod, 'fiche.html');
-    const r = lancer('--out', cible);
+    const r = lancer('--out', cible, '--sans-pdf');
     assert.equal(r.status, 0, `exit ${r.status} : ${r.stderr}`);
     const html = fs.readFileSync(cible, 'utf8');
     assert.match(html, /<meta\s+name="destinataire"\s+content="humain">/,
@@ -101,7 +107,7 @@ test('--out reste honoré tel quel : build-kit.mjs en dépend', () => {
   const prod = fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-prod-'));
   try {
     const cible = path.join(prod, 'sous', 'dossier', 'fiche-securite.html');
-    const r = lancer('--out', cible);
+    const r = lancer('--out', cible, '--sans-pdf');
     assert.equal(r.status, 0, `exit ${r.status} : ${r.stderr}`);
     assert.ok(fs.existsSync(cible), '--out non honoré — build-kit.mjs rendrait dans le vide');
   } finally { fs.rmSync(prod, { recursive: true, force: true }); }
