@@ -33,7 +33,12 @@ run([rel('tools', 'build-banc.mjs'), path.resolve(tenantYaml), '--out', path.joi
 run([rel('tools', 'build-theme.mjs'), path.resolve(tenantYaml), '--out', path.join(tmp, 'theme')]);
 run([rel('tools', 'build-catalogue.mjs'), path.resolve(tenantYaml), '--out', path.join(tmp, 'catalogue-adr.html')]);
 run([rel('tools', 'build-referentiel.mjs'), path.resolve(tenantYaml), '--out', path.join(tmp, 'referentiel-audit.html')]);
-run([rel('tools', 'build-fiche.mjs'), path.resolve(tenantYaml), '--out', path.join(tmp, 'fiche-securite.html')]);
+// `--sans-pdf` ASSUMÉ ici, et c'est le seul endroit où il l'est : ce qui entre dans le kit est le
+// SQUELETTE de la fiche, pas une fiche diffusable — un tirage PDF d'un document plein de
+// placeholders n'a pas de destinataire, et il coûterait un lancement de navigateur à chaque
+// fabrication de kit. Le kit emporte en revanche l'OUTIL d'impression (`fiche-en-pdf.mjs`) : le
+// PDF se tire chez le projet audité, sur la fiche REMPLIE, au moment où elle part.
+run([rel('tools', 'build-fiche.mjs'), path.resolve(tenantYaml), '--out', path.join(tmp, 'fiche-securite.html'), '--sans-pdf']);
 const merged = loadJson(path.join(tmp, 'merged.json'));
 
 // ── 2. Vérificateur AUTONOME (dimensions inlinées, zéro import hors node:fs)
@@ -192,15 +197,24 @@ Au **projet audité** : équipe de développement, agent IA codeur, pipeline CI.
    \`id · statut (PASS|FAIL|N-A|A-REVOIR) · preuve · dimension_audit\`. **Aucun PASS sans preuve.**
 2. Le \`banc-de-preuves.md\` donne, règle par règle : Actions d'audit · Preuve attendue · Grille de verdict
    (avec l'instanciation du profil technologique quand elle existe).
-3. Fiche sécurité : compléter \`fiche-securite.template.md\`.
+3. Fiche sécurité : compléter \`fiche-securite.template.md\`. **DEUX sorties** — \`.html\` de
+   référence et \`.pdf\` de diffusion, ce dernier IMPRIMÉ depuis le HTML par
+   \`node fiche-en-pdf.mjs <fiche.html>\` (jamais capturé) et de MÊME INDICE que lui.
 4. Avant diffusion d'un rapport : \`node verifier-rapport-standalone.mjs <rapport-data.json>\` → exit 0.
-5. Thème : \`theme/theme.css\` + \`theme/header.html\` (généré depuis la charte ${tenant}).
+5. Avant diffusion de la fiche sécurité : \`node oracles/verifier-fiche-securite.mjs <fiche.html>\`
+   → exit 0 (porte bloquante, symétrique de celle du rapport — cf. §6 du skill de conformité).
+6. Thème : \`theme/theme.css\` + \`theme/header.html\` (généré depuis la charte ${tenant}).
 `);
     add('constraints-merged.json', F(path.join(tmp, 'merged.json')));
     add('banc-de-preuves.md', F(path.join(tmp, 'banc-de-preuves.md')));
     add('verifier-rapport-standalone.mjs', verifierStandalone);
     add('compliance-skill.md', complianceSkill);
     add('fiche-securite.template.md', F(rel('deliverables', 'templates', 'fiche-securite.template.md')));
+    // TF-0700 : le kit fournissait le CANEVAS de la fiche et aucun moyen de produire le format
+    // REELLEMENT DIFFUSE. L'outil d'impression part donc avec lui — sinon le PDF se refait a la
+    // main, et le 24/07 il a ete CAPTURE en image : 0 caractere extractible, muet pour un lecteur
+    // d'ecran, et d'un indice anterieur au HTML depose a cote.
+    add('fiche-en-pdf.mjs', F(rel('tools', 'fiche-en-pdf.mjs')));
     add('theme/theme.css', F(path.join(tmp, 'theme', 'theme.css')));
     add('theme/header.html', F(path.join(tmp, 'theme', 'header.html')));
     addOracles();
@@ -231,6 +245,7 @@ est le kit « Compliance Pack » généré séparément (\`--kind compliance\`).
     add('catalogue-adr.html', F(path.join(tmp, 'catalogue-adr.html')));
     add('referentiel-audit.html', F(path.join(tmp, 'referentiel-audit.html')));
     add('fiche-securite.html', F(path.join(tmp, 'fiche-securite.html')));
+    add('fiche-en-pdf.mjs', F(rel('tools', 'fiche-en-pdf.mjs')));
     add('dimensions.yaml', F(rel('core', 'dimensions', 'dimensions.yaml')));
     add('theme/theme.css', F(path.join(tmp, 'theme', 'theme.css')));
     add('theme/header.html', F(path.join(tmp, 'theme', 'header.html')));
