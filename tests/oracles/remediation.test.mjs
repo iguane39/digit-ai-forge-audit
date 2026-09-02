@@ -117,7 +117,7 @@ test("l'auto-test interne détecte une règle non conforme sans action de reméd
 });
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────
-// TF-0624 et TF-0625 (lot bourse-aux-vacants du 25/08/2026) — LA COHÉRENCE DU PLAN.
+// TF-0624 et TF-0625 (lot Produit-11 du 25/08/2026) — LA COHÉRENCE DU PLAN.
 //
 // Le fait mesuré par le produit : un plan annonçait 64 actions pour 33 distinctes, onze paires
 // disant exactement la même chose. La porte machine a rendu « CONFORME — rapport diffusable » :

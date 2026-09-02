@@ -934,7 +934,7 @@ var REMEDIATION_PLAN=buildRemediationPlan();
 try{window.REMEDIATION_PLAN=REMEDIATION_PLAN;}catch(_){}
 /* ECR-02 check 9 — AUTO-TEST INTERNE. Le gate externe hérite de son verdict : tout
    contrôle ajouté ici est couvert automatiquement, sans toucher au vérificateur. */
-/* TF-0624 et TF-0625 (lot bourse-aux-vacants du 25/08/2026) — LA COHERENCE DU PLAN.
+/* TF-0624 et TF-0625 (lot Produit-11 du 25/08/2026) — LA COHERENCE DU PLAN.
 
    LE FAIT MESURE PAR LE PRODUIT : un plan annoncait 64 actions, il en contenait 33 DISTINCTES.
    ONZE PAIRES disaient exactement la meme chose, sept autres se recouvraient partiellement. La
