@@ -1,0 +1,17 @@
+table Client
+
+	measure 'Montant HT' = SUM(Ventes[montant_ht])
+		formatString: #,0.00
+
+	column client_sk
+		dataType: int64
+
+	column livreur_sk
+		dataType: int64
+
+	column statut
+		dataType: string
+
+	partition Client = m
+		mode: directQuery
+		source = "silver.clients"

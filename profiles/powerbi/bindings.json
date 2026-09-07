@@ -1,18 +1,18 @@
 {
   "profile": "powerbi",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Instanciation des contrôles de modélisation et de gouvernance de la restitution (modèle sémantique en étoile, source unique, homogénéité des modes de stockage, gouvernance de la certification, dimension de temps) ainsi que des contrôles d'accessibilité des rapports (D11) sur la plateforme Power BI.",
   "bindings": [
     {
       "control": "CTL-D16-01",
       "instanciation": "Le modèle sémantique en étoile (tables de faits et de dimensions) du jeu de données est documenté dans la vue Modèle de Power BI Desktop et tenu à jour à chaque publication ; sa structure est confrontée aux métadonnées réelles exposées par le point de terminaison XMLA du service.",
-      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_TABLES ; SELECT * FROM $SYSTEM.TMSCHEMA_RELATIONSHIPS (via DAX Studio ou SSMS connecté au XMLA endpoint de l'espace de travail Premium/Fabric) — comparer avec le diagramme du modèle documenté.",
+      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_TABLES ; SELECT * FROM $SYSTEM.TMSCHEMA_RELATIONSHIPS (via DAX Studio ou SSMS connecté au XMLA endpoint de l'espace de travail Premium/Fabric) — comparer avec le diagramme du modèle documenté. ; sur fichiers TMDL (projet PBIP, sans XMLA) : node oracles/verifier-modele-semantique.mjs --modele <dossier definition/> — règle MS1 (TF-0862)",
       "evidence": "Capture de la vue Modèle (diagramme étoile) + export des DMV TMSCHEMA_TABLES/TMSCHEMA_RELATIONSHIPS pour comparaison."
     },
     {
       "control": "CTL-D16-02",
       "instanciation": "Les relations entre tables de faits et de dimensions du modèle en étoile sont déclarées explicitement (cardinalité, sens de filtrage), actives et non ambiguës ; aucune jointure logique (colonne clé partagée) ne reste sans relation modélisée.",
-      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_RELATIONSHIPS WHERE IsActive = 1 ; règles BPA via Tabular Editor : TabularEditor.exe <model> -R BPARules_relationships.json -A",
+      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_RELATIONSHIPS WHERE IsActive = 1 ; règles BPA via Tabular Editor : TabularEditor.exe <model> -R BPARules_relationships.json -A ; sur fichiers TMDL : verifier-modele-semantique.mjs — règle MS3 (relations vers colonnes existantes, une seule active par paire, bidirectionnel signalé) (TF-0862)",
       "evidence": "Export DMV TMSCHEMA_RELATIONSHIPS (cardinalité, sens de filtrage) + rapport Best Practice Analyzer signalant les relations inactives ou ambiguës."
     },
     {
@@ -24,13 +24,13 @@
     {
       "control": "CTL-D05-04",
       "instanciation": "La table de dimension de temps (calendrier) du modèle sémantique est marquée comme table de dates, contiguë sans trou et à grain unique (jour) ; cette qualité est vérifiée par des règles automatisées plutôt que par une revue ponctuelle.",
-      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_TABLES WHERE DataCategory = 'Time' ; requête DAX de contrôle sur la table Calendrier pour détecter les trous de séquence ; règle BPA dédiée via Tabular Editor.",
+      "verification_command": "DMV : SELECT * FROM $SYSTEM.TMSCHEMA_TABLES WHERE DataCategory = 'Time' ; requête DAX de contrôle sur la table Calendrier pour détecter les trous de séquence ; règle BPA dédiée via Tabular Editor. ; sur fichiers TMDL : verifier-modele-semantique.mjs — règle MS4 (dataCategory: Time + colonne isKey) (TF-0862)",
       "evidence": "Extrait DMV confirmant le marquage DataCategory=Time + résultat de la requête DAX de contrôle de contiguïté du calendrier."
     },
     {
       "control": "CTL-D01-03",
       "instanciation": "Le mode de stockage retenu par table du modèle composite (Import, DirectQuery, Dual) est conforme à un standard interne déclaré (ex. Import par défaut, DirectQuery réservé aux besoins de fraîcheur quasi temps réel, Dual pour les dimensions partagées) ; tout mélange incohérent au sein d'un même modèle est identifié et justifié.",
-      "verification_command": "DMV : SELECT [Name], [Mode] FROM $SYSTEM.TMSCHEMA_PARTITIONS — relever le mode de stockage par table/partition et le confronter au standard déclaré.",
+      "verification_command": "DMV : SELECT [Name], [Mode] FROM $SYSTEM.TMSCHEMA_PARTITIONS — relever le mode de stockage par table/partition et le confronter au standard déclaré. ; sur fichiers TMDL : verifier-modele-semantique.mjs — règle MS5 (mode déclaré par partition, hétérogénéité signalée) (TF-0862)",
       "evidence": "Standard interne des modes de stockage documenté + export DMV TMSCHEMA_PARTITIONS avec le mode effectif par table, écarts justifiés."
     },
     {

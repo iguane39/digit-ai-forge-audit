@@ -21,6 +21,7 @@ l'environnement déployé le prouve.
 | `verifier-couverture-fonctionnelle.mjs` | inventaire fonctionnel → **matrice de couverture** | ✓ adossé à build/lint/unit seul, endpoint orphelin, régression de ratchet |
 | `verifier-roundtrip.mjs` | **régénérer reproduit** la version validée à l'identique | delta manqué, placeholder résiduel |
 | `maj-versions.mjs` | fraîcheur des dépendances **pilotée par driver** | (rapport d'inventaire, exit 0) |
+| `verifier-modele-semantique.mjs` | **modèle sémantique Power BI jugé sur ses fichiers TMDL** (projet PBIP) — mesure définie une fois, relations non ambiguës, table de dates marquée, mode de stockage déclaré, rôles de sécurité (MS1-MS6, mécanise CTL-D16-01/02, CTL-D05-02/04/10/13/14, CTL-D01-03 sans point de terminaison XMLA — TF-0862) | mesure dupliquée, deux relations actives sur une paire, table de dates absente, partition sans mode |
 
 Chacun documente son usage complet dans son en-tête. Tous écrivent un JSON structuré
 (`schema: auditcore.<domaine>/vN`) exploitable par le rapport d'audit.

@@ -1,0 +1,7 @@
+relationship ventes-calendrier
+	fromColumn: Ventes.date_sk
+	toColumn: Calendrier.date_sk
+
+relationship ventes-client
+	fromColumn: Ventes.client_sk
+	toColumn: Client.client_sk
