@@ -40,6 +40,21 @@ for (const r of data.regles ?? []) {
   if (r.verdict === 'a_evaluer' && !r.motif) errors.push(`règle ${r.id}: a_evaluer exige un motif spécifique (à rendre rare)`);
 }
 
+// 3 bis. Couverture (D-7 (a), 10/09/2026) : une règle non conforme ou partielle peut être COUVERTE par
+// une autre — même remédiation, une seule action au plan. Le déclaratif est vérifié ici, pas
+// deviné : porteuse existante, non couverte elle-même, portant un écart ; couverte portant un écart.
+const regleParId = Object.fromEntries((data.regles ?? []).map(r => [r.id, r]));
+const PORTE_ECART = (r) => r && (r.verdict === 'non_conforme' || r.verdict === 'partiel');
+for (const r of data.regles ?? []) {
+  if (!r.couverte_par) continue;
+  const p = regleParId[r.couverte_par];
+  if (!p) errors.push(`règle ${r.id}: couverte_par ${r.couverte_par} — règle inconnue`);
+  else if (p.id === r.id) errors.push(`règle ${r.id}: se déclare couverte par elle-même`);
+  else if (p.couverte_par) errors.push(`règle ${r.id}: couverte_par ${p.id}, elle-même couverte par ${p.couverte_par} — une chaîne de couverture n'a pas de porteuse`);
+  else if (!PORTE_ECART(p)) errors.push(`règle ${r.id}: couverte_par ${p.id} dont le verdict « ${p.verdict} » ne porte aucune action — la couverture effacerait l'écart`);
+  else if (!PORTE_ECART(r)) errors.push(`règle ${r.id}: verdict « ${r.verdict} » — seule une règle non conforme ou partielle se déclare couverte`);
+}
+
 // 4. Traçabilité : tout constat référence ≥1 preuve ; toute action référence règle ou constat
 for (const c of data.constats ?? []) if (!c.preuves?.length) errors.push(`constat « ${c.titre} »: aucune preuve (evidence-based fichier:ligne)`);
 for (const a of data.actions ?? []) if (!a.adr?.length && !a.constat_ref) errors.push(`action « ${a.titre} »: orpheline (ni règle ni constat)`);

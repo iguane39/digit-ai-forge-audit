@@ -419,8 +419,32 @@ export function buildPlan(data) {
     });
   });
   // 2 · règles non conformes ou partielles — jamais écartées silencieusement
-  (data.regles ?? []).filter(r => r.verdict === 'non_conforme' || r.verdict === 'partiel').forEach(r => {
+  //
+  // D-7 (a), décision humaine du 10/09/2026 — UNE ACTION PEUT COUVRIR PLUSIEURS RÈGLES. Le fait
+  // qui l'a imposée : un rapport de référence jugeait 69 ADR, le modèle courant juge 175 règles
+  // dérivées de ces ADR ; en descendant les verdicts, 24 règles non conformes ressortaient derrière
+  // 13 ADR, et le plan portait 18 paires d'actions au TEXTE IDENTIQUE — le contrôle de cohérence
+  // ci-dessous (TF-0624) les refusait à raison comme doubles charges, et il n'existait aucun moyen
+  // de DÉCLARER qu'une seule remédiation répond à plusieurs règles. Une règle porte désormais
+  // `couverte_par: "<id>"` : elle n'engendre pas sa propre action, et l'action de la règle porteuse
+  // NOMME les règles couvertes (`couvre`, colonne Source du plan, `covers` du YAML). Rien n'est
+  // écarté en silence : une règle couverte par une règle absente du plan (conforme, inconnue, ou
+  // elle-même couverte) GARDE sa propre action — la couverture est un déclaratif vérifié par le
+  // gate machine (verifier-rapport.mjs), jamais un effacement.
+  const ecartsRegles = (data.regles ?? []).filter(r => r.verdict === 'non_conforme' || r.verdict === 'partiel');
+  const ecartParId = Object.fromEntries(ecartsRegles.map(r => [r.id, r]));
+  const couvertesPar = new Map();
+  for (const r of ecartsRegles) {
+    const p = r.couverte_par;
+    if (!p || p === r.id || !ecartParId[p] || ecartParId[p].couverte_par) continue;
+    if (!couvertesPar.has(p)) couvertesPar.set(p, []);
+    couvertesPar.get(p).push(r.id);
+  }
+  const estCouverte = (r) => Boolean(r.couverte_par) && (couvertesPar.get(r.couverte_par) ?? []).includes(r.id);
+  ecartsRegles.filter(r => !estCouverte(r)).forEach(r => {
+    const couvre = couvertesPar.get(r.id) ?? [];
     brut.push({
+      couvre,
       dim: dimOfRule(r, index),
       id_force: null,
       action: r.possible ?? r.remediation ?? `Mettre en conformité ${r.id}`,
@@ -467,6 +491,7 @@ export function planToActions(plan, data, coreVersion) {
       id: a.id,
       title: a.titre.slice(0, 120),
       control_ref: a.source_type === 'regle' ? a.source : `dimension:${a.source}`,
+      ...((a.couvre ?? []).length ? { covers: a.couvre } : {}),
       severity: SEV_OK.has(a.severite) ? a.severite : 'Standard',
       priority: PRIO_OK.has(a.priorite) ? a.priorite : 'norm',
       ...(a.effort && a.effort !== '—' ? { effort: a.effort } : {}),
@@ -621,7 +646,7 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
     thead: `<tr><th>ID</th><th>${L.action}</th><th>${L.prio}</th><th>${L.effort}</th><th>${L.source}</th><th>${L.critere}</th></tr>`,
     tbody: plan.map(a => `<tr><td><code>${esc(a.id)}</code></td><td>${esc(a.action)}</td>
       <td>${badge(`t-${esc(a.priorite)}`, a.priorite, T.t.priorite)}</td><td>${esc(a.effort)}</td>
-      <td><code>${esc(a.source)}</code></td><td>${esc(a.verification)}</td></tr>`).join(''),
+      <td><code>${esc(a.source)}</code>${(a.couvre ?? []).length ? ` <span class="muted small">(couvre ${esc(a.couvre.join(', '))})</span>` : ''}</td><td>${esc(a.verification)}</td></tr>`).join(''),
   })}` : '';
 
   // ── VUE « Données analysées ». Sémantique opposable (règle 18) : ANALYSES = outillage
@@ -1018,7 +1043,7 @@ function auditSelfTest(){
  var sansCritere=p.filter(function(a){return /\\{\\{/.test(String(a.action)+' '+String(a.verification));});
  if(sansCritere.length) e.push(sansCritere.length+' action(s) de remediation sans critere de cloture: '+sansCritere.map(function(a){return a.id;}).join(', '));
  (d.regles_non_conformes||[]).forEach(function(id){
-  if(!p.some(function(a){return a.source===id;})) e.push('regle non conforme sans action de remediation: '+id);});
+  if(!p.some(function(a){return a.source===id || (a.couvre||[]).indexOf(id)>=0;})) e.push('regle non conforme sans action de remediation: '+id);});
  if((d.analyses_sans_version||[]).length)
   e.push('inventaire ANALYSES: '+d.analyses_sans_version.length+' entree(s) sans version utilisee — outillage non execute, ou revue humaine mal rangee (deplacer en constat de dimension)');
  if((d.vues||[]).length<2) e.push('restitution: moins de deux vues declarees — une restitution ne se lit pas a plat');
