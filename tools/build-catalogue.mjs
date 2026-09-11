@@ -19,7 +19,7 @@ const { cfg, tenantDir } = loadTenant(tenantYaml);
 const outIdx = process.argv.indexOf('--out');
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-// ── corpus : parse frontmatter + titre + extraits des 65 ADRs
+// ── corpus : parse frontmatter + titre + extraits des 84 ADRs
 const adrs = [];
 for (const dom of fs.readdirSync(rel('core', 'adr')).sort()) {
   const dd = rel('core', 'adr', dom);

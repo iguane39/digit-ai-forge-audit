@@ -568,6 +568,78 @@
         "ISO/IEC 27018:2019",
         "DAMA-DMBOK2 — Ch.7 (sécurité des données)"
       ]
+    },
+    {
+      "id": "CTL-D05-17",
+      "adr_source": [
+        "ADR0623"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Each data exchange flow into or out of the application carries a name compliant with the documented flow naming convention, and no active flow stays outside the convention.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Extract the inventory of the application's active flows from the tool that runs them, then verify each name against the versioned convention through an automated check or a traced review.",
+      "preuve_attendue": "Versioned flow naming convention + inventory of active flows extracted from the execution tool + result of the name compliance check.",
+      "grille_verdict": "compliant = 100% of active flows compliant with the convention ; partial = convention published but compliance partial or check not replayed ; non-compliant = no documented convention, or a majority of flows outside it",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the list of the application's active inbound and outbound flows from the tool that runs them.",
+        "Verify each name against the versioned convention and record the non-conforming flows.",
+        "If gap: rename the non-conforming flows under a migration plan, or retire the flows that have become orphans."
+      ],
+      "derogation": null,
+      "standards": [
+        "to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D05-18",
+      "adr_source": [
+        "ADR0624"
+      ],
+      "dimension_audit": "D05",
+      "regle": "The ingestion chains that feed the application are defined by a versioned declarative artifact, carrying the dependencies between datasets and the quality expectations, and promoted by the delivery pipeline.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify that each ingestion chain has a definition artifact versioned in the repository, that this artifact declares dependencies and quality expectations, and that its go-live goes through the delivery pipeline rather than direct configuration in the tool.",
+      "preuve_attendue": "Versioned ingestion chain definition artifacts + declared quality expectations + evidence of promotion through the delivery pipeline.",
+      "grille_verdict": "compliant = 100% of ingestion chains declared, versioned and promoted by the delivery pipeline, quality expectations present ; partial = versioned declaration without quality expectations, or partial coverage ; non-compliant = ingestion configured outside version control, or unreviewed imperative scripts",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "List the ingestion chains feeding the application and locate their definition artifact in the repository.",
+        "Verify the presence of declared dependencies and quality expectations in each artifact.",
+        "If gap: move the missing definition to versioned declarative form and have it promoted by the delivery pipeline."
+      ],
+      "derogation": null,
+      "standards": [
+        "to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"
+      ],
+      "a_completer": true
     }
   ]
 }

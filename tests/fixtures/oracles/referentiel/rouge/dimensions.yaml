@@ -1,0 +1,12 @@
+# FIXTURE ROUGE (synthétique) — D02 est APPLICABLE et n'a aucune doctrine : c'est le défaut que
+# la règle RF1 doit attraper, en NOMMANT la dimension. D17 est sans objet partout : son absence
+# de doctrine ne doit produire AUCUN constat (sinon le juge crie sur ce qui n'est pas jugeable).
+pack: fixture-rouge
+project_types: [web-app, api, data, mobile, ml, infra]
+dimensions:
+  - { id: D00, label: "Dimension applicable complète", family: fonctionnel,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D02, label: "Dimension applicable sans doctrine", family: securite,
+      applicability: { web-app: full, api: partial, data: off, mobile: off, ml: off, infra: off } }
+  - { id: D17, label: "Dimension sans objet partout", family: securite,
+      applicability: { web-app: off, api: off, data: off, mobile: off, ml: off, infra: off } }

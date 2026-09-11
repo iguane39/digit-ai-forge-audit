@@ -1,0 +1,10 @@
+# FIXTURE VERTE (synthétique) — toutes les dimensions applicables portent une doctrine.
+pack: fixture-verte
+project_types: [web-app, api, data, mobile, ml, infra]
+dimensions:
+  - { id: D00, label: "Dimension applicable complète", family: fonctionnel,
+      applicability: { web-app: full, api: full, data: full, mobile: full, ml: full, infra: full } }
+  - { id: D01, label: "Dimension partiellement applicable, complète", family: architecture,
+      applicability: { web-app: partial, api: off, data: full, mobile: off, ml: partial, infra: off } }
+  - { id: D17, label: "Dimension sans objet partout", family: securite,
+      applicability: { web-app: off, api: off, data: off, mobile: off, ml: off, infra: off } }

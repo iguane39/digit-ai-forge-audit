@@ -568,6 +568,78 @@
         "ISO/IEC 27018:2019",
         "DAMA-DMBOK2 — Ch.7 (sécurité des données)"
       ]
+    },
+    {
+      "id": "CTL-D05-17",
+      "adr_source": [
+        "ADR0623"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Chaque flux d'échange de données entrant ou sortant de l'application porte un nom conforme à la convention de nommage des flux documentée, et aucun flux actif ne reste hors convention.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Extraire l'inventaire des flux actifs de l'application depuis l'outil qui les exécute, puis vérifier la conformité de chaque nom à la convention versionnée par un contrôle automatisé ou une revue tracée.",
+      "preuve_attendue": "Convention de nommage des flux versionnée + inventaire des flux actifs extrait de l'outil d'exécution + résultat du contrôle de conformité des noms.",
+      "grille_verdict": "conforme = 100 % des flux actifs conformes à la convention ; partiel = convention publiée mais conformité partielle ou contrôle non rejoué ; non conforme = aucune convention documentée, ou majorité de flux hors convention",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire la liste des flux actifs entrants et sortants de l'application depuis l'outil qui les exécute.",
+        "Vérifier la conformité de chaque nom à la convention versionnée et relever les flux hors convention.",
+        "Si écart : renommer les flux non conformes selon un plan de migration, ou retirer les flux devenus orphelins."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D05-18",
+      "adr_source": [
+        "ADR0624"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Les chaînes d'ingestion qui alimentent l'application sont définies par un artefact déclaratif versionné, portant les dépendances entre jeux de données et les attentes de qualité, et promu par la chaîne de livraison.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier que chaque chaîne d'ingestion possède un artefact de définition versionné dans le dépôt, que cet artefact déclare les dépendances et les attentes de qualité, et que sa mise en service passe par la chaîne de livraison plutôt que par une configuration directe dans l'outil.",
+      "preuve_attendue": "Artefacts de définition des chaînes d'ingestion versionnés + attentes de qualité déclarées + trace de promotion par la chaîne de livraison.",
+      "grille_verdict": "conforme = 100 % des chaînes d'ingestion déclarées, versionnées et promues par la chaîne de livraison, attentes de qualité présentes ; partiel = déclaration versionnée sans attentes de qualité, ou couverture partielle ; non conforme = ingestion configurée hors versionnement, ou scripts impératifs non revus",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Lister les chaînes d'ingestion alimentant l'application et localiser leur artefact de définition dans le dépôt.",
+        "Vérifier la présence des dépendances déclarées et des attentes de qualité dans chaque artefact.",
+        "Si écart : porter la définition manquante en déclaratif versionné et la faire promouvoir par la chaîne de livraison."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
     }
   ]
 }

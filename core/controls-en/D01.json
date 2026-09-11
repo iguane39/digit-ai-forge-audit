@@ -567,6 +567,44 @@
         "ISO/IEC 25010:2023 — portabilité",
         "ISO/IEC 19941:2017"
       ]
+    },
+    {
+      "id": "CTL-D01-16",
+      "adr_source": [
+        "ADR0709"
+      ],
+      "dimension_audit": "D01",
+      "regle": "The languages and application frameworks used by the application appear in the standardized technology list in force; any deviation carries a justified, dated waiver with a review deadline.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Extract the technologies actually used from the repository's dependency manifests and build files, then compare them against the versioned standardized list; for each deviation, require the corresponding waiver.",
+      "preuve_attendue": "Versioned standardized technology list + inventory of technologies extracted from the repository manifests + dated waivers with deadlines.",
+      "grille_verdict": "compliant = all technologies used appear in the list, or are covered by a waiver still valid ; partial = waiver present but with no deadline, or list not versioned ; non-compliant = technology outside the list with no waiver",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extract the repository's dependency manifests and build files; draw up the inventory of languages and frameworks used.",
+        "Compare that inventory against the standardized technology list in force and record every deviation.",
+        "If gap: issue or renew the justified, dated waiver with a deadline, or plan convergence."
+      ],
+      "derogation": null,
+      "standards": [
+        "to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"
+      ],
+      "a_completer": true
     }
   ]
 }

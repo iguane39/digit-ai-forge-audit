@@ -148,6 +148,28 @@
       ],
       "derogation": null,
       "standards": ["DORA (Accelerate) — Time to Restore Service (MTTR)", "ISO/IEC 27002:2022 — 5.30"]
+    },
+    {
+      "id": "CTL-D09-08",
+      "adr_source": ["ADR0510"],
+      "dimension_audit": "D09",
+      "regle": "Les mises en production de l'application passent par un emplacement de préproduction vérifié hors trafic puis une bascule, et le retour arrière est la bascule inverse, éprouvée.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'existence et la configuration de l'emplacement de préproduction, la trace horodatée des dernières bascules, et la preuve d'un retour arrière réellement joué par bascule inverse.",
+      "preuve_attendue": "Configuration de l'emplacement de préproduction + journal horodaté des dernières bascules + trace d'un retour arrière joué (date, durée, résultat).",
+      "grille_verdict": "conforme = emplacement configuré, bascules tracées et retour arrière éprouvé ≤ 12 mois ; partiel = emplacement configuré mais retour arrière jamais joué ; non conforme = déploiement en place sur l'instance en service",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api"], "defaut": "applicable" },
+      "actions_audit": [
+        "Relever la configuration de l'emplacement de préproduction et le journal horodaté des dernières bascules.",
+        "Demander la trace du dernier retour arrière joué par bascule inverse et le temps mesuré.",
+        "Si écart : outiller la bascule depuis la chaîne de livraison et planifier l'exercice de retour arrière manquant."
+      ],
+      "derogation": null,
+      "a_completer": true,
+      "standards": ["à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"]
     }
   ]
 }

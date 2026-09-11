@@ -33,10 +33,12 @@ Le catalogue consolidé des dix forges vit chez le pilot :
 auditcore/
 ├── docs/decisions/          # ADRs du produit (PADR — décisions actées)
 ├── core/                    # LA couche générique invariante, versionnée
-│   ├── adr/<domaine>/       # 75 ADR de principe (MADR), 10 domaines (09 UX optionnel) — + miroir EN adr-en/
-│   ├── controls/            # 175 contrôles CTL-Dxx-nn (+ pack EN controls-core-v1.en.json)
+│   ├── adr/<domaine>/       # 84 ADR de principe (MADR), 10 domaines (09 UX optionnel) — + miroir EN adr-en/
+│   ├── controls/            # 184 contrôles CTL-Dxx-nn (+ pack EN controls-core-v1.en.json)
 │   ├── dimensions/          # 18 dimensions D00–D17, 6 familles, applicabilité par type
-│   └── schemas/             # JSON Schemas : tenant, contrôle, actions de remédiation
+│   │                        #   + doctrine.yaml : thèmes de périmètre, types de preuve, livrables,
+│   │                        #     barème par dimension (pack adjacent, doctrine-ecarts.md pour le reste)
+│   └── schemas/             # JSON Schemas : tenant, contrôle, doctrine, actions de remédiation
 ├── profiles/                # packs technologiques (azure, databricks-lakehouse, powerbi, elastic,
 │                             #   policy-as-code — démonstrateur OPA/Rego sur 3 contrôles, TF-0110)
 ├── config/tenants/<tenant>/ # overlays entreprise (branding, packs, aliases) — exemple = ACME fictif
@@ -86,6 +88,13 @@ node oracles/verifier-pdf.mjs <fichier.pdf> --format A4 --apres <ms> --source <h
 #   ON RELIT LE FICHIER, ON NE CROIT PAS LA COMMANDE. P1 complet (%%EOF) · P2 format lu dans
 #   /MediaBox · P3 pages comptees · P4 FRAICHEUR — c'est P4 qui attrape le verrou Windows, ou une
 #   visionneuse ouverte fait echouer l'ecriture EN SILENCE et laisse revalider l'ancien tirage.
+node tools/importer-doctrine.mjs <ref-donnees.json> --ecart <ecart.json>   # (re)génère core/dimensions/doctrine.yaml
+#   PSEUDONYMISE à l'import (commanditaire, éditeurs, produits → la fonction remplie) et REFUSE
+#   d'écrire un pack qui porterait encore un nom interdit. Ce qui ne s'apparie pas sort dans
+#   core/dimensions/doctrine-ecarts.md, avec son motif — rien n'y est deviné.
+node tools/verifier-referentiel.mjs                                        # juge du référentiel (PASS/FAIL, exit 0/1)
+#   RÈGLE UNIQUE : une dimension APPLICABLE sans thème, sans preuve ET sans livrable rend le
+#   référentiel incomplet — elle est NOMMÉE. Non enregistré en CI à ce jour (voir doctrine-ecarts.md).
 node tools/build-catalogue.mjs config/tenants/exemple/tenant.yaml           # catalogue ADR navigable (M7)
 node tools/build-rapport.mjs <rapport-data.json> --tenant config/tenants/exemple/tenant.yaml # rendu rapport (M5)
 #   --kind compliance : la part du PROJET AUDITÉ (contraintes fusionnées, banc, vérificateur AUTONOME,

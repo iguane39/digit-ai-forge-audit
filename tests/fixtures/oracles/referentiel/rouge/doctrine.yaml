@@ -1,0 +1,24 @@
+# FIXTURE ROUGE — seule D00 porte une doctrine. D02 (applicable) n'en a aucune : FAIL attendu,
+# dimension nommée. D17 (sans objet partout) n'en a aucune non plus : aucun constat attendu.
+pack: doctrine-v1
+adosse_a: fixture-rouge
+genere_par: fixture
+source:
+  nature: "fixture synthétique de test, aucune donnée réelle"
+  empreinte_sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  pseudonymisation: "sans objet : contenu inventé pour le test"
+comptes: { dimensions: 1, themes: 1, preuves: 1, livrables: 1 }
+dimensions:
+  D00:
+    libelle_courant: "Dimension applicable complète"
+    appariement: exact
+    themes:
+      - titre: "Premier thème de périmètre"
+        points: ["Un point observable"]
+    preuves:
+      - type: DOC
+        description: "Document attendu pour motiver la note"
+    livrables: ["Un livrable attendu en sortie d'audit"]
+    bareme:
+      "1": "Rien de ce qui est attendu n'existe."
+      "5": "État de l'art."

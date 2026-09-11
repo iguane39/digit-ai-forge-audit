@@ -333,6 +333,82 @@
         "RGPD — art. 5.1.e (limitation de la conservation)",
         "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)"
       ]
+    },
+    {
+      "id": "CTL-D15-10",
+      "adr_source": [
+        "ADR0627"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The applicability of the data-by-design principles to the project is determined by the declared criteria and recorded in writing; any exclusion from scope carries a reason and a date.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Verify the existence of versioned applicability criteria, the presence of an applicability record filled in and dated for the project, and the consistency between the declared criteria and the recorded decision.",
+      "preuve_attendue": "Versioned applicability criteria + project applicability record filled in and dated + exclusion reason where applicable.",
+      "grille_verdict": "compliant = applicability recorded, dated and consistent with the criteria ; partial = applicability recorded without a reason, or older than 12 months on a project that has evolved ; non-compliant = no traced applicability decision",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Retrieve the applicability criteria in force and the applicability record filled in for the project.",
+        "Verify the consistency between the criteria (nature of the data, exposure, criticality) and the recorded decision.",
+        "If gap: have the missing applicability decision issued and dated, with its reason."
+      ],
+      "derogation": null,
+      "standards": [
+        "to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D15-11",
+      "adr_source": [
+        "ADR0629"
+      ],
+      "dimension_audit": "D15",
+      "regle": "The project's data-by-design assessment concludes with a dated verdict — approval, conditional approval with deadlines, or refusal — issued by a named authority before go-live, and motivated by the score and by the fatal criteria.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Verify that the assessment record carries a dated verdict prior to go-live, issued by a named authority, motivated by the score and by the statement of fatal criteria, and that each reservation carries a deadline.",
+      "preuve_attendue": "Assessment record with score + statement of fatal criteria + verdict dated and signed by the named authority + reservations with deadlines.",
+      "grille_verdict": "compliant = dated verdict prior to go-live, motivated, reservations with deadlines ; partial = verdict issued but unmotivated, or reservations without deadlines ; non-compliant = no verdict, or a verdict later than go-live",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Retrieve the project's data-by-design assessment record and its dated verdict.",
+        "Verify that the verdict predates go-live, who issued it, its stated reason, and the deadline of each reservation.",
+        "If gap: have the missing verdict issued before the switch, or set deadlines on the reservations left open."
+      ],
+      "derogation": null,
+      "standards": [
+        "to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"
+      ],
+      "a_completer": true
     }
   ]
 }

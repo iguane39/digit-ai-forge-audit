@@ -567,6 +567,44 @@
         "ISO/IEC 25010:2023 — portabilité",
         "ISO/IEC 19941:2017"
       ]
+    },
+    {
+      "id": "CTL-D01-16",
+      "adr_source": [
+        "ADR0709"
+      ],
+      "dimension_audit": "D01",
+      "regle": "Les langages et cadres applicatifs employés par l'application figurent dans la liste technologique normalisée en vigueur ; tout écart porte une dérogation motivée, datée et assortie d'une échéance de revue.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Extraire les technologies réellement employées depuis les manifestes de dépendances et les fichiers de construction du dépôt, puis les confronter à la liste normalisée versionnée ; pour chaque écart, exiger la dérogation correspondante.",
+      "preuve_attendue": "Liste technologique normalisée versionnée + inventaire des technologies extraites des manifestes du dépôt + dérogations datées avec échéance.",
+      "grille_verdict": "conforme = toutes les technologies employées figurent dans la liste, ou sont couvertes par une dérogation en cours de validité ; partiel = dérogation présente mais sans échéance, ou liste non versionnée ; non conforme = technologie hors liste sans dérogation",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire les manifestes de dépendances et fichiers de construction du dépôt ; en dresser l'inventaire des langages et cadres employés.",
+        "Confronter cet inventaire à la liste technologique normalisée en vigueur et relever chaque écart.",
+        "Si écart : produire ou renouveler la dérogation motivée, datée et échéancée, ou planifier la convergence."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
     }
   ]
 }

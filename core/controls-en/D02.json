@@ -493,6 +493,44 @@
         "OWASP SAMM — Governance (Strategy & Metrics, Education & Guidance)",
         "NIST SSDF — PO.1/PO.2"
       ]
+    },
+    {
+      "id": "CTL-D02-14",
+      "adr_source": [
+        "ADR0307"
+      ],
+      "dimension_audit": "D02",
+      "regle": "The application's exposure path matches the one the exposure decision matrix prescribes for its criteria, and no exposure occurs directly from the zone hosting the workload.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Record the application's criteria (network egress, external partners, criticality, regulatory obligation), read the path the matrix associates with them, then compare it against the actual configuration of the entry points and the origin of inbound flows.",
+      "preuve_attendue": "Dated exposure matrix + criteria filled in for the application + actual configuration of the entry points (web application firewall, API gateway, network filtering, encryption in transit).",
+      "grille_verdict": "compliant = path consistent with the matrix and ingress from the dedicated connectivity zone ; partial = consistent path but application criteria not filled in the matrix ; non-compliant = direct exposure from the workload zone, or a divergent path with no justification",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Fill in the application's criteria in the exposure matrix and record the path it prescribes.",
+        "Compare against the actual configuration of the entry points and verify that no inbound flow starts from the workload zone.",
+        "If gap: move ingress back behind the prescribed control point, or justify and date the divergence."
+      ],
+      "derogation": null,
+      "standards": [
+        "to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"
+      ],
+      "a_completer": true
     }
   ]
 }

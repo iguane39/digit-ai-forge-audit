@@ -493,6 +493,44 @@
         "OWASP SAMM — Governance (Strategy & Metrics, Education & Guidance)",
         "NIST SSDF — PO.1/PO.2"
       ]
+    },
+    {
+      "id": "CTL-D02-14",
+      "adr_source": [
+        "ADR0307"
+      ],
+      "dimension_audit": "D02",
+      "regle": "La voie d'exposition de l'application correspond à celle que commande la matrice de décision d'exposition pour ses critères, et aucune exposition n'a lieu directement depuis la zone qui héberge la charge de travail.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Relever les critères de l'application (sortie réseau, partenaires externes, criticité, obligation réglementaire), lire la voie que la matrice leur associe, puis la confronter à la configuration réelle des points d'entrée et à l'origine des flux entrants.",
+      "preuve_attendue": "Matrice d'exposition datée + critères renseignés pour l'application + configuration réelle des points d'entrée (pare-feu applicatif web, passerelle d'API, filtrage réseau, chiffrement en transit).",
+      "grille_verdict": "conforme = voie conforme à la matrice et entrée depuis la zone de connectivité dédiée ; partiel = voie conforme mais critères de l'application non renseignés dans la matrice ; non conforme = exposition directe depuis la zone des charges de travail, ou voie divergente non justifiée",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Renseigner les critères de l'application dans la matrice d'exposition et relever la voie qu'elle commande.",
+        "Comparer à la configuration réelle des points d'entrée et vérifier qu'aucun flux entrant ne part de la zone des charges de travail.",
+        "Si écart : replacer l'entrée derrière le point de contrôle prescrit, ou motiver et dater la divergence."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
     }
   ]
 }

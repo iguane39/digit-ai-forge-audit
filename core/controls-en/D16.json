@@ -341,6 +341,80 @@
         "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
         "RGPD — art. 32.1.c"
       ]
+    },
+    {
+      "id": "CTL-D16-10",
+      "adr_source": [
+        "ADR0625"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Data belonging to the application resides in a declared application layer, distinct from the analytical refinement layers, and no application write is observed in the latter.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Read the layer map to identify the declared application layer, then record the writes actually performed by the application per layer (granted write permissions, objects created, access logs).",
+      "preuve_attendue": "Layer map with the application layer identified + inventory of the application's actual writes per layer (permissions, objects, logs).",
+      "grille_verdict": "compliant = all application writes in the declared application layer ; partial = layer declared but residual writes in an analytical layer ; non-compliant = no application layer declared, or direct writes into the analytical layers",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identify the declared application layer in the data layer map.",
+        "Record the application's write permissions and the objects it creates, layer by layer.",
+        "If gap: move the residual writes to the application layer and remove write permissions on the analytical layers."
+      ],
+      "derogation": null,
+      "standards": [
+        "to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D16-11",
+      "adr_source": [
+        "ADR0626"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Application persistence rests on a managed relational engine, with a versioned schema and replayable migrations; no low-code data platform holds production application data without a documented waiver.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventory the persistence foundations actually used by the application in production, verify that the schema and its migrations are versioned and replayable, and require a dated waiver for any non-relational or low-code foundation.",
+      "preuve_attendue": "Inventory of the application's persistence foundations + versioned schema migration history + dated waiver where applicable.",
+      "grille_verdict": "compliant = persistence on a managed relational engine, migrations versioned and replayable ; partial = compliant engine but migrations not versioned ; non-compliant = production persistence on a low-code platform with no waiver",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inventory the persistence foundations actually used by the application in production.",
+        "Verify that the schema and its migrations are versioned in the repository and replayable on a clean environment.",
+        "If gap: start the migration to a managed relational engine, or produce the justified, dated waiver."
+      ],
+      "derogation": null,
+      "standards": [
+        "to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"
+      ],
+      "a_completer": true
     }
   ]
 }

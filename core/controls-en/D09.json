@@ -148,6 +148,28 @@
       ],
       "derogation": null,
       "standards": ["DORA (Accelerate) — Time to Restore Service (MTTR)", "ISO/IEC 27002:2022 — 5.30"]
+    },
+    {
+      "id": "CTL-D09-08",
+      "adr_source": ["ADR0510"],
+      "dimension_audit": "D09",
+      "regle": "Releases of the application go through a pre-production slot verified off traffic and then a swap, and rollback is the reverse swap, proven.",
+      "criticite": "Majeur",
+      "profil": ["complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Verify the existence and configuration of the pre-production slot, the timestamped trace of the latest swaps, and the evidence of a rollback actually performed through the reverse swap.",
+      "preuve_attendue": "Pre-production slot configuration + timestamped log of the latest swaps + trace of a rollback performed (date, duration, result).",
+      "grille_verdict": "compliant = slot configured, swaps traced and rollback proven ≤ 12 months ; partial = slot configured but rollback never performed ; non-compliant = in-place deployment on the running instance",
+      "enforcement": "required",
+      "applicabilite": { "types": ["web-app", "api"], "defaut": "applicable" },
+      "actions_audit": [
+        "Record the pre-production slot configuration and the timestamped log of the latest swaps.",
+        "Request the trace of the last rollback performed through the reverse swap and the measured time.",
+        "If gap: tool the swap from the delivery pipeline and schedule the missing rollback exercise."
+      ],
+      "derogation": null,
+      "a_completer": true,
+      "standards": ["to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"]
     }
   ]
 }

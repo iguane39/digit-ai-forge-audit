@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "auditcore/doctrine.schema.json",
+  "title": "AuditCore doctrine pack (pack ADJACENT à dimensions.yaml : ce qui est regardé, exigé, rendu et noté par dimension)",
+  "description": "dimensions.yaml reste la source unique de l'IDENTITÉ d'une dimension (id, libellé, famille, applicabilité). Ce pack porte sa DOCTRINE : thèmes de périmètre, types de preuve, livrables attendus, barème 1-5. Il ne redéfinit jamais une identité et n'ajoute jamais une dimension.",
+  "type": "object",
+  "required": ["pack", "adosse_a", "genere_par", "source", "comptes", "dimensions"],
+  "properties": {
+    "pack": { "const": "doctrine-v1" },
+    "adosse_a": { "type": "string", "description": "pack de dimensions dont les identifiants font foi (ex. core-v1)" },
+    "invariant": { "type": "boolean", "description": "faux : la doctrine s'enrichit, seules les dimensions sont invariantes" },
+    "genere_par": { "type": "string" },
+    "genere_le": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "source": {
+      "type": "object",
+      "required": ["nature", "empreinte_sha256", "pseudonymisation"],
+      "properties": {
+        "nature": { "type": "string", "minLength": 10, "description": "nature de la source, JAMAIS son nom de fichier ni son commanditaire — ce dépôt est publiable" },
+        "empreinte_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$", "description": "empreinte de l'entrée : rend l'import rejouable et vérifiable sans embarquer la source" },
+        "pseudonymisation": { "type": "string", "minLength": 10 },
+        "mesures_confrontees": { "type": "string" }
+      }
+    },
+    "comptes": {
+      "type": "object",
+      "required": ["dimensions", "themes", "preuves", "livrables"],
+      "properties": {
+        "dimensions": { "type": "integer", "minimum": 0 },
+        "appariees_exact": { "type": "integer", "minimum": 0 },
+        "appariees_par_identifiant": { "type": "integer", "minimum": 0 },
+        "themes": { "type": "integer", "minimum": 0 },
+        "points_de_theme": { "type": "integer", "minimum": 0 },
+        "preuves": { "type": "integer", "minimum": 0 },
+        "livrables": { "type": "integer", "minimum": 0 },
+        "baremes": { "type": "integer", "minimum": 0 },
+        "ecarts": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "dimensions": {
+      "type": "object",
+      "description": "clé = identifiant de dimension du pack adossé (D00-D17)",
+      "propertyNames": { "pattern": "^D(0[0-9]|1[0-7])$" },
+      "additionalProperties": {
+        "type": "object",
+        "required": ["libelle_courant", "appariement", "themes", "preuves", "livrables", "bareme"],
+        "properties": {
+          "libelle_courant": { "type": "string", "minLength": 2, "description": "libellé porté par dimensions.yaml (autorité)" },
+          "libelle_source": { "type": "string", "description": "libellé porté par la référence importée, quand il diffère" },
+          "appariement": { "enum": ["exact", "par_identifiant"], "description": "exact = libellés identiques ; par_identifiant = même id, libellé généralisé côté pack courant. Aucun appariement par ressemblance." },
+          "famille_courante": { "type": "string" },
+          "description": { "type": "string" },
+          "raison_d_etre": { "type": "string" },
+          "themes": {
+            "type": "array",
+            "description": "thèmes de périmètre : CE QUI EST REGARDÉ dans cette dimension",
+            "items": {
+              "type": "object",
+              "required": ["titre"],
+              "properties": {
+                "titre": { "type": "string", "minLength": 3 },
+                "points": { "type": "array", "items": { "type": "string", "minLength": 3 } }
+              }
+            }
+          },
+          "preuves": {
+            "type": "array",
+            "description": "types de preuve : CE QUI EST EXIGÉ pour que la note soit motivée (invariant « pas de score sans preuve »)",
+            "items": {
+              "type": "object",
+              "required": ["type", "description"],
+              "properties": {
+                "type": { "type": "string", "pattern": "^[A-Z][A-Z0-9-]{1,15}$", "description": "nature de la preuve (DOC, CODE, GIT, CLOUD, CATALOGUE…), jamais un nom de produit" },
+                "description": { "type": "string", "minLength": 5 }
+              }
+            }
+          },
+          "livrables": {
+            "type": "array",
+            "description": "livrables attendus : CE QUI SORT de l'audit sur cette dimension",
+            "items": { "type": "string", "minLength": 5 }
+          },
+          "bareme": {
+            "type": "object",
+            "description": "barème 1-5 : comment chaque niveau se motive. Aligné sur scoring.scale de dimensions.yaml.",
+            "propertyNames": { "pattern": "^[1-5]$" },
+            "additionalProperties": { "type": "string", "minLength": 10 }
+          },
+          "a_completer": { "type": "boolean", "description": "vrai quand la doctrine importée est partielle et attend une rédaction humaine" }
+        }
+      }
+    }
+  }
+}

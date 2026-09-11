@@ -333,6 +333,82 @@
         "RGPD — art. 5.1.e (limitation de la conservation)",
         "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)"
       ]
+    },
+    {
+      "id": "CTL-D15-10",
+      "adr_source": [
+        "ADR0627"
+      ],
+      "dimension_audit": "D15",
+      "regle": "L'applicabilité des principes data by design au projet est déterminée par les critères déclarés et consignée par écrit ; toute exclusion du périmètre porte un motif et une date.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence de critères d'applicabilité versionnés, la présence d'une fiche d'applicabilité renseignée et datée pour le projet, et la cohérence entre les critères déclarés et la décision consignée.",
+      "preuve_attendue": "Critères d'applicabilité versionnés + fiche d'applicabilité du projet renseignée et datée + motif d'exclusion le cas échéant.",
+      "grille_verdict": "conforme = applicabilité consignée, datée et cohérente avec les critères ; partiel = applicabilité consignée sans motif, ou datée de plus de 12 mois sur un projet ayant évolué ; non conforme = aucune décision d'applicabilité tracée",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Récupérer les critères d'applicabilité en vigueur et la fiche d'applicabilité renseignée pour le projet.",
+        "Vérifier la cohérence entre les critères (nature des données, exposition, criticité) et la décision consignée.",
+        "Si écart : faire prononcer et dater la décision d'applicabilité manquante, avec son motif."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D15-11",
+      "adr_source": [
+        "ADR0629"
+      ],
+      "dimension_audit": "D15",
+      "regle": "L'évaluation data by design du projet se conclut par un verdict daté — accord, accord sous réserve avec échéances, ou refus — prononcé par une autorité nommée avant la mise en production, et motivé par le score et par les critères fataux.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier que la fiche d'évaluation porte un verdict daté antérieur à la mise en production, prononcé par une autorité nommée, motivé par le score et par le relevé des critères fataux, et que chaque réserve porte une échéance.",
+      "preuve_attendue": "Fiche d'évaluation avec score + relevé des critères fataux + verdict daté et signé par l'autorité nommée + réserves avec échéances.",
+      "grille_verdict": "conforme = verdict daté antérieur à la mise en production, motivé, réserves échéancées ; partiel = verdict prononcé mais non motivé, ou réserves sans échéance ; non conforme = aucun verdict, ou verdict postérieur à la mise en production",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Récupérer la fiche d'évaluation data by design du projet et son verdict daté.",
+        "Vérifier l'antériorité du verdict sur la mise en production, l'autorité qui l'a prononcé, son motif et l'échéance de chaque réserve.",
+        "Si écart : faire prononcer le verdict manquant avant bascule, ou échéancer les réserves restées ouvertes."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
     }
   ]
 }

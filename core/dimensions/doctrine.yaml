@@ -1,0 +1,2434 @@
+# AuditCore — PACK DOCTRINE des dimensions (doctrine-v1), adossé au pack invariant core-v1.
+# GÉNÉRÉ par tools/importer-doctrine.mjs — ne pas éditer à la main : toute correction se fait
+# dans la table de substitution de l'importeur, puis se rejoue.
+#
+# Ce que le pack porte, par dimension : les THÈMES de périmètre (ce qui est regardé), les TYPES
+# de PREUVE (ce qui est exigé pour juger), les LIVRABLES attendus (ce qui sort de l'audit) et le
+# BARÈME 1–5 (comment la note est motivée). dimensions.yaml reste la source unique de l'identité
+# d'une dimension (id, libellé, famille, applicabilité) ; ce pack ne la redéfinit jamais.
+#
+# Pseudonymisé à l'import : ni commanditaire, ni éditeur, ni produit — chaque nom est remplacé par
+# la fonction qu'il remplit. Les dimensions sans source, et les écarts de lecture, sont dans
+# doctrine-ecarts.md ; rien n'y est deviné.
+pack: doctrine-v1
+adosse_a: core-v1
+invariant: false
+genere_par: tools/importer-doctrine.mjs
+genere_le: '2026-09-11'
+source:
+  nature: >-
+    extraction JSON d'un référentiel d'audit de référence (17 dimensions : thèmes de périmètre, types de
+    preuve, livrables attendus, barème 1–5)
+  empreinte_sha256: 31c2e9d5087a3c3a796d09708d4a05b77e8ef0131683a2e21c1b9b3fabd73b7c
+  pseudonymisation: >-
+    table SUBSTITUTIONS de tools/importer-doctrine.mjs — commanditaire, référentiels internes, éditeurs et
+    produits remplacés par la fonction remplie ; garde-fou TERMES_INTERDITS exécuté avant écriture
+  mesures_confrontees: 'fichier d''écart fourni : comptes par dimension recomptés et confrontés'
+comptes:
+  dimensions: 17
+  appariees_exact: 12
+  appariees_par_identifiant: 5
+  themes: 152
+  points_de_theme: 682
+  preuves: 109
+  livrables: 131
+  baremes: 17
+  ecarts: 2
+dimensions:
+  D00:
+    libelle_courant: Périmètre fonctionnel & valeur métier
+    libelle_source: Périmètre fonctionnel & valeur métier
+    appariement: exact
+    famille_courante: fonctionnel
+    description: >-
+      Évalue la formalisation du cas d'usage métier : raison d'être, problème adressé, utilisateurs et
+      personas, parcours fonctionnel, règles de gestion, processus métier impactés, KPIs de valeur,
+      dépendances métier, hors-périmètre, gouvernance produit. Alimente la page « Périmètre fonctionnel »
+      dédiée du rapport d'audit.
+    raison_d_etre: >-
+      Un POC technique sans cadrage fonctionnel formalisé est un POC orphelin : impossible à valider en Design
+      Authority, impossible à transférer au RUN, impossible à mesurer en valeur. Ce domaine garantit qu'avant
+      toute évaluation technique, l'auditeur dispose d'une description partagée et signée du « pour qui, pour
+      quoi, comment » de l'application. C'est aussi la base de toute conversation avec le sponsor métier et le
+      futur Product Owner. Pour les lecteurs du rapport (Design Authority, Run, sponsor, DSI), cette page est
+      la porte d'entrée — sans elle, les scores techniques sont illisibles.
+    themes:
+      - titre: Identité et raison d'être
+        points:
+          - Nom officiel du produit/application, slogan ou pitch en une phrase
+          - Problème métier adressé (formulation en termes métier, pas technique)
+          - Hypothèse de valeur du POC (ce que le POC cherchait à prouver)
+          - >-
+            Statut du POC (exploration, validé fonctionnellement, prêt à industrialiser, en production
+            restreinte)
+          - Sponsor métier nominatif et direction de rattachement
+          - Porteur fonctionnel / futur Product Owner identifié et engagé
+          - Date de démarrage du POC, date cible d'industrialisation
+      - titre: Utilisateurs et personas
+        points:
+          - >-
+            Personas cibles documentés (rôle, contexte d'usage, niveau de maturité IA, fréquence d'usage
+            attendue)
+          - Volumétrie utilisateurs actuelle (POC) et cible (industrialisation) — chiffrée
+          - 'Typologie d''accès : internes à l''organisation, partenaires, clients, mixte'
+          - Géographie des utilisateurs (pays, régions) — impact sur résidence des données et langues
+          - Cas d'usage primaires (3 à 5 maximum) avec valeur attendue par cas
+          - Cas d'usage secondaires ou exploratoires (à expliciter ou exclure)
+          - Adoption observée pendant le POC (nombre d'utilisateurs actifs, fréquence, taux de retour)
+      - titre: Parcours fonctionnel & expérience cible
+        points:
+          - Description narrative du parcours utilisateur principal (5 à 10 étapes)
+          - Schéma de parcours ou storyboard fonctionnel (présent ou à produire)
+          - Points de contact avec d'autres outils de l'organisation (entrée depuis, sortie vers)
+          - Modes d'interaction (chat libre, formulaire structuré, upload de document, recherche, etc.)
+          - Délais d'attente acceptables par étape (temps de réponse perçu) — engagement utilisateur
+          - Cas de bascule manuelle (quand l'IA n'aboutit pas, quel est le plan B humain)
+          - Critères d'arrêt utilisateur (à quel moment le parcours est considéré comme terminé / réussi)
+      - titre: Règles de gestion & logique métier
+        points:
+          - Inventaire des règles de gestion structurantes (en langage métier, pas technique)
+          - >-
+            Origine des règles (réglementaire, métier, sécurité, qualité de service) et propriétaire de chaque
+            règle
+          - Statut de validation par le métier (en cours, validées, signées) — cf. D14/D15
+          - >-
+            Cas limites identifiés et traitement attendu (entrée vide, ambigüe, hors-périmètre, contenu
+            sensible)
+          - Critères d'acceptation fonctionnels (Definition of Done métier) et niveau atteint
+          - Niveau de confiance attendu sur les réponses IA (seuils, garde-fous, validation humaine)
+          - Traçabilité requise des décisions IA (rejouabilité, justification, audit)
+      - titre: Processus métier impactés
+        points:
+          - Processus métier amont (ce qui déclenche un usage de l'application)
+          - Processus métier aval (ce qui consomme la sortie de l'application)
+          - Acteurs du processus (rôles RACI métier) — qui décide, qui exécute, qui consulte, qui est informé
+          - Volumétrie du processus (transactions/jour, dossiers/semaine, etc.)
+          - Cycle de vie d'une demande/dossier dans l'application (du déclenchement à la clôture)
+          - Impact sur les processus existants (substitution, augmentation, nouveau processus)
+          - Conduite du changement requise (formation, communication, accompagnement) — état d'avancement
+      - titre: Valeur métier & KPIs
+        points:
+          - Objectifs business mesurables (en €, en heures gagnées, en taux, en NPS)
+          - KPIs métier cibles (3 à 5 indicateurs) avec valeur initiale (baseline) et cible chiffrée
+          - Mesure effective des KPIs pendant le POC (instrumentation, dashboards)
+          - ROI estimé ou observé, base de calcul, hypothèses (cohérent avec D07 FinOps)
+          - Externalités positives attendues (qualité, conformité, expérience employé, marque employeur)
+          - >-
+            Risques métier si on n'industrialise pas (coût d'opportunité, perte de momentum, frustration
+            équipes)
+          - Risques métier si l'industrialisation échoue (réputation interne, défiance IA, rebond difficile)
+      - titre: Périmètre fonctionnel & hors-périmètre
+        points:
+          - Périmètre fonctionnel inclus à la cible v1 (liste explicite des fonctionnalités)
+          - Hors-périmètre v1 explicite (fonctionnalités sciemment écartées et raison)
+          - Roadmap fonctionnelle envisagée v1.x, v2 (vision moyen terme)
+          - Frontières avec d'autres produits/applications de l'organisation (qui fait quoi)
+          - Dépendances fonctionnelles vis-à-vis d'autres projets (attendus, livrables, jalons)
+          - Contraintes réglementaires fonctionnelles (cohérent avec D04 RGPD/AI Act)
+          - Langues supportées et obligations linguistiques (cf. réf. interne)
+      - titre: Gouvernance produit & rituels
+        points:
+          - Comité produit ou pilotage défini (membres, fréquence, instance de décision)
+          - Product Owner désigné et formalisé (lettre de mission, % de temps alloué)
+          - Backlog produit existant (Jira, forge logicielle, autre) et son état de tenue
+          - Mode de priorisation et critères (valeur métier, effort, risque, dépendances)
+          - Rituels en place (revue, démo, rétrospective) et leur fréquence
+          - Process de remontée des évolutions métier (qui peut demander, comment, délai)
+          - Articulation avec la Design Authority (sujets remontés, ADR en attente)
+      - titre: Engagements de service métier
+        points:
+          - Heures de service attendues (horaires d'usage, week-end, jours fériés)
+          - Niveau de criticité métier (S1 à S4) cohérent avec D12 — justification métier
+          - Taux de disponibilité attendu par le métier (cohérent avec D06 et SLA de l'organisation)
+          - Tolérance à la perte de données (cohérent avec D06 RPO)
+          - Tolérance à l'interruption (cohérent avec D06 RTO)
+          - Engagement du sponsor en cas de dégradation (qui décide d'un kill-switch, sous quel délai)
+    preuves:
+      - type: DOC
+        description: Pitch deck du POC, note de cadrage initiale, mandat sponsor — formalisation de la raison d'être
+      - type: INTERVIEW
+        description: Sponsor métier sur la genèse du besoin, hypothèses de valeur, critères de succès attendus
+      - type: INTERVIEW
+        description: Porteur fonctionnel / futur Product Owner sur le parcours, les règles de gestion, les arbitrages
+      - type: INTERVIEW
+        description: Utilisateurs représentatifs (3 à 5) sur le parcours réel, les frictions, les attentes
+      - type: DOC
+        description: Personas documentés (fiches persona, recherche utilisateur, sondages d'usage)
+      - type: DOC
+        description: Parcours utilisateur formalisé (storyboard, user journey, BPMN simplifié)
+      - type: DOC
+        description: >-
+          Document de règles de gestion validé par le métier (signé ou en cours de signature) — cohérent avec
+          D14/D15
+      - type: DOC
+        description: Tableau de bord ou notebook KPIs métier (valeurs baseline et observées pendant le POC)
+      - type: CLOUD
+        description: >-
+          plateforme de supervision applicative — usage observé pendant le POC (utilisateurs actifs,
+          fréquence, fonctionnalités utilisées)
+      - type: DOC
+        description: Backlog produit (Jira, forge logicielle) — état, priorisation, vélocité observée
+    livrables:
+      - >-
+        Rédaction de la page « Périmètre fonctionnel » du rapport d'audit (cf. modèle dédié) — pivot pour
+        toutes les sections techniques
+      - Formalisation 2 à 4 personas synthétiques (rôle, contexte, fréquence, attentes, frictions)
+      - >-
+        Diagramme de parcours utilisateur principal (5 à 10 étapes) avec points de contact et bascules
+        manuelles
+      - Inventaire des règles de gestion structurantes en langage métier, propriétaire et statut de validation
+      - >-
+        Définition formelle des 3 à 5 KPIs métier (libellé, formule, baseline, cible, fréquence de mesure,
+        owner)
+      - Tableau des hors-périmètre v1 (fonctionnalités écartées + raison) — sécurise les attentes
+      - Désignation formalisée du Product Owner cible (lettre de mission, % de temps) si non encore actée
+      - Note de gouvernance produit (comité, rituels, articulation Design Authority) en Phase B
+      - >-
+        Engagement de service métier signé par le sponsor (heures de service, criticité, tolérance
+        interruption)
+    bareme:
+      '1': >-
+        Cas d'usage non formalisé, sponsor flou, personas absents, parcours non documenté, règles de gestion
+        implicites dans le code, aucun KPI mesuré. Le POC est un objet technique sans cadre métier —
+        impossible à présenter en Design Authority en l'état.
+      '2': >-
+        Pitch existe mais reste à l'état de slides, personas non écrits, parcours présent par fragments,
+        règles de gestion partiellement documentées, KPIs cibles annoncés mais non mesurés pendant le POC.
+        Cadrage à reprendre intégralement avant industrialisation.
+      '3': >-
+        Cadrage acceptable : sponsor identifié et engagé, parcours principal décrit, 2-3 personas, règles de
+        gestion principales documentées, KPIs cibles définis avec baseline. Gouvernance produit à structurer
+        en Phase B. Industrialisation possible avec compléments fonctionnels.
+      '4': >-
+        Cadrage solide : Product Owner désigné, personas et parcours formalisés, règles de gestion validées
+        par le métier, KPIs mesurés pendant le POC avec premiers résultats positifs, hors-périmètre explicite,
+        gouvernance produit en place. Quelques affinages pour la v1.
+      '5': >-
+        Cadrage exemplaire : récit produit clair et partagé, personas étayés par recherche utilisateur,
+        parcours testé, règles de gestion signées, KPIs mesurés et atteints, ROI démontré, comité produit
+        opérationnel, roadmap v1.x/v2 partagée avec la Design Authority. Référence interne.
+  D01:
+    libelle_courant: Architecture cible
+    libelle_source: Architecture cible
+    appariement: exact
+    famille_courante: architecture
+    description: >-
+      Évalue la qualité structurelle de la solution : cartographie applicative et infrastructure, découpage et
+      couplage, conformité au catalogue de l'organisation, séparation des environnements, patterns de
+      résilience, dette architecturale.
+    raison_d_etre: >-
+      Un POC peut fonctionner sans architecture documentée tant qu'une seule personne le maintient. À
+      l'industrialisation, l'absence de schéma, le couplage fort entre couches et l'absence de patterns de
+      résilience deviennent des dettes coûteuses. Ce domaine pose le socle structurel — sa qualité conditionne
+      celle de tous les autres.
+    themes:
+      - titre: Cartographie applicative
+        points:
+          - >-
+            Type d'architecture (monolithe, modulaire, microservices, serverless, hybride) et justification du
+            choix
+          - Inventaire des composants logiques (modules, services, bibliothèques internes)
+          - >-
+            Inventaire des composants d'infrastructure (service d'hébergement applicatif managé, service
+            managé de modèles de langage, service de stockage objet managé, base de données, file de messages,
+            cache, CDN, WAF)
+          - Diagramme C4 niveau 1 (Context) et niveau 2 (Container) — présent ou absent, à jour ou périmé
+          - ADR (Architecture Decision Records) sur les choix structurants — présents, datés, à jour
+      - titre: Découpage et couplage
+        points:
+          - >-
+            Séparation des préoccupations entre routing HTTP, orchestration métier, accès données, intégration
+            LLM, présentation
+          - Couplage entre la couche IA (prompts, appels modèle) et la couche métier — fort, modéré, faible
+          - Présence d'un pattern de service / repository / use-case
+          - Granularité des fonctions (longueur, responsabilités multiples, complexité cyclomatique)
+          - Imports circulaires, dépendances cachées entre modules
+      - titre: Conformité au catalogue de l'organisation
+        points:
+          - >-
+            services cloud utilisés vs catalogue homologué (service d'hébergement applicatif managé, service
+            managé de modèles de langage, service de stockage objet managé, plateforme de supervision
+            applicative, coffre à secrets managé, passerelle d'API managée, passerelle applicative)
+          - Services hors catalogue qui nécessiteraient une homologation complémentaire
+          - >-
+            Patterns standards de l'organisation manquants (passerelle d'API managée en façade, passerelle
+            applicative avec WAF, identité de charge de travail sans secret, coffre à secrets managé)
+          - Région de déploiement (cohérence multi-services, conformité résidence des données)
+      - titre: Environnements
+        points:
+          - Séparation dev / recette / prod (regroupement logique de ressources dédiés ou non)
+          - >-
+            Convention de nommage de l'organisation (motifs de nommage paramétrés par application et
+            environnement)
+          - >-
+            Isolation réseau (VNet, groupes de règles de filtrage réseau, Private Endpoints) selon la
+            sensibilité
+          - Slots de déploiement (staging) configurés sur service d'hébergement applicatif managé
+      - titre: Patterns de résilience
+        points:
+          - >-
+            Retry avec backoff exponentiel sur les appels externes (LLM, outil de gestion des services (ITSM),
+            base de données)
+          - Circuit breaker en cas d'erreurs répétées (lib tenacity, pybreaker, équivalent)
+          - Timeouts explicites sur tous les appels réseau
+          - Idempotence des opérations critiques
+          - Gestion des erreurs transitoires (429 rate limit, 503 service unavailable, timeouts)
+      - titre: Dette architecturale
+        points:
+          - Refactorings tentés et abandonnés (branches mortes dans Git)
+          - Workarounds présents avec commentaire TODO, FIXME, HACK
+          - Composants vieillissants ou incompatibles avec la cible (versions LTS, dépendances obsolètes)
+          - Décisions historiques qui contraignent l'évolution
+      - titre: Application des principes ADR & Design Authority
+        points:
+          - >-
+            Identification de l'ADR de référence applicable au POC (statut : brouillon, en revue, validé,
+            déprécié)
+          - Statut de validation en Design Authority — en attente, validé, refusé avec demandes
+          - Cartographie des écarts entre l'architecture du POC et les principes cibles de l'ADR
+          - Plan de mise en conformité avec les principes ADR une fois validés en Design Authority
+          - Traçabilité des décisions dérogatoires éventuelles (ADR locaux justifiant un écart)
+      - titre: Conformité au référentiel de gouvernance d'architecture (dépôt de gouvernance d'architecture)
+        points:
+          - >-
+            ⚖ Opposabilité : ce référentiel est adossé au Compliance Pack « ADR de l'organisation uniquement »
+            — tous les ADR du périmètre sont issus des standards de l'organisation (Principe d'architecture
+            IT, nomenclature des ressources cloud, Data by Design, SKILL architecture data en couches, réf.
+            interne), donc OPPOSABLES et bloquants selon leur criticité, même non encore Accepted. Les ADR
+            génériques (standards du marché, informatifs) sont hors périmètre : ils ne sont ni audités ni
+            opposés
+          - >-
+            Matrice de conformité ADR → vérification attendue, renseignée pour le projet (verdict : conforme /
+            partiel / non conforme / sans objet, avec preuve) — réf. catalogue « catalogue des ADR par domaine
+            du référentiel interne »
+          - >-
+            ADR0701 (Accepted) — passerelle d'API managée comme tiers de confiance : TOUT appel d'API
+            interne/externe ET tout appel à un fournisseur de LLM (modèle de langage tiers, service managé de
+            modèles de langage) transite par fournisseur cloud passerelle d'API managée ; aucun backend ni
+            endpoint LLM exposé en direct, aucune clé LLM distribuée aux clients
+          - >-
+            ADR0702 (Accepted) — la plateforme d'échanges de fichiers comme tiers de confiance : les échanges
+            de fichiers batch (SFTP/FTPS, CSV/XML/EDI/PDF) avec des partenaires passent par la plateforme
+            d'échanges de fichiers de confiance comme point d'entrée unique (sans objet si le projet n'échange
+            pas de fichiers partenaires)
+          - >-
+            ADR0703 (Accepted) — consommation passerelle d'API managée depuis un frontend : une SPA/PCF
+            exécutée dans le navigateur n'expose JAMAIS de secret applicatif ; l'accès aux APIs passerelle
+            d'API managée repose sur l'identité de l'utilisateur (cohérent avec D02/D03)
+          - >-
+            ADR0102 (opposable — référentiel interne) — stratégie de tagging des ressources cloud : présence
+            des tags obligatoires sur toutes les ressources (cohérent avec D07 FinOps et D12 exploitation)
+          - >-
+            ADR0307 (opposable — référentiel interne, statut accepté) — exposition des applications via
+            Connectivity : aucune exposition directe depuis Workloads, WAF pour le web, passerelle d'API
+            managée pour les APIs, groupes de règles de filtrage réseau obligatoires, HTTPS partout, pare-feu
+            réseau managé conditionnel selon matrice (egress, partenaires, criticité, réglementaire)
+          - >-
+            ADR0109 (opposable — référentiel interne, statut accepté) — Cloud Platform Engineering Model : 1
+            marque = 1 tenant cloud + 1 organisation forge logicielle, séparation Platform/Workloads, Git
+            source de vérité, outil d'infrastructure as code (IaC & gouvernance) et outil d'infrastructure as
+            code (configuration) de référence
+          - >-
+            ADR0510 (opposable — référentiel interne) — déploiement applicatif sur service d'hébergement
+            applicatif managé (PaaS web, slots de staging)
+          - >-
+            ADR0709 (opposable — référentiel interne) — stack applicative imposée : Python (backend) +
+            JavaScript (frontend web)
+          - >-
+            ADR0626 (opposable — référentiel interne) — base de données applicative managée : moteur
+            relationnel managé ou moteur relationnel managé (plateforme de données low-code interdit)
+          - ADR0106 (opposable — référentiel interne) — convention de nommage des ressources cloud
+          - >-
+            Renvois par domaine d'audit : sécurité/IAM → D02/D03 (ADR0201 SSO-MFA, ADR0202 compte invité
+            fédéré, ADR0205 groupes AD, ADR0206 chiffrement) ; données → D05/D15/D16 (ADR0601-0611, ADR0603
+            catalogue technique de la plateforme data, ADR0602 colonnes/hash, ADR0627-0629 Data by Design :
+            périmètre, calcul, verdict) ; CI-CD & IaC → D09 (ADR0502, ADR0503, ADR0508, ADR0624, ADR0109 outil
+            d'infrastructure as code/outil d'infrastructure as code) ; exposition réseau → D01/D03 (ADR0307) ;
+            observabilité → D10 (ADR0401)
+          - >-
+            ADR0101 (opposable — référentiel interne, statut accepté) — organisation des zones d'accueil
+            normalisées : une souscription cloud par application/groupe cohérent, 1 regroupement logique de
+            ressources par couple application × environnement (Dev/recette/Prod)
+          - >-
+            Réutilisation des patterns validés par la Design Authority (catalogue docs/patterns du repo)
+            plutôt que des solutions ad hoc — signaler tout pattern réinventé
+          - >-
+            Format des ADR du projet conforme aux conventions MADR du repo (front matter
+            status/domain/impact/landing_zone/tags, nommage ADR<NNNN>-<code-domaine>-<slug>) — cf. D13
+      - titre: Exposition des APIs
+        points:
+          - Inventaire des APIs exposées (publiques, internes, partenaires) et de leur consommateurs réels
+          - >-
+            Pertinence de l'exposition : besoin métier confirmé, alternative interne possible, périmètre
+            minimal
+          - >-
+            Niveau d'exposition (privée VNet, passerelle d'API managée interne, passerelle d'API managée
+            externe, passerelle applicative public)
+          - Authentification et autorisation appropriées au niveau d'exposition (cohérent avec D03)
+          - Documentation OpenAPI à jour, contrats stables, versioning explicite (v1, v2)
+          - Politique de rate limiting, quotas, throttling sur les APIs exposées (cohérent avec D02)
+      - titre: Stratégie solution (référentiel interne)
+        points:
+          - >-
+            réf. interne — vérification préalable auprès de la direction informatique groupe qu'aucune
+            solution existante de l'organisation ne répond déjà au besoin (réutilisation, économies d'échelle)
+          - >-
+            réf. interne — recherche prioritaire de solutions du marché ; le développement from-scratch reste
+            une exception justifiée
+          - réf. interne — hébergement SaaS privilégié, PaaS en seconde option, IaaS en dernier recours
+          - >-
+            réf. interne — pas de plateforme de données low-code dans le tenant cloud de l'organisation ; base
+            relationnelle (moteur relationnel managé, moteur relationnel managé) à la place
+          - >-
+            réf. interne — plateforme de restitution imposé comme plateforme de Business Intelligence pour le
+            reporting et la dataviz
+    preuves:
+      - type: CODE
+        description: Extraits montrant le couplage ou découplage des couches, identifiant les fonctions trop longues
+      - type: CLOUD
+        description: >-
+          Inventaire des ressources du regroupement logique de ressources, configuration service d'hébergement
+          applicatif managé, services cloud utilisés
+      - type: DOC
+        description: Section Architecture du README, ADR existants, schémas C4 dans docs/architecture/
+      - type: DOC
+        description: ADR de référence, compte-rendu Design Authority, statut de validation, listing des écarts
+      - type: CLOUD
+        description: >-
+          Configuration passerelle d'API managée, passerelle applicative, authentification intégrée de la
+          plateforme d'hébergement — niveaux d'exposition réels des APIs
+      - type: GIT
+        description: Historique des branches de refactoring (commits, abandons), patterns d'évolution du code
+      - type: INTERVIEW
+        description: Témoignages tech lead sur les choix structurants et la dette identifiée
+      - type: INTERVIEW
+        description: Architectes Design Authority sur le statut de validation de l'ADR et les conditions à lever
+      - type: DOC
+        description: >-
+          Référentiel de gouvernance (dépôt de gouvernance d'architecture) : ADR0701/0002/0003/0005/0006 +
+          catalogue de patterns — matrice de conformité du projet aux ADR opposables (Accepted)
+      - type: CLOUD
+        description: >-
+          Configuration passerelle d'API managée (routes, products, policies) prouvant que tous les appels
+          API/LLM transitent par passerelle d'API managée (ADR0701) ; organisation des
+          subscriptions/regroupement logique de ressources (ADR0101)
+    livrables:
+      - >-
+        Matrice de conformité aux ADR de gouvernance (ADR0701/0002/0003/0006 opposables + ADR0101 cible) avec
+        verdict et preuve par ADR
+      - Schémas C4 niveau 1 (Context) et niveau 2 (Container) en PlantUML stockés dans docs/architecture/
+      - >-
+        5 à 10 ADR rétroactifs sur les choix structurants (framework, services cloud, authentification,
+        sources de données)
+      - >-
+        Application des principes d'architecture de l'ADR de référence — plan de mise en conformité
+        conditionné à sa validation en Design Authority
+      - >-
+        Revue de la pertinence de l'exposition des APIs (quoi exposer, à qui, à quel niveau) avec le tech lead
+        et la sécurité
+      - Découpage en couches Service / Repository / Use-case avec routes HTTP fines
+      - Introduction de retry + circuit breaker (tenacity, pybreaker) sur les appels externes
+      - >-
+        Alignement convention de nommage de l'organisation (regroupement logique de ressources, services
+        d'hébergement applicatif managés, service de stockage objet managé)
+      - Plan d'introduction passerelle d'API managée et passerelle applicative en Phase B
+      - Slot de déploiement staging activé sur service d'hébergement applicatif managé
+    bareme:
+      '1': >-
+        Architecture incohérente ou fortement couplée, sans documentation, services hors catalogue, aucun
+        pattern de résilience. Toute évolution est risquée. Industrialisation impossible sans redesign.
+      '2': >-
+        Architecture monolithique fonctionnelle mais sous-dimensionnée ou non documentée. Couplage fort entre
+        couches. Patterns de résilience absents. Refactor de découpage indispensable avant industrialisation.
+      '3': >-
+        Architecture acceptable, pattern majoritairement respecté, services au catalogue. Documentation
+        partielle. Patterns de résilience basiques. Dette identifiée et chiffrée. Industrialisation possible
+        avec adaptations.
+      '4': >-
+        Architecture solide, découplage clair, documentation à jour (C4 + ADR). Patterns de résilience en
+        place. Conformité catalogue. Quelques optimisations à apporter en Phase B.
+      '5': >-
+        Architecture exemplaire, peut servir de référence. Documentation complète, patterns d'état de l'art,
+        résilience éprouvée par des tests. Aucune dette technique significative.
+  D02:
+    libelle_courant: Sécurité applicative
+    libelle_source: Sécurité applicative
+    appariement: exact
+    famille_courante: securite
+    description: >-
+      Évalue la surface d'attaque applicative : OWASP Top 10, validation des entrées, gestion des erreurs,
+      dépendances vulnérables, protection CSRF, rate limiting, headers HTTP, redaction des logs, tests
+      sécurité automatisés.
+    raison_d_etre: >-
+      Une application IA hérite de toutes les vulnérabilités classiques d'une application web (injection, XSS,
+      CSRF) auxquelles s'ajoutent des risques propres au LLM (prompt injection, fuite de contexte). Ce domaine
+      vérifie que les bases de la sécurité applicative sont posées avant de considérer les couches IAM (D03)
+      et conformité (D04).
+    themes:
+      - titre: Validation des entrées
+        points:
+          - Validation effectuée côté serveur sur tous les endpoints (et pas uniquement côté client)
+          - Usage d'une bibliothèque de schémas (Pydantic, Zod, Joi) plutôt qu'une validation ad-hoc
+          - Validation systématique des paramètres URL, query, body, headers
+          - >-
+            Protection contre les injections (SQL, NoSQL, commande, LDAP) lors des passages aux systèmes
+            downstream
+      - titre: Gestion des erreurs
+        points:
+          - Mode production activé en environnement non-dev (FLASK_ENV=production, DEBUG=false)
+          - Stack traces non exposées au client en production
+          - Messages d'erreur génériques côté client, détails dans les logs uniquement
+          - Gestion centralisée des exceptions (middleware d'erreur)
+      - titre: Dépendances vulnérables
+        points:
+          - >-
+            Audit des dépendances (analyseur de vulnérabilités des dépendances, npm audit, safety) — date du
+            dernier audit
+          - CVE high ou critical présentes dans les dépendances directes ou transitives
+          - Politique de mise à jour (automatisée via Dependabot/Renovate ou manuelle)
+          - Documentation des dépendances figées et des raisons (compatibilité, breaking changes)
+      - titre: Protection CSRF
+        points:
+          - Tokens CSRF actifs sur tous les endpoints POST/PUT/DELETE/PATCH
+          - Lib appropriée utilisée (Flask-WTF, csurf, équivalent)
+          - Vérification côté serveur (et pas seulement génération côté client)
+          - Cas particulier des appels API (JWT, header dédié) si applicable
+      - titre: Rate limiting
+        points:
+          - Limites par utilisateur (ex. 60 req/min sur les endpoints LLM)
+          - Limites globales par IP ou anonymes
+          - Limites spécifiques sur les endpoints sensibles (admin, login, reset password)
+          - Backend de stockage des compteurs (cache distribué managé recommandé pour le multi-instance)
+          - Headers X-RateLimit-* pour informer le client
+      - titre: Headers HTTP de sécurité
+        points:
+          - Content-Security-Policy (CSP) configurée
+          - Strict-Transport-Security (HSTS) avec max-age suffisant
+          - X-Frame-Options ou frame-ancestors dans la CSP
+          - 'X-Content-Type-Options: nosniff'
+          - Referrer-Policy, Permissions-Policy
+          - Score securityheaders.com de référence
+      - titre: Redaction des logs
+        points:
+          - Filtrage des PII dans les logs (emails, téléphones, identifiants utilisateurs)
+          - Redaction des fragments de prompts utilisateur si sensibles (cohérent avec D04 RGPD)
+          - Redaction des secrets éventuels (cohérent avec D03)
+      - titre: Tests sécurité automatisés
+        points:
+          - Bandit ou équivalent SAST dans le pipeline CI
+          - Safety ou équivalent pour les CVE des dépendances
+          - Scan SAST/DAST type plateforme de détection et de réponse, analyseur statique de code, Checkmarx
+          - Échec du pipeline sur CVE high ou critical
+      - titre: Politique de mot de passe (référentiel interne)
+        points:
+          - >-
+            Politique de mot de passe forte alignée sur la politique de l'organisation (longueur, complexité,
+            historique, expiration)
+          - >-
+            Application de la politique sur tous les comptes locaux éventuels (idéalement, plus aucun compte
+            local — tout via fournisseur d'identité central)
+          - >-
+            Stockage des mots de passe : hash fort (bcrypt, argon2, scrypt) avec salage, jamais en clair ni
+            MD5/SHA1
+          - Détection et blocage des mots de passe compromis (HaveIBeenPwned API ou équivalent)
+      - titre: Classification & marquage de l'information (référentiel interne)
+        points:
+          - >-
+            Classification des données manipulées par l'application selon le référentiel de l'organisation
+            (publique / interne / restreinte / confidentielle)
+          - >-
+            Marquage explicite dans l'UI ou la documentation lorsque l'application affiche ou exporte des
+            données classifiées
+          - >-
+            Diffusion de données sensibles hors SI uniquement sur média chiffré, conformément aux standards
+            NIST (référentiel interne)
+          - Cohérence avec D04 (RGPD) et D05 (gouvernance catalogue de données d'entreprise)
+    preuves:
+      - type: SCA
+        description: Sortie analyseur de vulnérabilités des dépendances ou npm audit avec liste des CVE et leur sévérité
+      - type: CODE
+        description: Extraits des endpoints validés et non validés, configuration des headers, code du middleware logger
+      - type: SECOPS
+        description: Rapport plateforme de détection et de réponse avec alertes high/medium/low
+      - type: WEB
+        description: Capture du score securityheaders.com sur l'URL de l'application
+      - type: CLOUD
+        description: >-
+          Configuration service d'hébergement applicatif managé (application settings, DEBUG mode),
+          configuration WAF si présent
+      - type: GIT
+        description: Recherche dans le répertoire de définition des pipelines ou pipelines des étapes de scan sécurité
+      - type: CLOUD
+        description: >-
+          Policies passerelle d'API managée (throttling, quotas, rate limit, validation token/clé) prouvant le
+          rôle de tiers de confiance (ADR0701) ; preuve qu'aucun secret n'est exposé à un frontend navigateur
+          (ADR0703)
+    livrables:
+      - Mise à niveau de toutes les dépendances avec CVE high (action urgente) et medium (action prioritaire)
+      - Refonte de la validation avec Pydantic (ou équivalent) sur tous les endpoints, retours 422 cohérents
+      - Activation Flask-WTF (ou équivalent) avec CSRFProtect global et adaptation frontend
+      - >-
+        Implémentation Flask-Limiter avec backend cache distribué managé : 60 req/min par utilisateur, 200
+        req/h global
+      - Configuration des headers de sécurité via flask-talisman, score securityheaders.com cible ≥ B
+      - >-
+        Redaction des logs : filtre par regex sur emails, identifiants outil de gestion des services (ITSM),
+        noms d'utilisateurs
+      - Intégration bandit + safety dans le pipeline CI, échec automatique sur CVE high
+    bareme:
+      '1': >-
+        Multiples vulnérabilités exploitables : CVE critical non corrigées, validation absente, mode debug en
+        production, secrets dans les logs. Application non déployable en l'état.
+      '2': >-
+        Surface d'attaque significative : 1+ CVE high, validation incohérente, absence de CSRF/rate
+        limiting/headers HTTP. Remédiation préalable obligatoire avant toute mise à disposition élargie.
+      '3': >-
+        Bases sécurité présentes mais incomplètes : validation majoritaire, CVE medium acceptables, headers
+        partiels. Quelques quick wins à mobiliser avant Phase B.
+      '4': >-
+        Sécurité applicative solide : validation complète, dépendances à jour, headers configurés, rate
+        limiting actif, tests sécurité dans la CI. Quelques améliorations marginales possibles.
+      '5': >-
+        Niveau état de l'art : SAST/DAST automatisés, dépendances pinnées et auditées, redaction systématique,
+        audit pentest récent sans finding majeur.
+  D03:
+    libelle_courant: IAM & gestion des secrets
+    libelle_source: IAM & gestion des secrets
+    appariement: exact
+    famille_courante: securite
+    description: >-
+      Évalue les mécanismes d'identité, d'accès et de gestion des secrets : authentification, autorisations,
+      coffre-fort, rotation, principe du moindre privilège, RBAC applicatif, audit trail.
+    raison_d_etre: >-
+      C'est le domaine le plus fréquemment porteur de bloquants Gate 1b sur les POCs IA. Une clé API LLM
+      exposée donne un accès direct à des coûts arbitraires. Une authentification triviale (header X-User non
+      signé) ouvre la porte à toute usurpation. Sans coffre à secrets managé et identité de charge de travail
+      sans secret, aucune industrialisation responsable n'est envisageable.
+    themes:
+      - titre: Secrets dans le code et l'historique
+        points:
+          - 'Recherche exhaustive : grep dans le code source, dans .env, dans les fichiers de config'
+          - >-
+            Recherche dans l'historique Git complet : git log -p | grep patterns sensibles, outils type
+            truffleHog, gitleaks
+          - Identification de la durée d'exposition de chaque secret (commit initial, encore présent ou non)
+          - Vérification si le repo a été public à un moment (fenêtre d'exposition aux bots d'indexation)
+          - >-
+            Identification des secrets en variables d'environnement service d'hébergement applicatif managé
+            (lisibles par tout Reader)
+      - titre: Coffre-fort et identité de charge de travail sans secret
+        points:
+          - Présence d'un fournisseur cloud coffre à secrets managé dédié à l'application
+          - >-
+            Activation identité de charge de travail sans secret (system-assigned ou user-assigned) sur les
+            ressources de calcul
+          - >-
+            Assignation du rôle coffre à secrets managé Secrets User à la identité de charge de travail sans
+            secret
+          - Migration de tous les secrets (LLM, base, sources externes) vers coffre à secrets managé
+      - titre: Authentification utilisateur
+        points:
+          - >-
+            Mécanisme d'authentification : fournisseur d'identité central (bibliothèque d'authentification
+            standard), JWT signé, session, basique, header non vérifié
+          - Validation cryptographique des tokens (signature, expiration, audience, issuer)
+          - Protection contre les attaques classiques (replay, brute force, énumération)
+          - Gestion des sessions et de leur invalidation
+      - titre: Accès aux applications via fournisseur d'identité central
+        points:
+          - >-
+            Application enregistrée dans fournisseur d'identité central (enregistrement d'application auprès
+            du fournisseur d'identité) avec un tenant de l'organisation
+          - >-
+            Authentification utilisateur déléguée à fournisseur d'identité central (OIDC / OAuth2) — plus de
+            comptes locaux ou d'authentification ad-hoc
+          - >-
+            Groupes fournisseur d'identité central utilisés pour piloter l'accès à l'application (groupe
+            d'usage métier, groupes admins)
+          - >-
+            politique d'accès conditionnel appliqué (MFA, conformité device, restriction géo) selon la
+            sensibilité de l'application
+          - >-
+            Cohérence avec le pattern de l'organisation (service d'hébergement applicatif managé
+            authentification intégrée de la plateforme d'hébergement, bibliothèque d'authentification standard
+            côté code, ou proxy applicatif d'accès distant / passerelle applicative + fournisseur d'identité
+            central)
+          - >-
+            Provisionnement et déprovisionnement automatisés (lifecycle joiner/mover/leaver) via fournisseur
+            d'identité central
+      - titre: Conformité aux principes du référentiel interne
+        points:
+          - >-
+            réf. interne — liste des rôles et niveaux d'habilitation définie par le service owner,
+            matérialisée en groupes de sécurité fournisseur d'identité central / fournisseur d'identité
+            central
+          - >-
+            réf. interne — Single Sign-On via fédération du fournisseur d'identité central (privilégier
+            fournisseur d'identité central / fournisseur d'identité central)
+          - >-
+            réf. interne — accès des utilisateurs externes via compte invité fédéré plutôt que comptes locaux
+            ou comptes dédiés
+          - >-
+            réf. interne — politique de mot de passe de l'organisation respectée sur les comptes éventuels
+            (cohérent avec D02)
+          - réf. interne — MFA activé par design partout où c'est possible
+          - >-
+            Information de l'équipe le support informatique groupe de tout mouvement de personnel (joiner /
+            mover / leaver)
+      - titre: Compte de service technique dédié (référentiel interne)
+        points:
+          - >-
+            Compte technique dédié pour l'administration de la plateforme, séparé des comptes utilisateurs
+            nominatifs
+          - Pas d'utilisation de comptes nominatifs pour les tâches d'administration ou les jobs automatisés
+          - >-
+            Préférence pour identité de charge de travail sans secret / Service Principal plutôt que compte
+            technique avec mot de passe
+          - Rotation des credentials du compte technique documentée et automatisée si possible
+      - titre: Autorisations et RBAC
+        points:
+          - Rôles applicatifs définis (admin, utilisateur, lecteur, etc.)
+          - Mapping rôles fournisseur d'identité central ↔ rôles applicatifs
+          - Décorateur ou middleware d'autorisation sur les endpoints sensibles
+          - Matrice de droits documentée
+      - titre: Comptes de service fournisseur cloud
+        points:
+          - Inventaire des Service Principals utilisés
+          - 'Rôles assignés (principe du moindre privilège : Contributor scopé plutôt qu''Owner)'
+          - Rôles custom plutôt que rôles built-in trop larges quand pertinent
+          - Rotation des credentials (certificats préférables aux secrets)
+      - titre: Rotation et audit
+        points:
+          - Procédure de rotation des secrets documentée et testée
+          - Fréquence de rotation (semestrielle minimum pour les secrets de production)
+          - Automatisation possible (coffre à secrets managé Events, fournisseur cloud Function)
+          - >-
+            Audit trail des accès aux secrets (plateforme de détection et de réponse, paramètres de
+            diagnostic)
+          - Audit trail des authentifications (réussies et échouées)
+    preuves:
+      - type: CODE
+        description: >-
+          Extraits des fichiers config.py, .env, secrets.yaml exposant des secrets (valeurs expurgées dans la
+          preuve stockée)
+      - type: GIT
+        description: >-
+          Sortie git log montrant la durée d'exposition, recherche outils truffleHog/gitleaks, vérification
+          visibilité publique du repo
+      - type: CLOUD
+        description: >-
+          Inventaire coffre à secrets managé, identité de charge de travail sans secret, configuration IAM du
+          regroupement logique de ressources, rôles assignés au Service Principal
+      - type: CODE
+        description: Code de l'authentification (middleware, validation token), code des décorateurs d'autorisation
+      - type: SECOPS
+        description: >-
+          Alertes plateforme de détection et de réponse sur les secrets exposés et la configuration de
+          l'identité
+      - type: CODE
+        description: >-
+          Flux d'authentification du frontend : accès aux APIs passerelle d'API managée sur l'identité de
+          l'utilisateur, aucun secret applicatif/clé LLM dans le navigateur (ADR0703) ; clés LLM gérées côté
+          passerelle d'API managée/backend, jamais distribuées aux clients (ADR0701)
+    livrables:
+      - 'ACTION URGENTE : révocation immédiate de tous les secrets exposés et génération de nouveaux secrets'
+      - >-
+        Création d'un fournisseur cloud coffre à secrets managé dédié et migration de tous les secrets de
+        l'application
+      - >-
+        Activation identité de charge de travail sans secret sur le service d'hébergement applicatif managé et
+        assignation des rôles coffre à secrets managé appropriés
+      - >-
+        Refonte complète de l'authentification avec fournisseur d'identité central et bibliothèque
+        d'authentification standard (validation cryptographique)
+      - >-
+        Accès aux applications via fournisseur d'identité central : enregistrement d'application auprès du
+        fournisseur d'identité, OIDC/OAuth2, groupes fournisseur d'identité central pour les rôles, politique
+        d'accès conditionnel aligné sur la politique de l'organisation
+      - Mise en place RBAC applicatif avec 3 rôles minimum (admin, utilisateur, lecteur)
+      - Réduction du Service Principal au rôle Contributor scopé (suppression des Owner inutiles)
+      - Procédure de rotation semestrielle des secrets documentée dans docs/security/
+      - >-
+        Activation plateforme de détection et de réponse et envoi des audit logs vers plateforme de
+        journalisation centralisée
+    bareme:
+      '1': >-
+        Secrets exposés en clair (code ou historique Git public), authentification triviale ou inexistante,
+        aucun coffre-fort, Service Principal Owner. Risque immédiat de compromission. Bloquant Gate 1b non
+        négociable.
+      '2': >-
+        Secrets en variables d'environnement (lisibles par tout Reader), authentification basique sans
+        validation cryptographique, RBAC absent. Remédiation préalable obligatoire avant industrialisation.
+      '3': >-
+        coffre à secrets managé présent mais pas systématiquement utilisé, authentification correcte mais RBAC
+        partiel, audit trail incomplet. Migration à terminer avant Phase B.
+      '4': >-
+        coffre à secrets managé + identité de charge de travail sans secret généralisés, authentification
+        fournisseur d'identité central, RBAC opérationnel, audit trail actif. Quelques optimisations (rotation
+        automatisée, rôles custom).
+      '5': >-
+        Niveau état de l'art : identité de charge de travail sans secret partout, certificats préférés aux
+        secrets, rotation automatisée, audit trail exhaustif, tests d'intrusion sans finding.
+  D04:
+    libelle_courant: Conformité réglementaire & IA
+    libelle_source: RGPD & AI Act
+    appariement: par_identifiant
+    famille_courante: securite
+    description: >-
+      Évalue la conformité réglementaire : analyse RGPD (PIA, registre, droits), classification AI Act,
+      transparence utilisateur, gestion des données personnelles, transferts, sous-traitance.
+    raison_d_etre: >-
+      L'AI Act européen impose depuis 2024 une classification des systèmes d'IA et des obligations de
+      transparence (art. 52). Couplé au RGPD, ce domaine est juridiquement contraignant : un déploiement en
+      production sans PIA validé par le DPO expose l'entreprise à des sanctions. Sur les POCs IA
+      conversationnels en interne, le risque est réel — les utilisateurs peuvent saisir des données sensibles
+      dans leurs prompts.
+    themes:
+      - titre: Analyse RGPD et PIA
+        points:
+          - >-
+            Analyse RGPD effectuée et documentée (recherche dans le repo, espace documentaire d'entreprise,
+            espace documentaire d'entreprise DPO)
+          - PIA (Privacy Impact Assessment) initié si données personnelles confirmées
+          - >-
+            Identification des données personnelles traitées (directes : nom, email ; indirectes : IDs de
+            tickets remontant à des clients)
+          - Base légale du traitement (intérêt légitime, consentement, exécution contractuelle)
+          - Finalités précisément définies
+      - titre: Classification AI Act
+        points:
+          - >-
+            Classification effectuée : risque inacceptable (interdit), élevé (obligations strictes), limité
+            (transparence), minimal (libre)
+          - Documentation de la justification de la classification
+          - Validation par le service juridique
+          - >-
+            Identification des obligations associées à la classe (registre EU pour le risque élevé,
+            transparence pour le limité, etc.)
+      - titre: Transparence utilisateur (art. 52 AI Act)
+        points:
+          - Bandeau d'information IA dans l'interface (pour systèmes à risque limité comme les chatbots)
+          - Mention dans les conditions d'utilisation
+          - >-
+            Page de transparence détaillée (modèle utilisé, données traitées, sous-traitant, droits
+            utilisateur)
+          - Information sur la possibilité d'erreurs (hallucinations)
+      - titre: Gestion des données personnelles
+        points:
+          - Cartographie des flux de données (collecte, stockage, traitement, transmission)
+          - Durée de conservation des logs et des données traitées
+          - >-
+            Mécanismes de purge automatique (fournisseur cloud Lifecycle Management, plateforme de
+            journalisation centralisée retention)
+          - Conformité au principe de minimisation (art. 5 RGPD)
+      - titre: Stockage des données et conservation
+        points:
+          - >-
+            Cartographie exhaustive des emplacements de stockage (service de stockage objet managé, base
+            SQL/base NoSQL managée, plateforme de journalisation centralisée, plateforme de supervision
+            applicative, service managé de modèles de langage logs, cache cache distribué managé, fichiers
+            temporaires)
+          - Région de stockage de chaque emplacement (résidence des données UE / hors UE)
+          - >-
+            Type et nature des données stockées par emplacement (prompts utilisateurs, réponses LLM,
+            métadonnées, PII, secrets techniques)
+          - >-
+            Durée de conservation documentée pour chaque emplacement, avec justification métier et
+            réglementaire
+          - >-
+            Politique de purge / suppression automatisée (Lifecycle Management, retention plateforme de
+            journalisation centralisée, jobs de nettoyage applicatifs)
+          - Chiffrement au repos (clés gérées l'éditeur, CMK, encryption scopes) et en transit (TLS 1.2+)
+          - >-
+            Sauvegardes : périmètre, fréquence, durée de conservation des sauvegardes, procédure de
+            restauration testée
+          - >-
+            Accès aux stockages tracé (service de stockage objet managé paramètres de diagnostic, audit base
+            NoSQL managée, audit SQL) — cohérent avec D10
+      - titre: Propriété des données par l'organisation (référentiel interne)
+        points:
+          - >-
+            réf. interne — l'organisation conserve la propriété de toutes les données (saisies par
+            l'utilisateur, générées par l'IA)
+          - réf. interne — capacité d'exporter toutes les données pendant toute la durée du contrat
+          - >-
+            réf. interne — procédure de suppression des données en fin de contrat avec un éventuel partenaire
+            / éditeur
+          - >-
+            réf. interne — clauses contractuelles : ni les données ni les développements spécifiques ne
+            peuvent être utilisés par l'éditeur sans accord formel de l'organisation
+          - >-
+            réf. interne — propriétaire de l'asset identifié, niveau de classification défini, liste des
+            destinataires des données restreintes/confidentielles formalisée
+      - titre: Hébergement & résidence des données (référentiel interne)
+        points:
+          - >-
+            Hébergement SaaS privilégié, PaaS en seconde option (référentiel interne) — pas d'IaaS sans
+            justification forte
+          - >-
+            Hébergement dans les frontières européennes recommandé pour toutes les données et dérivés (logs,
+            sauvegardes, télémétrie)
+          - Conformité aux contraintes légales du pays de l'utilisateur (référentiel interne)
+          - >-
+            Identification des transferts hors UE dans la chaîne de sous-traitance (service managé de modèles
+            de langage region, outil de gestion des services (ITSM), etc.) et encadrement (CCT, BCR)
+      - titre: Transferts et sous-traitance
+        points:
+          - >-
+            Région de traitement des données par les sous-traitants (service managé de modèles de langage
+            deployment region, outil de gestion des services (ITSM), etc.)
+          - Transferts hors UE éventuels et leur encadrement (clauses contractuelles types, BCR)
+          - DPA (Data Processing Agreement) avec chaque sous-traitant, validé par juridique
+          - Documentation des sous-traitants ultérieurs
+      - titre: Droits des personnes
+        points:
+          - 'Mécanisme du droit d''accès (art. 15) : endpoint /api/me/export ou procédure manuelle'
+          - 'Mécanisme du droit à l''effacement (art. 17) : endpoint /api/me/delete ou anonymisation'
+          - Mécanisme du droit de rectification (art. 16)
+          - Procédure de contact avec le DPO documentée
+      - titre: Registre et formalités
+        points:
+          - Inscription au registre des activités de traitement (art. 30 RGPD)
+          - Désignation du DPO comme responsable
+          - Référence interne attribuée
+    preuves:
+      - type: DOC
+        description: >-
+          Recherche RGPD/PIA dans le repo, espace documentaire d'entreprise (espaces Compliance, Data,
+          Innovation), espace documentaire d'entreprise DPO
+      - type: CODE
+        description: Extraits du middleware logging exposant des PII, configuration de la rétention applicative
+      - type: CLOUD
+        description: >-
+          Configuration région des déploiements service managé de modèles de langage, service de stockage
+          objet managé, plateforme de journalisation centralisée ; configuration retention
+      - type: INTERVIEW
+        description: Sponsor sur la transparence, DPO sur l'état d'avancement, juridique sur les DPA
+      - type: WEB
+        description: Capture de l'interface utilisateur montrant l'absence ou la présence du bandeau IA
+      - type: DB
+        description: 'Conformité données personnelles : classification des PII/sensibles (ADR0606, opposable)'
+    livrables:
+      - >-
+        Cadrage RGPD avec le DPO de l'organisation (workshop 2h identification données, base légale,
+        finalités)
+      - Classification AI Act via questionnaire juridique de l'organisation (template) avec validation
+      - PIA si données personnelles confirmées, selon template de l'organisation, validé par le DPO
+      - Bandeau de transparence IA permanent dans l'UI + page /transparency détaillée
+      - >-
+        Lifecycle Management sur le service de stockage objet managé container logs (transition 30j puis
+        suppression)
+      - Réduction rétention plateforme de journalisation centralisée à 90 jours pour les logs applicatifs
+      - >-
+        Tableau récapitulatif du stockage des données et de leurs durées de conservation (par emplacement,
+        type de donnée, base légale, mécanisme de purge), partagé avec le DPO
+      - Endpoints /api/me/export et /api/me/delete pour les droits d'accès et d'effacement
+      - Inscription au registre des traitements de l'organisation avec référence attribuée
+    bareme:
+      '1': >-
+        Aucune analyse RGPD, aucune classification AI Act, données personnelles traitées en clair sans
+        encadrement, pas de transparence utilisateur, pas de DPA. Bloquant Gate 1b non négociable, le DPO
+        refusera la mise en production.
+      '2': >-
+        Analyse RGPD entamée mais PIA absent, classification AI Act non formalisée, transparence partielle,
+        rétention non maîtrisée. Remédiation préalable nécessaire.
+      '3': >-
+        PIA validé, classification AI Act effectuée, transparence en place, rétention configurée. Quelques
+        droits utilisateurs à finaliser. Conforme avec compléments à apporter en Phase B.
+      '4': >-
+        Conformité RGPD et AI Act complète, droits utilisateurs implémentés, audit trail des accès aux
+        données. Quelques optimisations (automatisation des purges, dashboard DPO).
+      '5': >-
+        Niveau état de l'art : Privacy by Design, automatisations complètes, audit DPO récent sans finding,
+        transparence pédagogique exemplaire.
+  D05:
+    libelle_courant: Données, qualité & restitution
+    libelle_source: Données & qualité
+    appariement: par_identifiant
+    famille_courante: donnees-ia
+    description: >-
+      Évalue les sources de données, leur gouvernance (classification, lignage), la qualité des datasets, la
+      robustesse des pipelines d'ingestion, le versioning et le monitoring de drift.
+    raison_d_etre: >-
+      Une application IA hérite de la qualité de ses données d'entrée. Un assistant qui s'appuie sur des
+      tickets outil de gestion des services (ITSM) obsolètes ou une base de connaissances mal maintenue
+      produira des réponses dégradées. Ce domaine garantit que les sources sont identifiées, classifiées,
+      fiables et gouvernées dans la durée.
+    themes:
+      - titre: Sources de données
+        points:
+          - Inventaire des sources utilisées (bases métier, fichiers, API externes, bases de connaissances)
+          - Documentation des sources (schémas, propriétaires, fréquence de rafraîchissement)
+          - >-
+            Classification effectuée selon le référentiel de l'organisation (publique / interne /
+            confidentielle / secrète)
+          - Validation par le data steward du domaine concerné
+          - Cohérence avec les classifications existantes des sources sources amont
+      - titre: Pipelines d'ingestion
+        points:
+          - >-
+            Outil utilisé (orchestrateur de pipelines de données, service managé d'automatisation de flux,
+            scripts custom)
+          - Fréquence d'exécution et conformité aux SLA métier
+          - Taux de réussite sur les 30 derniers runs
+          - Patterns d'échec récurrents (timeouts, schémas incompatibles, quotas)
+          - Stratégie de retry et de notification en cas d'échec
+      - titre: Qualité des données
+        points:
+          - Taux de complétude par champ (analyse statistique sur échantillon représentatif)
+          - Taux de doublons (sur identifiants métier)
+          - Cohérence référentielle (clés étrangères, valeurs valides selon les nomenclatures)
+          - Détection des valeurs aberrantes
+          - Notebook d'analyse qualité maintenu et rejoué périodiquement
+      - titre: Lignage et gouvernance
+        points:
+          - Déclaration dans catalogue de données d'entreprise (collection appropriée)
+          - Lignage end-to-end visible (sources → transformations → dataset final)
+          - Classifications héritées et propagées
+          - Glossaire métier associé
+      - titre: Versioning et reproductibilité
+        points:
+          - versioning du stockage objet activé sur le service de stockage objet managé
+          - Versioning des datasets utilisés pour l'entraînement ou le RAG
+          - Snapshot des sources à des dates clés (release, migration de modèle)
+          - Possibilité de reproduire un comportement passé du système
+      - titre: Monitoring de drift
+        points:
+          - Suivi de la distribution des entrées (volume, types de questions, langues)
+          - Suivi de la distribution des données ingérées (nouveaux types de tickets, nouveaux clients)
+          - Alertes en cas de drift significatif
+          - Processus de revue périodique
+      - titre: Maintenance des sources de connaissance
+        points:
+          - Processus de mise à jour formalisé (qui, quand, validation)
+          - Revue périodique de l'obsolescence
+          - Versioning des pages espace documentaire d'entreprise ou équivalent
+          - Cohérence entre sources si plusieurs (pas de contradictions)
+      - titre: Échange de données & exportabilité (référentiel interne)
+        points:
+          - >-
+            réf. interne — utilisateurs capables d'exporter les données sans intervention de l'éditeur ou du
+            SI
+          - >-
+            réf. interne — reprise des données historiques à l'implémentation si exigée par le métier ou la
+            loi
+          - réf. interne — éditeur fournit le dictionnaire des données et le mapping d'intégration / d'export
+          - >-
+            réf. interne — exports dans un format standard non propriétaire (CSV, JSON, Parquet) réutilisable
+            hors solution
+          - réf. interne — nommage des flux conforme au standard de standardisation de l'organisation
+          - >-
+            réf. interne — tous les flux entre solutions (manuels ou automatiques) référencés et tenus à jour
+            pendant l'exploitation
+          - >-
+            réf. interne — chaque flux décrit synthétiquement (nature, données transportées, fréquence,
+            source, destination)
+      - titre: Échanges techniques (référentiel interne)
+        points:
+          - >-
+            réf. interne — protocoles privilégiés dans l'ordre : SFTP partenaire, SFTP de l'organisation,
+            HTTPS/API spécifique sécurisée
+          - réf. interne — chiffrement asymétrique pour les données sensibles transférées
+          - 'réf. interne — supervision des flux : identifiant, timestamps début/fin, statut, fichier de log'
+          - réf. interne — fichiers échangés stockés dans un système sécurisé avec sauvegarde
+          - réf. interne — encodage UTF-8 standard
+          - >-
+            réf. interne — filtrage IP en entrée de la plateforme SFTP de l'organisation (range communiqué par
+            le partenaire)
+          - réf. interne — aucune modification de données pendant le transport
+    preuves:
+      - type: DOC
+        description: Documentation des sources (docs/data-sources.md ou équivalent), classifications, propriétaires
+      - type: CLOUD
+        description: >-
+          Historique pipeline orchestrateur de pipelines de données, configuration service de stockage objet
+          managé versioning, configuration retention
+      - type: NOTEBOOK
+        description: Notebooks carnet d'analyse d'analyse qualité (complétude, doublons, distributions)
+      - type: CATALOGUE
+        description: Inventaire catalogue de données d'entreprise filtré sur l'application, lignage tracé
+      - type: INTERVIEW
+        description: Data steward sur les classifications, équipe métier sur la maintenance des sources
+      - type: DOC
+        description: >-
+          Conformité aux ADR Data opposables (référentiel interne) : Data Owner nommé (ADR0601), modélisation
+          validée + colonnes de traçabilité + hash SHA-256 (ADR0602), qualité (ADR0605), golden source
+          (ADR0604), Data Contract vers la plateforme de données de l'organisation (ADR0607), observabilité
+          data (ADR0608), nommage des flux (ADR0623), applicabilité du périmètre Data (ADR0629)
+    livrables:
+      - Investigation des échecs récurrents du pipeline + adaptation policy retry et timeout
+      - Étape de déduplication ajoutée dans le pipeline (sur identifiants métier)
+      - >-
+        Déclaration du lignage dans catalogue de données d'entreprise (connexion auto + sources
+        non-fournisseur cloud manuelles)
+      - Activation du versioning du stockage objet sur le service de stockage objet managé
+      - Revue formelle de la classification avec le data steward (check-list 15 critères)
+      - Définition du processus de mise à jour de la base de connaissances (workshop équipes métier)
+      - Mise en place de monitoring de drift sur les distributions d'entrée et des sources
+    bareme:
+      '1': >-
+        Sources non identifiées, pas de classification, pipeline cassé ou inexistant, qualité non mesurée,
+        aucune gouvernance. Application non fiable.
+      '2': >-
+        Sources identifiées partiellement, pipeline fragile (taux d'échec significatif), qualité non
+        monitorée, lignage absent. Maintenance compromise dans la durée.
+      '3': >-
+        Sources documentées et classifiées, pipeline fonctionnel, qualité mesurée ponctuellement, lignage à
+        compléter. Bonne base à consolider en Phase B.
+      '4': >-
+        Pipeline robuste, qualité monitorée en continu, lignage catalogue de données d'entreprise complet,
+        processus de maintenance formalisé. Quelques optimisations marginales.
+      '5': >-
+        Niveau état de l'art : monitoring de drift automatisé, versioning systématique, gouvernance catalogue
+        de données d'entreprise exemplaire, qualité supérieure à 99% sur les indicateurs clés.
+  D06:
+    libelle_courant: Performance & charge
+    libelle_source: Performance & charge
+    appariement: exact
+    famille_courante: architecture
+    description: >-
+      Évalue la tenue de charge à l'échelle cible : latence, scalabilité horizontale, goulots d'étranglement,
+      stratégie de cache, pagination, gestion des quotas externes.
+    raison_d_etre: >-
+      Un POC fonctionne souvent bien avec 5 utilisateurs internes et plante à 50. Les goulots ne sont pas
+      linéaires — quotas LLM partagés, service d'hébergement applicatif managé sous-dimensionné, connexions à
+      la base non poolées, cache absent. Ce domaine confronte les hypothèses de croissance à des mesures
+      réelles.
+    themes:
+      - titre: Mesures de latence
+        points:
+          - >-
+            Latence p50, p95, p99 mesurée en conditions réelles (plateforme de supervision applicative, autre
+            APM)
+          - Distribution des latences par endpoint
+          - Identification des endpoints les plus lents
+          - Évolution de la latence dans le temps (régressions ?)
+      - titre: Tests de charge
+        points:
+          - Présence de scripts de test de charge (k6, locust, JMeter, Artillery)
+          - Scénarios couverts (nominal, cible, stress, pic)
+          - Mesures documentées (rapports HTML, métriques Grafana)
+          - Seuils de validation définis et atteints
+      - titre: Tier d'hébergement et scaling
+        points:
+          - Tier plan d'hébergement applicatif managé (B1/S1/P1v3) et adéquation à la charge cible
+          - Configuration d'autoscaling (règles CPU, mémoire, queue length)
+          - Nombre min/max d'instances
+          - Coût additionnel du scaling
+      - titre: Stratégie de cache
+        points:
+          - Cache présent (cache distribué managé, Memcached, in-memory) pour les données stables
+          - Cache des prompts récurrents (cache exact ou sémantique avec embeddings)
+          - Politique d'invalidation
+          - Taux de hit mesuré
+      - titre: Pagination et payloads
+        points:
+          - Pagination cursor-based ou offset-based sur les endpoints qui retournent des listes
+          - Limite par défaut et limite max (typiquement 20 et 100)
+          - Compression GZIP/Brotli activée
+          - Streaming des réponses LLM si pertinent (server-sent events)
+      - titre: Connection pooling
+        points:
+          - Pool de connexions sur les bases de données (taille, timeout)
+          - Pool de connexions HTTP sur les API externes (requests.Session, httpx.Client)
+          - Réutilisation des connexions (Keep-Alive)
+      - titre: Quotas externes
+        points:
+          - 'Quotas service managé de modèles de langage : TPM (Tokens Per Minute), RPM (Requests Per Minute)'
+          - Usage observé vs quota disponible
+          - >-
+            Quotas autres services (outil de gestion des services (ITSM), espace documentaire d'entreprise
+            API)
+          - 'Demande d''augmentation à anticiper (délai l''éditeur : 2 semaines)'
+      - titre: Engagements de service & continuité (référentiel interne)
+        points:
+          - RPO (Recovery Point Objective) défini, validé et cohérent avec la criticité métier
+          - RTO (Recovery Time Objective) défini, validé et cohérent avec la criticité métier
+          - SLA (disponibilité, performance) défini selon les besoins métier (référentiel interne)
+          - >-
+            Plan de sauvegarde aligné sur le RPO : applicatif + données (DB, fichiers) — de l'organisation
+            réf. interne
+          - Tests périodiques de restauration sur l'environnement de recette pour valider le RTO réel
+          - >-
+            Fenêtres de maintenance programmée définies (référentiel interne) — pas de SLA 24/7 brut sans
+            fenêtre
+    preuves:
+      - type: CLOUD
+        description: >-
+          Métriques plateforme de supervision applicative (latence p50/p95/p99 sur 7-30 jours, taux d'erreur,
+          utilisateurs simultanés)
+      - type: CODE
+        description: Recherche de scripts k6, locust, JMeter dans le repo (find . -name pattern)
+      - type: CLOUD
+        description: >-
+          Configuration plan d'hébergement applicatif managé (tier, autoscale), configuration cache distribué
+          managé si présent
+      - type: CLOUD
+        description: Quotas service managé de modèles de langage (TPM, RPM) et usage observé sur Cost Management
+      - type: CODE
+        description: Endpoints fetchant sans pagination, code des appels externes sans pooling
+    livrables:
+      - Création de scripts k6 pour 3 scénarios (nominal, cible, stress) avec rapports HTML
+      - Migration vers service d'hébergement applicatif managé P1v3 + autoscaling 1-3 instances (CPU > 70%)
+      - >-
+        Introduction d'fournisseur cloud Cache for cache distribué managé avec cache sémantique pour les
+        prompts récurrents
+      - Pagination cursor-based sur les endpoints listant l'historique et les logs
+      - Connection pooling sur outil de gestion des services (ITSM) et autres API externes (requests.Session)
+      - >-
+        Demande l'éditeur d'augmentation du quota service managé de modèles de langage à la cible (anticiper 2
+        semaines)
+      - 'Dashboards perf plateforme de supervision applicative : latence, débit, top endpoints lents'
+    bareme:
+      '1': >-
+        Aucune mesure, aucun test de charge, infrastructure largement sous-dimensionnée, quotas insuffisants.
+        La cible ne pourra pas être supportée.
+      '2': >-
+        Latence acceptable en démo mais aucune validation à la cible, infrastructure sous-dimensionnée, cache
+        absent, quotas non vérifiés. Risque fort à l'échelle.
+      '3': >-
+        Tests de charge effectués, infrastructure adaptée, cache basique, pagination présente. Quelques
+        optimisations à apporter avant la cible définitive.
+      '4': >-
+        Performance maîtrisée, tests de charge automatisés, cache sémantique opérationnel, scaling testé.
+        Marges confortables.
+      '5': >-
+        Niveau état de l'art : tests de charge dans la CI, optimisations multi-niveaux (cache, batching,
+        compression), benchmarks supérieurs aux SLA cibles.
+  D07:
+    libelle_courant: Coûts & FinOps
+    libelle_source: Coûts & FinOps IA
+    appariement: par_identifiant
+    famille_courante: finops
+    description: >-
+      Évalue la maîtrise des coûts d'exécution : coût actuel, projection à la cible, optimisations LLM
+      (routage modèle, cache, compression), tags, budgets, alertes, dashboards.
+    raison_d_etre: >-
+      Sur les POCs IA, les coûts à l'usage peuvent croître de manière non linéaire. Un POC à 5 utilisateurs
+      internes coûtant 80€/mois peut atteindre 700€/mois à 50 utilisateurs sans optimisation, soit ×8. Les
+      optimisations classiques (routage modèle de langage-mini, cache sémantique, compression de prompt)
+      permettent de réduire ce coût de 50 à 60%. Ce domaine impose un plan de maîtrise avant
+      l'industrialisation.
+    themes:
+      - titre: Coût actuel
+        points:
+          - Coût total des 30 derniers jours (Cost Management du regroupement logique de ressources)
+          - >-
+            Décomposition par ressource (LLM, service d'hébergement applicatif managé, service de stockage
+            objet managé, etc.)
+          - Identification du composant dominant (typiquement le LLM)
+          - Tendance sur 90 jours
+      - titre: Projection à la cible
+        points:
+          - Hypothèses de croissance (nombre d'utilisateurs, requêtes/jour/utilisateur, tokens/requête)
+          - Notebook ou modèle de projection
+          - Ratio projection / coût actuel (typiquement ×5 à ×10)
+          - Sensibilité aux hypothèses (analyse what-if)
+      - titre: Optimisations LLM
+        points:
+          - 'Routage par complexité : modèle premium pour cas complexes, modèle économique pour cas simples'
+          - Mesure du % de requêtes routables vers un modèle moins cher (typiquement 60-80%)
+          - Cache sémantique pour les questions récurrentes (taux de hit cible 25-30%)
+          - Compression du contexte long (résumé via modèle économique avant appel modèle premium)
+          - Batching quand applicable
+      - titre: Tags et allocation
+        points:
+          - Tags Cost Management obligatoires de l'organisation (owner, cost-center, env, app)
+          - Couverture des tags sur 100% des ressources
+          - Possibilité d'allouer le coût au sponsor métier
+          - Comparaison possible entre POCs
+      - titre: Budgets et alertes
+        points:
+          - Budget mensuel défini sur la souscription cloud ou le RG
+          - Alertes à 50%, 80%, 100% du seuil
+          - Destinataires des alertes (sponsor, tech lead, FinOps)
+          - Dashboard FinOps applicatif
+      - titre: Suivi en temps réel
+        points:
+          - Custom metric tokens_consumed par requête (avec dimensions user, model, endpoint)
+          - Dashboard avec coût cumulé du mois et projection fin de mois
+          - Top utilisateurs consommateurs (détection des dérives)
+          - Comparaison avec les autres POCs de l'organisation
+      - titre: Maîtrise des spécifiques & licences (référentiel interne)
+        points:
+          - >-
+            réf. interne — coût des développements spécifiques < 10% du coût projet ; au-delà, justification
+            et arbitrage formels
+          - >-
+            réf. interne — type et termes de licence éditeur explicites et non ambigus (named-user, token,
+            volume données, stockage)
+          - >-
+            Modélisation du coût projeté en fonction du modèle de licence (impact d'une montée en charge
+            utilisateurs / volumétrie)
+          - Identification des dépendances éditeur et des risques de revalorisation tarifaire
+    preuves:
+      - type: CLOUD
+        description: Export Cost Management 30 derniers jours filtré sur le regroupement logique de ressources
+      - type: NOTEBOOK
+        description: Notebook de projection à la cible avec hypothèses explicites et calcul détaillé
+      - type: CODE
+        description: Code de l'appel LLM montrant l'absence de routage par complexité, l'absence de cache
+      - type: CLOUD
+        description: Inventaire des tags sur les ressources, configuration des budgets et alertes
+      - type: CLOUD
+        description: Custom metrics plateforme de supervision applicative, workbook FinOps si présent
+      - type: CLOUD
+        description: >-
+          Présence des tags obligatoires fournisseur cloud (ADR0102) sur toutes les ressources — prérequis à
+          l'allocation des coûts et au pilotage FinOps par application/environnement
+    livrables:
+      - Application des 4 tags obligatoires de l'organisation sur 100% des ressources (quick win immédiat)
+      - Configuration budget mensuel avec 3 alertes à 50%, 80%, 100% (quick win immédiat)
+      - Implémentation du router LLM par complexité (heuristiques ou classifieur léger)
+      - Cache sémantique avec embeddings (cohérent avec D06)
+      - 'Dashboard FinOps plateforme de supervision applicative : coût, tokens, latence, top users'
+      - Compression des prompts longs via modèle économique (résumé avant envoi au modèle premium)
+    bareme:
+      '1': >-
+        Coût non mesuré, projection absente, aucune optimisation, pas de tags, pas d'alertes. Risque de dérive
+        non maîtrisée.
+      '2': >-
+        Coût mesuré, projection extrapolée, optimisations identifiées mais non implémentées, tags absents, pas
+        d'alertes. Dérive prévisible à la cible.
+      '3': >-
+        Coût maîtrisé, optimisations partielles en place, tags présents, alertes basiques. Plan de réduction à
+        finaliser.
+      '4': >-
+        FinOps opérationnel : routage modèle, cache, compression, dashboards en place. Coût à la cible
+        inférieur de 50% à l'extrapolation naïve.
+      '5': >-
+        Niveau état de l'art : optimisations multi-niveaux, allocation par sponsor, prévisions précises,
+        benchmark favorable vs marché.
+  D08:
+    libelle_courant: Tests & qualité de code
+    libelle_source: Tests & qualité code
+    appariement: par_identifiant
+    famille_courante: operations
+    description: >-
+      Évalue la qualité du code : couverture des tests unitaires/intégration/e2e, conventions, dette technique
+      (longueur des fonctions, complexité), revues de code.
+    raison_d_etre: >-
+      Une couverture de tests insuffisante rend tout refactoring risqué. Sur un POC évolutif où les prompts et
+      la logique métier changent fréquemment, l'absence de tests bloque la vélocité. Ce domaine évalue la
+      dette technique accumulée et la capacité à la maîtriser.
+    themes:
+      - titre: Tests unitaires
+        points:
+          - 'Couverture globale (objectif de l''organisation : 70% pour les applications Phase B)'
+          - Couverture par module (modules critiques bien couverts ?)
+          - Modules avec couverture < 30% (typiquement orchestration LLM, auth)
+          - Tests de cas limites (entrées invalides, erreurs, edge cases)
+      - titre: Tests d'intégration et e2e
+        points:
+          - Tests d'intégration sur les parcours utilisateur principaux (5-10 scénarios)
+          - Tests e2e sur le frontend (Playwright, Cypress)
+          - Tests des intégrations externes (mocks ou environnement de test)
+          - Intégration dans le pipeline CI
+      - titre: Conventions de code
+        points:
+          - Linter configuré et actif (ruff, eslint, équivalent)
+          - Formatter configuré et actif (black, prettier)
+          - Pre-commit hooks installés
+          - Configuration centralisée (pyproject.toml, .eslintrc, package.json)
+      - titre: Complexité et dette
+        points:
+          - >-
+            Complexité cyclomatique moyenne (analyseur statique de code, analyseur statique de code) — seuil
+            de l'organisation ≤ 5
+          - Fonctions excessivement longues (> 100 lignes) à refactorer
+          - Fonctions à responsabilités multiples
+          - Code dupliqué (jscpd, équivalent)
+      - titre: Revues de code
+        points:
+          - 'Historique des PR : taux de revue, nombre d''approbations requises'
+          - Pushs directs sur main (interdits idéalement)
+          - Qualité des reviews (commentaires substantiels vs LGTM)
+          - Templates de PR utilisés
+      - titre: Tests sécurité et performance
+        points:
+          - Tests sécurité automatisés (cohérent avec D02)
+          - Tests de performance dans la CI (cohérent avec D06)
+          - Tests de qualité IA (cohérent avec D14)
+    preuves:
+      - type: TEST
+        description: Sortie harnais de tests unitaires --cov ou jest --coverage avec rapport par module
+      - type: CODE
+        description: Configuration linter et formatter (pyproject.toml, .eslintrc), pre-commit hooks
+      - type: GIT
+        description: Historique des PR (gh pr list), taux d'approbation, présence de pushs directs sur main
+      - type: METRIQUE
+        description: Sortie analyseur statique de code -a avec complexité moyenne et top fonctions complexes
+      - type: CODE
+        description: Identification des fonctions trop longues (> 100 lignes)
+    livrables:
+      - Compléter les tests unitaires sur les modules critiques (LLM, auth, API admin) pour atteindre 70%
+      - Refactoring des fonctions de plus de 200 lignes en sous-fonctions de 20-30 lignes
+      - Introduire 5-10 tests d'intégration sur les parcours utilisateur principaux
+      - Pre-commit hook avec gate coverage minimum 70% (quick win)
+      - Templates de PR avec checklist (tests, doc, sécurité)
+      - Tests e2e Playwright sur les 3 parcours critiques (en Phase B)
+    bareme:
+      '1': Couverture < 20%, pas de linter, dette technique massive, pas de revues. Tout refactoring est risqué.
+      '2': >-
+        Couverture 20-50%, linter présent mais non bloquant, dette modérée, revues partielles. Vélocité
+        bloquée à terme.
+      '3': Couverture 50-70%, conventions respectées, dette identifiée. Bonne base à compléter avant Phase B.
+      '4': Couverture > 70%, tests d'intégration en place, dette maîtrisée, revues systématiques. Vélocité saine.
+      '5': >-
+        Niveau état de l'art : > 85% couverture, tests e2e, mutation testing, revues exemplaires, dette quasi
+        nulle.
+  D09:
+    libelle_courant: CI/CD & DevOps
+    libelle_source: CI/CD & DevOps
+    appariement: exact
+    famille_courante: architecture
+    description: >-
+      Évalue l'industrialisation : pipelines CI/CD, environnements, Infrastructure as Code, stratégie de
+      déploiement (slots, blue/green), rollback, versioning, gouvernance du repo.
+    raison_d_etre: >-
+      Sans pipeline CI/CD, aucune industrialisation n'est possible. Les déploiements manuels sont opaques, non
+      reproductibles et risqués. Sans IaC, l'environnement n'est pas reproductible. Sans protection de
+      branche, le code est vulnérable. C'est un bloquant Gate 1b classique, parfois sous-estimé en POC.
+    themes:
+      - titre: Pipelines CI/CD
+        points:
+          - Présence de fichiers pipeline (définitions de pipeline versionnées dans le dépôt)
+          - 'Étapes : checkout, install, lint, test, coverage, scan sécurité, build, deploy'
+          - Quality gates configurés (échec si coverage < seuil, CVE high, lint errors)
+          - Triggers (push, PR, manual, scheduled)
+      - titre: Environnements
+        points:
+          - Séparation dev / recette / prod (regroupement logique de ressources distincts)
+          - Environnements moteur d'intégration continue ou forge logicielle avec approbations
+          - Variables et secrets différenciés par environnement
+          - Données de test représentatives en recette
+      - titre: Infrastructure as Code
+        points:
+          - IaC présent (Bicep, outil d'infrastructure as code, ARM templates)
+          - Modularité (modules par type de ressource)
+          - Déploiement via pipeline (plus de modifications portail)
+          - Drift detection (alerte si modification manuelle)
+      - titre: Stratégie de déploiement
+        points:
+          - Slots de déploiement service d'hébergement applicatif managé (staging) configurés
+          - Smoke tests post-déploiement
+          - Stratégie blue/green ou canary documentée
+          - Procédure de rollback testée
+      - titre: Versioning des releases
+        points:
+          - Tags Git (v0.x.x) sur chaque release
+          - Release notes générées (release-please, conventional-changelog)
+          - Versioning sémantique respecté
+      - titre: Gouvernance du repo
+        points:
+          - Dépôt hébergé dans l'espace d'organisation de la forge logicielle (pas un compte personnel)
+          - Protection de la branche main (require PR review, status checks, linear history)
+          - Restriction des pushes (pas de push direct sur main)
+          - Gestion des collaborateurs (équipes de l'organisation plutôt que comptes individuels)
+      - titre: Industrialisation et CMDB (référentiel interne)
+        points:
+          - >-
+            réf. interne — application enregistrée dans la CMDB de l'organisation (responsabilités
+            maintenance, support, owner)
+          - >-
+            réf. interne — plan de réversibilité défini si la solution est soumise à une obligation légale
+            (format archive certifié, lisibilité indépendante)
+          - >-
+            réf. interne — déploiements industrialisés conformes au document standard de déploiement de
+            l'organisation (pas de déploiement manuel)
+          - >-
+            réf. interne — procédures de support documentées par niveau (N1, N2, N3) avec conditions
+            d'escalade explicites
+      - titre: Conformité réseau et exposition de l'organisation (réf. interne)
+        points:
+          - >-
+            réf. interne — gestion des équipements réseau confiée à l'équipe direction informatique groupe
+            réseau de l'organisation
+          - >-
+            réf. interne — VPN : SSL VPN pour les utilisateurs intranet, IPSEC VPN pour les interconnexions
+            site / application
+          - réf. interne — transferts de fichiers entre partenaires distants via SFTP ou FTPS uniquement
+          - >-
+            réf. interne — chiffrement de fichiers entre partenaires en PGP ou GPG, avec coffre-fort pour les
+            clés publiques et privées
+          - >-
+            réf. interne — plateforme de données low-code de l'organisation interdit dans le tenant cloud ;
+            utiliser une base relationnelle (moteur relationnel managé, moteur relationnel managé)
+          - >-
+            réf. interne — exposition d'API via la passerelle d'API managée de l'organisation lorsqu'un
+            partenaire consomme les API d'une solution de l'organisation
+          - >-
+            réf. interne — APIs conformes aux standards industrie : REST + JSON (cohérent avec D01 —
+            pertinence d'exposition)
+    preuves:
+      - type: GIT
+        description: >-
+          Recherche fichiers pipelines (recherche des définitions de pipeline versionnées), contenu des
+          workflows
+      - type: CLOUD
+        description: Activity Log montrant les opérations write sur les ressources (caller, userAgent)
+      - type: DOC
+        description: Section Déploiement du README, état de complétion
+      - type: GIT
+        description: URL du repo, propriétaire (organisation vs compte personnel), visibilité (public/privé)
+      - type: GIT
+        description: Settings de branch protection (Settings → Branches), règles configurées
+      - type: GIT
+        description: >-
+          Conformité DevOps opposable (référentiel interne) : SaaS-first (ADR0502), paquet de déploiement
+          déclaratif (ADR0508), nommage objets + DEBUG_MODE avant commit (ADR0503), ingestion pipeline
+          d'ingestion déclaratif (ADR0624), standards de dév architecture data en couches réf. interne
+          (ADR0509)
+    livrables:
+      - Migration du dépôt vers l'espace d'organisation de la forge logicielle (quick win)
+      - Activation de la protection de la branche main avec PR reviews obligatoires (quick win)
+      - >-
+        Pipeline moteur d'intégration continue ci.yml : checkout, lint, format check, tests, coverage, scan
+        sécurité
+      - 'Pipeline moteur d''intégration continue deploy.yml : stages dev → recette → prod avec approbations'
+      - >-
+        IaC Bicep modulaire pour toutes les ressources (service d'hébergement applicatif managé, service
+        managé de modèles de langage, service de stockage objet managé, coffre à secrets managé, monitoring)
+      - Création des 3 environnements dev / recette / prod (regroupement logique de ressources séparés)
+      - Versioning sémantique avec release-please et release notes automatisées
+      - Procédure de rollback documentée et testée sur l'environnement de recette
+      - Slot de déploiement staging activé sur service d'hébergement applicatif managé pour blue/green
+    bareme:
+      '1': >-
+        Aucun pipeline, déploiements manuels, un seul environnement, pas d'IaC, repo personnel, pas de
+        protection. Industrialisation impossible. Bloquant Gate 1b.
+      '2': >-
+        Pipeline embryonnaire ou partiellement fonctionnel, environnements partiellement séparés, IaC absent,
+        repo de l'organisation mais protection partielle. Industrialisation à risque.
+      '3': >-
+        Pipeline opérationnel sur dev, IaC partiel, repo de l'organisation avec protection. Compléments
+        nécessaires (recette, prod, IaC complet) avant Phase B.
+      '4': >-
+        CI/CD complet sur 3 environnements, IaC modulaire, slots de déploiement, rollback testé. Quelques
+        optimisations (canary, drift detection).
+      '5': >-
+        Niveau état de l'art : GitOps, déploiement progressif automatisé, IaC versionné et testé, recovery
+        automatique.
+  D10:
+    libelle_courant: Observabilité & logs
+    libelle_source: Observabilité & logs
+    appariement: exact
+    famille_courante: operations
+    description: >-
+      Évalue la capacité à observer le fonctionnement de l'application : logs structurés, métriques, traces
+      distribuées, dashboards, alertes, monitoring qualité IA.
+    raison_d_etre: >-
+      Une application en production sans observabilité est aveugle. Les incidents sont détectés tardivement,
+      le diagnostic est difficile, le tuning impossible. Pour une application IA, s'ajoute la nécessité de
+      monitorer la qualité des réponses (canary, drift). Ce domaine est la condition sine qua non du Run.
+    themes:
+      - titre: plateforme de supervision applicative
+        points:
+          - Activation et instrumentation auto
+          - Custom events utilisés pour les événements métier
+          - Custom metrics utilisées (tokens consommés, qualité IA, etc.)
+          - Custom dimensions (user, feature flag, version)
+          - SDK SDK de télémétrie du fournisseur cloud ou opentelemetry configuré côté code
+      - titre: Logs applicatifs
+        points:
+          - Logger structuré (structlog, loguru, winston) plutôt que print()
+          - Format JSON, niveaux (DEBUG, INFO, WARNING, ERROR)
+          - Horodatage ISO cohérent
+          - Niveau approprié à l'environnement (DEBUG en dev, INFO en prod)
+      - titre: Correlation et traçabilité
+        points:
+          - Correlation_id généré par requête
+          - Propagation entre les couches (frontend → backend → LLM → DB)
+          - Header X-Correlation-ID respecté ou introduit
+          - Possibilité de retrouver toutes les opérations d'une requête
+      - titre: Dashboards
+        points:
+          - Workbooks custom plateforme de supervision applicative ou Grafana
+          - Vue santé technique (latence, erreurs, débit)
+          - Vue santé métier (utilisateurs actifs, feature usage, satisfaction)
+          - Vue FinOps (cohérent avec D07)
+      - titre: Alertes
+        points:
+          - >-
+            Alertes techniques : latence p95 dépassée, taux d'erreur élevé, service d'hébergement applicatif
+            managé down
+          - 'Alertes métier : qualité IA dégradée, dérive coût'
+          - Action groups configurés (email, outil de collaboration, PagerDuty)
+          - Tests des alertes (déclenchement à blanc)
+      - titre: Traces distribuées
+        points:
+          - OpenTelemetry ou SDK de télémétrie du fournisseur cloud configuré
+          - Spans custom pour les opérations métier longues
+          - Visualisation dans plateforme de supervision applicative (Application Map, End-to-end transaction)
+      - titre: Monitoring qualité IA
+        points:
+          - 'Canary daily : jeu de questions de référence rejoué quotidiennement'
+          - Mesure de qualité (similarité embedding vs réponse de référence, LLM-as-judge)
+          - Custom metric publiée et alertée si dérive
+          - Cohérent avec D14 (Modèles IA & prompts)
+      - titre: Rétention et coûts
+        points:
+          - Rétention plateforme de journalisation centralisée adaptée (90 jours pour applicatif)
+          - Daily cap pour éviter les surcoûts
+          - Cohérent avec D04 (RGPD purges)
+      - titre: Auditabilité & traçabilité des activités utilisateurs
+        points:
+          - Journalisation des accès à l'application (qui se connecte, quand, depuis où, succès / échec)
+          - >-
+            Journalisation de l'utilisation fonctionnelle (qui fait quoi, sur quelle fonctionnalité, quand,
+            avec quels paramètres significatifs)
+          - >-
+            Journalisation des actions sensibles (modifications de configuration, accès à des données
+            restreintes, exports)
+          - >-
+            Identification fiable de l'utilisateur dans chaque événement (claim fournisseur d'identité
+            central, pas d'identifiant applicatif local non rattaché)
+          - Horodatage cohérent (UTC ISO 8601), corrélation avec correlation_id
+          - Conformité avec D04 (durée de conservation des logs d'audit, base légale, information utilisateur)
+      - titre: Supervision plateforme de journalisation centralisée & Health monitoring
+        points:
+          - >-
+            Envoi des événements d'audit & traçabilité vers la plateforme de journalisation centralisée de
+            supervision de l'organisation (pipeline d'export, format de log structuré)
+          - >-
+            Envoi des indicateurs de santé applicative (Health endpoints, /healthz, /readyz, statut des
+            dépendances LLM/DB) vers plateforme de journalisation centralisée pour le monitoring centralisé
+          - >-
+            Dashboards plateforme de journalisation centralisée dédiés à l'application (audit utilisateur,
+            santé technique) accessibles aux équipes Run et Sécurité
+          - >-
+            Alertes plateforme de journalisation centralisée configurées sur les seuils Health
+            (indisponibilité, dégradation) et sur les patterns d'audit suspects
+          - >-
+            Cohabitation maîtrisée avec plateforme de supervision applicative (rôles complémentaires :
+            plateforme de supervision applicative pour le diagnostic technique fin, plateforme de
+            journalisation centralisée pour la supervision et l'audit transverse)
+          - >-
+            Conformité de l'export aux règles de classification (pas d'envoi de données confidentielles non
+            maîtrisées vers plateforme de journalisation centralisée)
+      - titre: Gestion des événements (référentiel interne)
+        points:
+          - >-
+            réf. interne — service owner fournit la liste des événements à monitorer et la procédure de
+            traitement associée
+          - réf. interne — accès aux logs et capacité à les lire fournis aux opérateurs en charge
+          - Documentation des seuils d'alerte et de la chaîne d'escalade (Run → service owner)
+      - titre: Incidents & demandes de service (référentiel interne)
+        points:
+          - >-
+            réf. interne — types d'incidents et demandes implémentés dans l'outil de gestion des services de
+            l'organisation avec procédures par niveau de support
+          - >-
+            réf. interne — éditeur fournit les KPI de stabilité de la solution : nombre d'incidents
+            ouverts/fermés, délai moyen de résolution
+          - Procédure de bascule entre Run interne à l'organisation et support éditeur documentée
+      - titre: Maintenance programmée (référentiel interne)
+        points:
+          - Fenêtres de maintenance définies (jour, heure, fréquence) — pas de revendication SLA 24/7 brute
+          - Communication anticipée aux utilisateurs et aux équipes Run
+          - Procédure de reprise post-maintenance documentée
+    preuves:
+      - type: CLOUD
+        description: Inventaire workbooks, alertes, custom events/metrics dans plateforme de supervision applicative
+      - type: CODE
+        description: Code du middleware logger (présence de print() ou de logger structuré, format)
+      - type: CLOUD
+        description: Configuration retention plateforme de journalisation centralisée, daily cap, taille du workspace
+      - type: CODE
+        description: Recherche libs observabilité dans requirements.txt / package.json (opentelemetry, structlog)
+      - type: CLOUD
+        description: Configuration des action groups et destinataires des alertes
+      - type: DOC
+        description: >-
+          Intégration à plateforme de journalisation centralisée Cloud et conformité ECS (plateforme de
+          journalisation centralisée Common Schema) pour logs & métriques applicatifs (ADR0401) — naming et
+          schéma de champs standardisés, dashboards communs
+    livrables:
+      - Migration vers logger structuré (structlog ou loguru) avec format JSON
+      - Ajout correlation_id dans le middleware avec propagation downstream
+      - >-
+        Mise en place d'une journalisation d'audit dédiée : accès aux applications, utilisation fonctionnelle
+        (qui, quoi, quand, comment), actions sensibles — identifiant fournisseur d'identité central rattaché
+      - >-
+        Export des logs d'audit & traçabilité vers la supervision plateforme de journalisation centralisée
+        (pipeline d'export, mapping structuré)
+      - >-
+        Endpoints Health (/healthz, /readyz) instrumentés et envoyés également vers plateforme de
+        journalisation centralisée pour le monitoring de santé applicative
+      - >-
+        Dashboards plateforme de journalisation centralisée dédiés (audit utilisateurs + santé applicative)
+        avec alerting sur dégradations et patterns suspects
+      - 'Workbook plateforme de supervision applicative : santé technique + santé métier'
+      - >-
+        5 alertes minimum (latence p95, erreurs 5xx, service d'hébergement applicatif managé down, dérive
+        coût, qualité IA)
+      - Pipeline canary IA quotidien (fournisseur cloud Function rejouant 20 questions de référence)
+      - >-
+        Réduction rétention plateforme de journalisation centralisée à 90 jours (quick win, économie +
+        conformité D04)
+      - OpenTelemetry pour les traces distribuées sur les opérations longues
+    bareme:
+      '1': >-
+        Aucune observabilité, logs en print(), pas de dashboard, pas d'alerte. Application aveugle en
+        production.
+      '2': >-
+        plateforme de supervision applicative actif mais sous-utilisé, logs non structurés, pas de
+        correlation_id, pas de monitoring qualité IA. Diagnostic difficile.
+      '3': >-
+        Logs structurés, dashboards basiques, alertes techniques en place. Monitoring métier et qualité IA à
+        compléter.
+      '4': >-
+        Observabilité complète : logs, métriques, traces, alertes, dashboards techniques et métier, monitoring
+        IA. Run efficace.
+      '5': >-
+        Niveau état de l'art : SLO/SLI, error budget, traces 100% échantillonnées sur erreurs, ML sur les
+        anomalies.
+  D11:
+    libelle_courant: UX & accessibilité
+    libelle_source: UX & accessibilité
+    appariement: exact
+    famille_courante: operations
+    description: >-
+      Évalue l'expérience utilisateur : ergonomie, parcours, accessibilité RGAA, support multi-device, retours
+      utilisateurs.
+    raison_d_etre: >-
+      Un POC techniquement excellent mais inutilisable n'apporte aucune valeur. L'accessibilité (RGAA) est une
+      obligation légale pour les applications publiques et fortement recommandée pour les outils internes. Ce
+      domaine évalue l'adoption potentielle de l'application.
+    themes:
+      - titre: Audit outil d'audit web
+        points:
+          - Score Performance (FCP, LCP, CLS, TBT)
+          - Score Accessibility (heading order, contrast, ARIA)
+          - Score Best Practices
+          - Score SEO (moins critique pour app interne)
+      - titre: Charte et cohérence visuelle
+        points:
+          - Respect de la charte de l'organisation (palette, typographie, espacements)
+          - Cohérence avec les autres applications internes
+          - Bibliothèque de composants utilisée (Material UI, Chakra, design system maison)
+          - Système de tokens (couleurs, espacements, ombres)
+      - titre: Accessibilité technique
+        points:
+          - Sémantique HTML (h1-h6 ordonnés, landmarks ARIA)
+          - ARIA labels sur les éléments interactifs
+          - Contrastes WCAG AA (4.5:1 pour le texte normal)
+          - Navigation clavier (Tab, Enter, Escape)
+          - Focus visible sur tous les éléments interactifs
+          - Support des lecteurs d'écran
+      - titre: Responsive
+        points:
+          - Breakpoints adaptés (xs, sm, md, lg, xl)
+          - Test desktop (1920×1080, 1280×720)
+          - Test tablette (768×1024)
+          - Test mobile (375×667, 360×800, 414×896)
+      - titre: RGAA
+        points:
+          - Audit RGAA formel sur les 10 critères principaux
+          - Niveau de conformité (non conforme, partiellement, totalement)
+          - Plan de mise en conformité
+      - titre: Retours utilisateurs
+        points:
+          - Tests utilisateurs formalisés ou retours informels
+          - NPS (Net Promoter Score) ou équivalent
+          - Verbatim positifs et négatifs
+          - Volume et représentativité des répondants
+      - titre: Fonctionnalités UX
+        points:
+          - Mode sombre
+          - Internationalisation (si pertinent)
+          - Préférences utilisateur persistantes
+          - Onboarding (tour, tooltips)
+      - titre: Conformité aux principes du référentiel interne d'accessibilité fonctionnelle
+        points:
+          - réf. interne — interface utilisateur dans la langue maternelle des utilisateurs ou traduisible
+          - réf. interne — accès via navigateur web ; pas d'application lourde à installer sur le poste
+          - réf. interne — interface mobile fournie quand le besoin le justifie
+          - réf. interne — interface responsive et rapide pour l'utilisateur final
+          - réf. interne — interface graphique moderne et personnalisable
+          - réf. interne — capacité d'export et d'impression des données depuis l'interface
+          - >-
+            réf. interne — accès aux utilisateurs externes (personnes extérieures à l'organisation) prévu si
+            nécessaire (cohérent avec D03 — compte invité fédéré)
+          - réf. interne — gestion de profils utilisateurs différents selon les cas d'usage
+    preuves:
+      - type: AUDIT-WEB
+        description: Rapport outil d'audit web Chrome DevTools sur l'URL de l'application
+      - type: CODE
+        description: Extraits de composants UI montrant l'usage des ARIA labels, sémantique HTML
+      - type: INTERVIEW
+        description: Sondage utilisateurs (NPS, satisfaction par axe, verbatim libre)
+      - type: DOC
+        description: Recherche audit RGAA dans le repo et la documentation
+      - type: WEB
+        description: Captures de l'application sur différents devices (desktop, tablette, mobile)
+    livrables:
+      - Test responsive mobile sur 3 devices réels (iPhone, Android, iPad)
+      - Audit RGAA léger sur 10 critères principaux (rapport documenté)
+      - Implémentation mode sombre via ThemeProvider avec détection préférence système
+      - Compléments d'accessibilité selon les findings de l'audit RGAA
+      - Tests utilisateurs formalisés (5-10 sessions) en Phase B
+    bareme:
+      '1': >-
+        Interface inutilisable, scores outil d'audit web < 50, accessibilité absente, charte non respectée.
+        Adoption compromise.
+      '2': >-
+        Interface fonctionnelle mais avec frictions importantes, accessibilité insuffisante, responsive
+        partiel. Adoption limitée.
+      '3': >-
+        Interface acceptable, accessibilité de base, responsive desktop/tablette OK, retours utilisateurs
+        positifs. Améliorations à apporter.
+      '4': UX solide, accessibilité conforme, responsive complet, NPS positif. Quelques nice-to-have.
+      '5': >-
+        Niveau état de l'art : RGAA totalement conforme, design system exemplaire, NPS > 9, tests utilisateurs
+        systématiques.
+  D12:
+    libelle_courant: Run & exploitation
+    libelle_source: Run & exploitation
+    appariement: exact
+    famille_courante: operations
+    description: >-
+      Évalue la capacité à exploiter l'application au quotidien : runbooks, procédures d'astreinte, gestion
+      des incidents, classification de sévérité, kill-switch IA, documentation tacite.
+    raison_d_etre: >-
+      Une application sans runbook est inexploitable par d'autres que ses créateurs. Sur un POC, le sponsor ou
+      le tech lead gèrent informellement les incidents. À l'industrialisation, l'exploitation passe à des
+      équipes Run qui ont besoin de procédures formalisées. Le bus factor (combien de personnes connaissent
+      les procédures critiques) est un risque sous-estimé.
+    themes:
+      - titre: Runbooks
+        points:
+          - Démarrage / arrêt à froid de l'application
+          - Kill-switch IA en cas de dégradation qualité (feature flag, endpoint admin)
+          - Redémarrage en cas de dégradation
+          - Rotation des secrets (cohérent avec D03)
+          - Procédures de déploiement et de rollback (cohérent avec D09)
+          - Diagnostic d'incidents courants
+      - titre: Procédure d'astreinte
+        points:
+          - Chaîne d'astreinte définie (qui, comment être joint)
+          - Rotation hebdomadaire entre minimum 3 personnes
+          - Outil de gestion (PagerDuty, rotation outil de collaboration, manuelle)
+          - Chaîne d'escalade N1 → N2 → N3
+      - titre: Classification et SLA
+        points:
+          - Définition des niveaux de sévérité (S1 critique, S2 majeur, S3 mineur, S4 informatif)
+          - SLA de prise en charge par niveau
+          - SLA de résolution par niveau
+          - Alignement sur la grille standard de l'organisation
+      - titre: Gestion des incidents
+        points:
+          - Procédure d'incident formalisée
+          - Template post-mortem
+          - RCA systématique pour S1 et S2
+          - Capitalisation des leçons (knowledge base)
+      - titre: Communication
+        points:
+          - Point de contact unique pour les utilisateurs (canal outil de collaboration, email)
+          - Communication en cas d'incident (status page, notification)
+          - Communication des changements (release notes, maintenance planifiée)
+      - titre: Documentation tacite
+        points:
+          - Identification des connaissances tacites (qui sait quoi)
+          - Bus factor (nombre de personnes irremplaçables sur des procédures critiques)
+          - Plan de transmission de connaissances
+          - Documentation des exceptions et workarounds
+      - titre: Definition of Ready / Done
+        points:
+          - Critères pour qu'une fonctionnalité soit prête pour le développement (DoR)
+          - Critères pour qu'une fonctionnalité soit prête pour l'exploitation (DoD)
+          - Validation par le manager exploitation
+      - titre: Support éditeur & coaching (référentiel interne)
+        points:
+          - >-
+            réf. interne — plateforme de support hot-line fournie par l'éditeur (niveau de support,
+            organisation, contacts)
+          - >-
+            réf. interne — support disponible en langue maternelle, et idéalement en anglais, pendant les
+            heures ouvrables locales
+          - réf. interne — coaching / accompagnement assuré par l'éditeur ou par un partenaire agréé
+          - Validation contractuelle de ces engagements de support et chaîne d'escalade vers l'organisation
+      - titre: Gestion des mouvements de personnel (référentiel interne)
+        points:
+          - >-
+            Information systématique de le support informatique groupe lors des mouvements (joiners / movers /
+            leavers)
+          - Inventaire des accès utilisateurs maintenu par le manager / service owner
+          - Procédure de revue périodique des accès (au moins annuelle pour les rôles sensibles)
+    preuves:
+      - type: WIKI
+        description: 'Page d''exploitation de l''application : sections présentes vs sections vides'
+      - type: GIT
+        description: Recherche docs/ops/, runbook*, postmortem* dans le repo
+      - type: CLOUD
+        description: 'Inventaire automation : action groups, automation accounts, runbooks automatisés'
+      - type: INTERVIEW
+        description: Sponsor ou tech lead sur les connaissances tacites, bus factor identifié
+      - type: DOC
+        description: Document SLA et classification de sévérité, charte d'astreinte
+      - type: CLOUD
+        description: >-
+          Tags d'exploitation obligatoires (ADR0102 : owner, environnement, criticité, centre de coût…)
+          renseignés sur les ressources — support à l'identification du responsable et au RUN
+    livrables:
+      - 'Runbooks formalisés : start, stop, kill-switch IA, restart-degraded, rotate-secrets'
+      - Classification de sévérité S1-S4 avec SLA associés
+      - Procédure d'astreinte avec chaîne d'escalade testée à blanc
+      - Template post-mortem et procédure RCA
+      - Atelier de documentation des connaissances tacites du sponsor (réduction bus factor)
+      - 'Point de contact unique défini : canal outil de collaboration dédié + propriétaire (quick win)'
+      - Definition of Ready / Done validée par le manager exploitation
+    bareme:
+      '1': >-
+        Aucun runbook, pas d'astreinte, bus factor à 1, pas de SLA. L'application n'est pas exploitable par
+        une équipe Run.
+      '2': >-
+        Procédures partielles dans espace documentaire d'entreprise, astreinte informelle, pas de SLA, bus
+        factor faible. Risque opérationnel élevé.
+      '3': >-
+        Runbooks principaux écrits, astreinte définie, SLA partiels, communication formalisée. Quelques
+        compléments à apporter.
+      '4': >-
+        Run opérationnel : runbooks complets, astreinte rotative, SLA respectés, post-mortems systématiques.
+        Bonne maturité.
+      '5': >-
+        Niveau état de l'art : runbooks automatisés (fournisseur cloud Automation), GameDays réguliers, error
+        budget tenu, culture blameless post-mortems.
+  D13:
+    libelle_courant: Documentation
+    libelle_source: Documentation
+    appariement: exact
+    famille_courante: operations
+    description: >-
+      Évalue la documentation : README, doc API, ADR, doc technique, doc utilisateur, onboarding développeur,
+      documentation des prompts.
+    raison_d_etre: >-
+      Une documentation insuffisante crée une dette qui s'aggrave avec le temps. Les nouveaux arrivants
+      prennent du temps à devenir productifs, les décisions passées sont oubliées, les bugs reviennent. Ce
+      domaine évalue la santé documentaire à 360°, complémentaire de D01 (architecture), D12 (ops), D14
+      (prompts).
+    themes:
+      - titre: README
+        points:
+          - >-
+            Sections présentes (présentation, install, run, configuration, tests, déploiement, contribution,
+            troubleshooting)
+          - À jour (captures à jour, instructions valides)
+          - Lisibilité (table des matières, hiérarchie, exemples)
+          - Sections marquées TODO ou À compléter
+      - titre: Documentation API
+        points:
+          - OpenAPI / Swagger auto-générée et accessible
+          - Annotations enrichissant la doc (descriptions, exemples)
+          - Versioning de l'API
+          - Documentation des codes d'erreur
+      - titre: ADR (Architecture Decision Records)
+        points:
+          - Présence de ADR pour les décisions structurantes
+          - Format respecté (MADR, Nygard, équivalent)
+          - Datés et signés
+          - Statuts (proposed, accepted, deprecated, superseded)
+      - titre: Doc technique
+        points:
+          - Schéma d'architecture (cohérent avec D01)
+          - Documentation des composants internes
+          - Diagrammes de séquence pour les flux complexes
+          - Documentation des prompts (cohérent avec D14)
+      - titre: Doc utilisateur
+        points:
+          - Guide utilisateur (espace documentaire d'entreprise, intranet, autre)
+          - Parcours utilisateur principaux documentés
+          - FAQ enrichie
+          - Captures à jour, vidéos de démo
+      - titre: Onboarding développeur
+        points:
+          - Temps moyen pour qu'un nouvel arrivant soit productif
+          - Checklist d'onboarding
+          - Liens vers les ressources clés
+          - Documentation testée régulièrement (par un nouveau)
+      - titre: Documentation éditeur (référentiel interne)
+        points:
+          - >-
+            réf. interne — guides utilisateurs fournis par l'éditeur en langue maternelle ET en anglais ;
+            stockés par les équipes locales accessibles à l'IT
+          - >-
+            réf. interne — documentation technique fournie par l'éditeur en langue maternelle ET en anglais ;
+            stockée et accessible à la direction informatique groupe
+          - >-
+            réf. interne — informations de toute nouvelle solution transmises à l'équipe architecture pour
+            maintenir le repository, la cartographie et les flux
+      - titre: Livrables documentaires de l'organisation obligatoires (réf. interne)
+        points:
+          - >-
+            DAT — Document d'Architecture Technique : schéma logique, intégration au réseau de l'organisation,
+            schéma physique, composants, supervision (réf. interne)
+          - >-
+            DIT — Document d'Infrastructure Technique pour les projets off-grid : licences, équipements, VLAN,
+            DNS, NTP, LDAP, SNMP, backup, HA, routage, NAT (réf. interne)
+          - Matrice des flux réseau tenue à jour (réf. interne)
+          - Plan des bâtiments avec localisation des composants réseau (réf. interne)
+          - DEX — Document d'EXploitation / maintenance opérationnelle (réf. interne)
+          - RACI (Responsible, Accountable, Consulted, Informed) sur l'application (réf. interne)
+          - DOE — Document Opérationnel d'Exploitation tenu à jour (réf. interne)
+          - SLA — engagement de disponibilité documenté (réf. interne), cohérent avec D06
+      - titre: Réversibilité & continuité documentaire (référentiel interne)
+        points:
+          - >-
+            Plan de réversibilité formalisé : processus de sortie, format des données, lisibilité indépendante
+            de la solution (réf. interne)
+          - Procédure de gestion documentaire pour les documents légaux (indexation, outil) — réf. interne
+          - >-
+            Format d'archive certifié technique pour les données soumises à obligation légale (financier,
+            RGPD)
+    preuves:
+      - type: GIT
+        description: Contenu du README.md, sections présentes, sections vides ou TODO
+      - type: API
+        description: URL OpenAPI / Swagger, exemples de schemas et de descriptions
+      - type: GIT
+        description: Recherche docs/adr/, decisions/, fichiers ADR-*.md
+      - type: WIKI
+        description: Page utilisateur (date de création, dernière mise à jour, longueur, captures à jour)
+      - type: INTERVIEW
+        description: Témoignage d'un nouvel arrivant sur le temps de productivité et les points de friction
+      - type: GIT
+        description: >-
+          ADR du projet conformes aux conventions MADR du dépôt de gouvernance d'architecture : front matter
+          (status/domain/impact/landing_zone/tags), nommage ADR<NNNN>-<code-domaine>-<slug>, statut du cycle
+          de vie (Proposed/Accepted/Superseded)
+    livrables:
+      - >-
+        Création de 5-10 ADR rétroactifs sur les choix structurants (framework, services, authentification,
+        sources)
+      - Mise à jour des captures d'écran du README (quick win)
+      - Documentation utilisateur enrichie (parcours principaux, FAQ étendue, vidéo démo)
+      - Documentation des prompts et pipeline de versioning (cohérent avec D14)
+      - Schéma d'architecture C4 inclus dans le README (cohérent avec D01)
+      - Checklist d'onboarding pour les nouveaux développeurs
+    bareme:
+      '1': >-
+        Documentation quasi inexistante, README minimal, pas de doc API, onboarding impossible sans aide.
+        Vélocité bloquée.
+      '2': >-
+        README présent mais incomplet, doc API absente, ADR absents, doc utilisateur sommaire. Onboarding
+        lent.
+      '3': README à jour, doc API auto-générée, doc utilisateur basique, ADR partiels. Onboarding correct.
+      '4': Documentation complète à 360° (README, API, ADR, utilisateur, technique). Onboarding rapide.
+      '5': >-
+        Niveau état de l'art : documentation as code, exemples interactifs, vidéos pédagogiques, doc testée
+        automatiquement.
+  D14:
+    libelle_courant: Modèles IA & prompts
+    libelle_source: Modèles IA & prompts
+    appariement: exact
+    famille_courante: donnees-ia
+    description: >-
+      Évalue les choix de modèles, le versioning des prompts, l'évaluation qualité (canary, LLM-as-judge), les
+      garde-fous, la gestion des hallucinations et du contexte long, les fallbacks.
+    raison_d_etre: >-
+      Domaine spécifique aux applications IA. Sans évaluation qualité automatisée, il est impossible de
+      détecter une dérive du modèle (mise à jour l'éditeur, dérive des prompts) ou des hallucinations
+      massives. Sans garde-fous, l'application peut produire des réponses dangereuses. Sans versioning des
+      prompts, toute modification est risquée. Synergie forte avec D07 (FinOps).
+    themes:
+      - titre: Choix de modèles
+        points:
+          - Modèle(s) utilisé(s) (modèle de langage, modèle de langage-mini, modèle de langage tiers, etc.)
+          - Justification du choix (qualité, coût, latence, conformité)
+          - Routage par complexité (cohérent avec D07)
+          - Fine-tuning ou modèle générique
+      - titre: Versioning des prompts
+        points:
+          - Lieu de stockage (in-code, externe LangFuse, table SQL, fichiers)
+          - Métadonnées (auteur, date, A/B test)
+          - Possibilité de rollback rapide
+          - Changelog documenté
+      - titre: Évaluation qualité
+        points:
+          - Jeu de tests de référence (questions + réponses attendues)
+          - 'Canary daily : rejeu quotidien avec mesure de qualité'
+          - 'LLM-as-judge : évaluation par un modèle juge'
+          - Métriques de qualité (similarité embedding, BLEU, ROUGE, scoring custom)
+          - Alertes si dérive
+      - titre: Garde-fous
+        points:
+          - Content filter natif activé (service managé de modèles de langage default)
+          - Filtres custom métier (mots-clés sensibles, codes projet, noms client)
+          - Détection PII en entrée et en sortie
+          - Validation du format des réponses
+          - Limitation de longueur, de tokens
+      - titre: Gestion des hallucinations
+        points:
+          - Système de feedback utilisateur (thumbs up/down)
+          - Analyse des feedbacks négatifs
+          - Métriques de fiabilité
+          - Boucle de retroaction sur les prompts
+      - titre: Gestion du contexte long
+        points:
+          - Limitation des tokens d'entrée
+          - Alerte si contexte > seuil (typiquement 7K pour modèle de langage)
+          - Résumé automatique du contexte si trop long (cohérent avec D07)
+          - Stratégie de truncation
+      - titre: Fallback et résilience
+        points:
+          - Stratégie en cas d'indisponibilité du LLM (cache, message dégradé)
+          - Cohérent avec D06 (cache sémantique) et D01 (retry, circuit breaker)
+          - >-
+            Multi-provider possible (service managé de modèles de langage + modèle de langage tiers + modèle
+            de langage tiers)
+      - titre: Tests A/B sur prompts
+        points:
+          - Capacité à déployer un prompt sur une cohorte
+          - Mesure de l'impact qualité
+          - Outils (LangFuse, feature flags, équivalent)
+      - titre: Règles de gestion fonctionnelles & validation métier
+        points:
+          - >-
+            Existence d'un document recensant les règles de gestion du POC (comportements attendus,
+            exclusions, cas limites, ton, style, refus, escalades)
+          - >-
+            Récupération des règles implicites encodées dans les prompts ou le code et explicitation dans un
+            référentiel partagé
+          - >-
+            Génération du jeu de règles manquantes par retro-engineering du POC (analyse des prompts, des
+            conversations échantillonnées, des feedbacks)
+          - >-
+            Validation formelle de chaque règle de gestion par le métier (sponsor, key users) avec traçabilité
+            (date, validateur, version)
+          - >-
+            Cohérence entre règles validées et jeu d'évaluation canary (chaque règle critique doit être
+            testée)
+          - Processus de revue périodique des règles de gestion (modification fonctionnelle, dérive d'usage)
+    preuves:
+      - type: CODE
+        description: Code des prompts (in-code), métadonnées présentes ou absentes
+      - type: CLOUD
+        description: Inventaire deployments service managé de modèles de langage, modèles utilisés, capacités
+      - type: GIT
+        description: Recherche scripts d'évaluation (find . -name eval/canary/benchmark)
+      - type: CLOUD
+        description: Configuration content filter service managé de modèles de langage (default vs custom)
+      - type: DOC
+        description: Document de règles de gestion du POC, traçabilité des validations métier (date, validateur, version)
+      - type: INTERVIEW
+        description: Sponsor sur les retours utilisateurs négatifs et leur traitement
+      - type: INTERVIEW
+        description: Key users / métier sur la validation des règles de gestion fonctionnelles
+    livrables:
+      - >-
+        Récupération et/ou génération de la liste exhaustive des règles de gestion du POC, puis validation
+        formelle de ces points fonctionnels par le métier (sponsor + key users)
+      - Routage modèle de langage-mini / modèle de langage selon complexité (cohérent avec D07)
+      - Versioning des prompts externalisé (LangFuse self-hosted ou table dédiée)
+      - >-
+        Suite d'évaluation canary quotidienne (20 questions de référence, pipeline fournisseur cloud Function)
+        — couverture des règles métier critiques
+      - Garde-fous métier custom (filtres mots-clés, détection PII)
+      - Stratégie de fallback (cache de réponses récentes en cas d'service managé de modèles de langage down)
+      - Documentation gestion du contexte long avec alerte si > 7K tokens (quick win)
+      - Analyse des feedbacks utilisateurs avec boucle de retroaction sur les prompts
+    bareme:
+      '1': >-
+        Modèle unique sans justification, prompts en dur sans versioning, aucune évaluation, pas de
+        garde-fous. Risque massif d'hallucinations non détectées.
+      '2': >-
+        Choix de modèle non optimisé (overkill ou sous-dimensionné), prompts versionnés en code uniquement,
+        garde-fous basiques. Synergie FinOps non exploitée.
+      '3': >-
+        Routage modèle implémenté, prompts externalisés, évaluation initiale, garde-fous custom. Canary à
+        mettre en place.
+      '4': >-
+        IA pilotée : canary quotidien, garde-fous complets, fallback opérationnel, A/B testing en place.
+        Maturité IA solide.
+      '5': >-
+        Niveau état de l'art : LLM-as-judge automatisé, multi-provider, évaluation continue, retroaction
+        utilisateur intégrée au pipeline.
+  D15:
+    libelle_courant: Principes data by design
+    libelle_source: Data by Design
+    appariement: par_identifiant
+    famille_courante: donnees-ia
+    description: >-
+      Évalue la maturité Data by Design selon les 9 principes du référentiel de l'organisation : ownership
+      métier, modélisation, qualité, privacy & protection, exploitabilité native dans la plateforme de données
+      de l'organisation, observabilité, knowledge (catalogue de données d'entreprise), accessibilité
+      (habilitations), durabilité (cycle de vie). S'évalue en deux phases : Conception (avant le build) puis
+      Build (à la livraison).
+    raison_d_etre: >-
+      Le référentiel Data by Design de l'organisation pose les pré-requis data d'un projet pour qu'il
+      s'intègre proprement dans la plateforme de données de l'organisation commune et pour que ses données
+      soient utilisables, gouvernées et exploitables sur le long terme. Sur un POC industrialisé, sans Data by
+      Design, les données restent enfermées dans la solution, sans contrat, sans documentation catalogue de
+      données d'entreprise, sans monitoring, et finissent par bloquer la valorisation transverse. La grille
+      comporte des critères Fatal et Bloquant qui peuvent à eux seuls produire un NO GO.
+    themes:
+      - titre: Data Ownership — propriété métier
+        points:
+          - >-
+            Référent métier data identifié et engagé pour porter la responsabilité des données du projet
+            (Fatal en conception)
+          - >-
+            Autres acteurs data identifiés : Référent Data, Data Architect, Product Owner Data, Data Quality &
+            Steward Lead
+          - >-
+            Règles de gestion et de calcul validées formellement par le référent métier (Bloquant) — cohérent
+            avec D14
+          - 'Phase Build : recette data réalisée et PV de recette signé par le métier (Fatal)'
+      - titre: Data Modeling — modélisation et standards
+        points:
+          - >-
+            Modèles de données conceptuel (MCD) et logique (MLD) définis et validés par le Data Architect
+            (Bloquant)
+          - >-
+            Standards Data de l'organisation respectés dans les spécifications : naming, types, formats,
+            architecture (Bloquant)
+          - Sources identifiées et issues des référentiels lorsqu'ils existent (Standard)
+          - >-
+            Phase Build : modèle physique (MPD) implémenté conformément au design validé, conformité technique
+            vérifiée (Bloquant)
+      - titre: Data Quality — qualité des données
+        points:
+          - Données critiques du projet identifiées (Majeur)
+          - Règles, seuils de qualité et contrôles à implémenter définis avec le métier (Majeur)
+          - 'Phase Build : contrôles de qualité spécifiés implémentés et fonctionnels (Majeur)'
+          - >-
+            Cohérence avec D05 (qualité des sources) — un projet ne peut être Data Quality conforme s'il
+            s'appuie sur des sources non gouvernées
+      - titre: Data Privacy & Protection — données personnelles et sensibles
+        points:
+          - Données personnelles ou sensibles soumises à des contraintes réglementaires identifiées (Fatal)
+          - Règles RGPD, sécurité, habilitations associées définies (Bloquant)
+          - Coordination avec le DPO, le RSSI et le service juridique formalisée
+          - >-
+            Phase Build : pré-requis DPO, RSSI, juridiques mis en place et validés par les experts concernés
+            (Fatal)
+          - Cohérent avec D04 (RGPD & AI Act)
+      - titre: Native Exploitability — intégration plateforme de données de l'organisation
+        points:
+          - >-
+            Intégration native via Data Contract dans la plateforme de données de l'organisation commune
+            prévue dans le backlog (Fatal)
+          - Data Contract défini et prêt pour la mise en œuvre (Fatal)
+          - >-
+            Phase Build : toutes les données réellement intégrées et disponibles dans la plateforme de données
+            de l'organisation (Fatal)
+          - >-
+            Phase Build : données mises à disposition dans un format propre et standardisé (couche Silver),
+            prêtes à consommer sans retraitement (Bloquant)
+      - titre: Data Observability — surveillance des données
+        points:
+          - Plan de monitoring défini et destinataires des alertes (métier et IT) identifiés (Standard)
+          - Points de contrôle critiques identifiés (fraîcheur, volumétrie, intégrité)
+          - 'Phase Build : monitoring continu opérationnel (alertes flux vides, volumes anormaux, erreurs)'
+          - Cohérent avec D10 (Observabilité applicative)
+      - titre: Data Knowledge — documentation catalogue de données d'entreprise
+        points:
+          - >-
+            Charge de documentation dans le lexique catalogue de données d'entreprise intégrée au planning
+            projet (Majeur)
+          - >-
+            Phase Build : patrimoine data entièrement documenté dans catalogue de données d'entreprise —
+            métadonnées, règles métier, règles de calcul, indicateurs, lineage (Bloquant)
+          - >-
+            Documentation technique intégrée par le Data Ingénieur, documentation fonctionnelle par le Data
+            Quality & Steward Lead
+          - Validation de l'intégration dans le lexique par le Data Quality & Steward Lead
+      - titre: Data Accessibility — habilitations et autonomie
+        points:
+          - >-
+            Matrice des habilitations conçue pour favoriser l'autonomie tout en garantissant la sécurité
+            (Majeur)
+          - Profils d'accès types et règles de sécurité validés avec le Référent Data et le RSSI
+          - >-
+            Phase Build : règles d'accès et habilitations réellement implémentées et conformes à la matrice
+            (Majeur)
+          - Cohérent avec D03 (IAM) et la classification de l'organisation (cohérent avec D02 MMI)
+      - titre: Data Sustainability — cycle de vie des données
+        points:
+          - >-
+            Mécanismes de conservation, archivage, historisation, suppression et purge automatique spécifiés
+            (Majeur)
+          - Règles de cycle de vie alignées sur les contraintes métier et légales (avec l'expert gouvernance)
+          - 'Phase Build : mécanismes fonctionnels et conformes aux règles définies (Majeur)'
+          - Cohérent avec D04 (durées de conservation) et D05 (gouvernance catalogue de données d'entreprise)
+    preuves:
+      - type: DOC
+        description: >-
+          Scorecard Data by Design de l'organisation remplie en phase Conception et phase Build, avec score,
+          statut (GO / GO sous réserve / NO GO) et justification
+      - type: DOC
+        description: MCD, MLD, MPD validés ; document de règles de gestion signé par le référent métier
+      - type: CATALOGUE
+        description: >-
+          Inventaire catalogue de données d'entreprise : entrées documentées, lineage tracé, métadonnées
+          renseignées
+      - type: CLOUD
+        description: >-
+          Data Contract publié, intégration plateforme de données de l'organisation effective (couche
+          Bronze/Silver/Gold)
+      - type: INTERVIEW
+        description: >-
+          Référent Data, Product Owner Data, Data Architect sur l'engagement réel des acteurs et le statut des
+          validations
+      - type: DOC
+        description: PV de recette data signé par le métier (phase Build), validations DPO/RSSI/juridique formalisées
+    livrables:
+      - >-
+        Auto-évaluation Data by Design phase Conception sur les 9 principes (template de l'organisation) avec
+        justification et support des Data Experts
+      - Désignation formelle du Référent Data métier et du Data Architect, communication aux parties prenantes
+      - >-
+        Validation des règles de gestion et de calcul par le métier, formalisée dans un document signé
+        (cohérent avec D14)
+      - >-
+        Définition du Data Contract avec la plateforme de données de l'organisation commune et inscription
+        dans le backlog
+      - >-
+        Plan de documentation catalogue de données d'entreprise intégré au planning projet (charge, jalons,
+        responsabilités)
+      - Matrice des habilitations co-construite avec le Référent Data et validée par le RSSI
+      - >-
+        Spécification des mécanismes de cycle de vie (conservation, archivage, purge) avec l'expert
+        gouvernance
+      - >-
+        Phase Build : auto-évaluation Data by Design phase Build et obtention du verdict GO avant mise en
+        production
+      - >-
+        Phase Build : recette data formelle, intégration effective dans la plateforme de données de
+        l'organisation, documentation catalogue de données d'entreprise complète
+    bareme:
+      '1': >-
+        Aucun référent data, pas de Data Contract, données non documentées dans catalogue de données
+        d'entreprise, intégration plateforme de données de l'organisation absente, critères Fatal manquants.
+        Verdict de l'organisation : NO GO Data by Design.
+      '2': >-
+        Quelques acteurs data identifiés mais pas formellement engagés, modèles de données partiels, Data
+        Contract non défini, scorecard incomplète. Maturité insuffisante — GO sous réserve avec dérogation
+        requise.
+      '3': >-
+        Acteurs data identifiés et engagés, modèles validés, règles de gestion validées par le métier, Data
+        Contract défini, plan de documentation catalogue de données d'entreprise établi. Conformité phase
+        Conception atteinte ; phase Build à conduire.
+      '4': >-
+        Phase Build conforme : recette data validée, intégration plateforme de données de l'organisation
+        effective, documentation catalogue de données d'entreprise complète, habilitations implémentées, cycle
+        de vie opérationnel. GO Data by Design.
+      '5': >-
+        Niveau exemplaire : projet de référence Data by Design, dette data quasi nulle, monitoring continu,
+        gouvernance catalogue de données d'entreprise/catalogue de données d'entreprise enrichie, pratiques
+        diffusables aux autres équipes.
+  D16:
+    libelle_courant: Schéma de base de données
+    libelle_source: Schéma de base de données
+    appariement: exact
+    famille_courante: donnees-ia
+    description: >-
+      Évalue le modèle physique de la base : inventaire des tables et relations, clés et intégrité
+      référentielle, index et performance d'accès, types et contraintes, normalisation, classification des
+      données personnelles, alignement entre le modèle ORM et le schéma réel, migrations et versioning de
+      schéma, documentation (dictionnaire de données). Alimente la page « Schéma de base de données » du
+      rapport d'audit.
+    raison_d_etre: >-
+      Pour une application CRUD, le schéma de la base est le socle de la valeur métier, de la performance et
+      de la conformité. Un schéma non documenté, sans intégrité référentielle ni index, avec des données
+      personnelles non classifiées, est une dette structurelle invisible : elle ne se voit pas tant que la
+      volumétrie est faible, puis devient bloquante (lenteurs, orphelins, fuites RGPD, migrations risquées).
+      Ce domaine donne au RUN et à la Design Authority une vue partagée et auditable du patrimoine de données
+      persistées.
+    themes:
+      - titre: Inventaire des tables & relations
+        points:
+          - Liste exhaustive des tables (schéma applicatif et schémas tiers consommés)
+          - Cardinalités et relations entre tables (1-1, 1-N, N-N)
+          - Tables de référentiel vs tables de cœur métier vs tables techniques
+          - Schéma ERD présent, à jour ou absent
+      - titre: Clés & intégrité référentielle
+        points:
+          - Clés primaires de chaque table (naturelle vs technique/surrogate)
+          - Clés étrangères déclarées et contraintes ON DELETE/UPDATE
+          - >-
+            Références logiques NON contraintes (chaînes libres pointant une autre table sans FK) — risque
+            d'orphelins
+          - Clés naturelles / unicité métier (ex. business_key) et leur protection
+      - titre: Index & performance d'accès
+        points:
+          - Index présents vs colonnes réellement filtrées/jointes/triées (cohérent avec D06)
+          - Index composites, partiels, GIN/GiST (JSONB, géométrie PostGIS)
+          - Colonnes de jointure et de filtre non indexées
+      - titre: Types, contraintes & normalisation
+        points:
+          - Types adaptés (dates timezone-aware, numériques, enum vs varchar libre)
+          - Contraintes NOT NULL / CHECK / UNIQUE cohérentes avec les règles métier
+          - Champs dénormalisés (tableaux, JSON libre) et justification
+          - Niveau de normalisation (redondances, anomalies de mise à jour)
+      - titre: Données personnelles & classification
+        points:
+          - Colonnes contenant des données personnelles ou sensibles (cohérent avec D04/D15)
+          - Classification par colonne (publique / interne / confidentielle / secret)
+          - Chiffrement au repos, pseudonymisation, masquage applicatif
+          - Politique de rétention au niveau table (purge, archivage)
+      - titre: Alignement ORM ↔ schéma physique
+        points:
+          - Cohérence entre les modèles applicatifs (ORM) et le schéma réel en base
+          - Colonnes présentes en base mais absentes du modèle (ou inverse)
+          - Source de vérité du schéma (migrations vs base vivante)
+      - titre: Migrations & versioning de schéma
+        points:
+          - Outil de migration versionné (Alembic, Flyway, équivalent) présent ou absent
+          - Scripts de migration ad hoc, idempotence, réversibilité
+          - Secrets/credentials dans les scripts de migration
+      - titre: Rétention, cycle de vie & volumétrie
+        points:
+          - Volumétrie actuelle et projetée par table
+          - Stratégie d'archivage/purge alignée sur les contraintes légales
+          - Historisation et soft-delete vs suppression physique
+      - titre: Documentation (dictionnaire de données)
+        points:
+          - Dictionnaire de données (table, colonne, type, description, propriétaire)
+          - MCD/MLD validés par un Data Architect (cohérent avec D15)
+          - Conventions de nommage et schémas applicatifs documentés
+    preuves:
+      - type: CODE
+        description: Modèles ORM (SQLAlchemy/équivalent) — déclaration des tables, colonnes, clés, index
+      - type: DB
+        description: Introspection de la base (information_schema, pg_indexes, pg_constraint) — schéma réel
+      - type: DOC
+        description: ERD / MCD / MLD / dictionnaire de données (présents, à jour ou à produire)
+      - type: GIT
+        description: Scripts et historique de migrations de schéma
+      - type: MANUEL
+        description: Revue de cohérence ORM↔base, recherche des références logiques non contraintes et des PII
+      - type: DB
+        description: >-
+          Conformité schéma opposable (référentiel interne) : nommage catalogue technique de la plateforme
+          data catalog_any_<layer>_<env_code> + lower_snake_case (ADR0603), colonnes techniques de traçabilité
+          + hash (ADR0602), couche Application (ADR0625), BDD managée moteur relationnel managé/moteur
+          relationnel managé (ADR0626)
+    livrables:
+      - Schéma ERD à jour (tables, colonnes, clés, relations) — pivot pour D05/D06/D15
+      - Dictionnaire de données complet avec classification de sensibilité par colonne
+      - Plan d'indexation aligné sur les requêtes réelles (cohérent avec D06)
+      - Mise en place d'un outil de migration de schéma versionné (Alembic) et purge des secrets des scripts
+      - Déclaration des clés étrangères manquantes et traitement des références logiques (orphelins)
+      - Alignement du modèle ORM avec le schéma physique (colonnes manquantes)
+    bareme:
+      '1': >-
+        Schéma non documenté, aucune ERD, intégrité référentielle quasi absente (références logiques non
+        contraintes), aucun index hors clés primaires, données personnelles non identifiées, migrations ad hoc
+        avec secrets en dur. Le modèle n'est ni auditable ni industrialisable.
+      '2': >-
+        Schéma reconstituable via le code mais non documenté ; quelques clés/contraintes présentes, indexation
+        très partielle, PII non classifiées, ORM partiellement désaligné du réel, pas d'outil de migration.
+        Reprise du modèle nécessaire avant montée en charge.
+      '3': >-
+        Modèle correct : clés primaires et principales FK en place, index sur les accès majeurs, types
+        adaptés, ERD et dictionnaire partiels. PII identifiées mais classification à finaliser. Migrations
+        outillées en cours. Industrialisable avec compléments.
+      '4': >-
+        Modèle solide : intégrité référentielle complète, indexation alignée sur les requêtes, normalisation
+        maîtrisée, dictionnaire de données et ERD à jour, PII classifiées, migrations versionnées et
+        réversibles. Quelques affinages.
+      '5': >-
+        Modèle exemplaire : ERD et dictionnaire vivants, intégrité et index validés par EXPLAIN,
+        classification et rétention par colonne, migrations versionnées testées, alignement ORM↔base garanti
+        par CI, conventions Data de l'organisation respectées. Référence interne.

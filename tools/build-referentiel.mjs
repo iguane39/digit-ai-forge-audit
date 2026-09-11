@@ -30,6 +30,11 @@ if (!fs.existsSync(themePath))
 const themeCss = fs.readFileSync(themePath, 'utf-8');
 
 const pack = loadYaml(rel('core', 'dimensions', 'dimensions.yaml'));
+// Pack DOCTRINE (TF-1014) : ce qui est REGARDÉ (`themes`), ce qui est EXIGÉ (`preuves`), ce qui
+// SORT (`livrables`) et comment la note se motive (`bareme`), par dimension. Pack ADJACENT et
+// facultatif : absent, le référentiel se rend comme avant, sans bloc de doctrine et sans erreur.
+const doctrinePath = rel('core', 'dimensions', 'doctrine.yaml');
+const doctrine = fs.existsSync(doctrinePath) ? (loadYaml(doctrinePath).dimensions ?? {}) : {};
 const relabel = cfg.dimensions?.relabel ?? {};
 const famLabel = Object.fromEntries(pack.families.map(f => [f.key, f.label]));
 const TYPES = pack.project_types;
@@ -53,12 +58,27 @@ const card = (c) => `<article class="card" data-q="${esc((c.id + ' ' + c.regle).
    ${(c.adr_source ?? []).length ? ` · <b>ADR :</b> ${c.adr_source.map(a => `<code>${esc(a)}</code>`).join(' ')}` : ''}</p>
 </article>`;
 
+/** Bloc de doctrine d'une dimension : thèmes de périmètre, types de preuve, livrables, barème. */
+const doctrineBlock = (id) => {
+  const doc = doctrine[id];
+  if (!doc) return '<p class="muted small">Doctrine non renseignée pour cette dimension — voir <code>core/dimensions/doctrine-ecarts.md</code>.</p>';
+  const themes = doc.themes ?? [], preuves = doc.preuves ?? [], livrables = doc.livrables ?? [], bareme = doc.bareme ?? {};
+  return `<details class="doctrine" open>
+    <summary><b>Doctrine</b> — ${themes.length} thème(s) de périmètre · ${preuves.length} type(s) de preuve · ${livrables.length} livrable(s) attendu(s)${Object.keys(bareme).length ? ' · barème 1–5' : ''}</summary>
+    ${themes.length ? `<h3>Périmètre — ce qui est regardé</h3>${themes.map(t => `<div class="theme"><b>${esc(t.titre)}</b>${(t.points ?? []).length ? `<ul class="small">${t.points.map(p => `<li>${esc(p)}</li>`).join('')}</ul>` : ''}</div>`).join('')}` : ''}
+    ${preuves.length ? `<h3>Preuves — ce qui est exigé</h3><ul class="small">${preuves.map(p => `<li><span class="badge">${esc(p.type)}</span> ${esc(p.description)}</li>`).join('')}</ul>` : ''}
+    ${livrables.length ? `<h3>Livrables attendus</h3><ul class="small">${livrables.map(l => `<li>${esc(l)}</li>`).join('')}</ul>` : ''}
+    ${Object.keys(bareme).length ? `<h3>Barème</h3><dl class="small bareme">${Object.keys(bareme).sort().map(n => `<dt>${esc(n)}</dt><dd>${esc(bareme[n])}</dd>`).join('')}</dl>` : ''}
+  </details>`;
+};
+
 const dimSection = (d) => {
   const cs = byDim[d.id] ?? [];
   return `<section class="dim" data-fam="${d.family}" id="${d.id}">
     <h2>${d.id} — ${esc(relabel[d.id] ?? d.label)} <span class="badge">${esc(famLabel[d.family])}</span>
      <span class="badge">${cs.length} contrôle(s)</span></h2>
     <p class="small muted">Applicabilité : ${TYPES.map(t => `${esc(t)} ${APP[d.applicability?.[t]] ?? '✓'}`).join(' · ')}</p>
+    ${doctrineBlock(d.id)}
     ${cs.map(card).join('') || '<p class="muted">Aucun contrôle core (dimension instruite par constats).</p>'}
   </section>`;
 };
@@ -71,13 +91,18 @@ const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta n
 .c-fatal{border-color:var(--fatal);color:var(--fatal)}.c-bloquant{border-color:var(--bloq);color:var(--bloq)}.c-majeur{border-color:var(--maj);color:var(--maj)}
 .b-jur{background:var(--accent);color:#fff;border-color:var(--accent)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0}
+.doctrine{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:8px 14px;margin:8px 0;background:var(--panel)}
+.doctrine summary{cursor:pointer;font-size:12px}.doctrine h3{font-size:12px;margin:10px 0 2px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+.theme{margin:6px 0}.theme b{font-size:12px}
+dl.bareme{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:4px 0}
+dl.bareme dt{font-weight:700}dl.bareme dd{margin:0}
 .filters{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}.filters button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:5px 12px;cursor:pointer;font:inherit;font-size:12px}
 .filters button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 input[type=search]{width:100%;padding:9px;border:1px solid var(--line);border-radius:8px;font:inherit;margin:8px 0}
-@media print{.filters,input{display:none}.card{break-inside:avoid}}
+@media print{.filters,input{display:none}.card,.theme{break-inside:avoid}.doctrine{break-inside:auto}}
 </style></head><body><div class="wrap">
 <header><span class="brand">${esc(cfg.tenant.short_code)}</span> <b>${esc(cfg.tenant.name)} — Référentiel d'audit</b>
- <span class="muted">· ${pack.dimensions.length} dimensions · ${merged.constraints.filter(c => /^CTL-/.test(c.id)).length} contrôles core · scoring 1–5 « pas de score sans preuve » · core ${esc(String(cfg.core_version))}</span></header>
+ <span class="muted">· ${pack.dimensions.length} dimensions · ${merged.constraints.filter(c => /^CTL-/.test(c.id)).length} contrôles core · ${Object.values(doctrine).reduce((n, d) => n + (d.themes ?? []).length, 0)} thèmes · ${Object.values(doctrine).reduce((n, d) => n + (d.preuves ?? []).length, 0)} types de preuve · ${Object.values(doctrine).reduce((n, d) => n + (d.livrables ?? []).length, 0)} livrables · scoring 1–5 « pas de score sans preuve » · core ${esc(String(cfg.core_version))}</span></header>
 <h1>Référentiel — dimensions & contrôles</h1>
 <input type="search" id="q" placeholder="Rechercher un contrôle (id, règle)…" oninput="apply()">
 <div class="filters"><button class="on" data-f="*" onclick="fam('*',this)">Toutes les familles</button>
@@ -96,4 +121,8 @@ const out = outIdx > -1 ? path.resolve(process.argv[outIdx + 1])
   : rel('deliverables', 'generated', cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 'referentiel-audit.html');
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');
-console.log(`✔ référentiel: ${pack.dimensions.length} dimensions, ${merged.constraints.filter(c => /^CTL-/.test(c.id)).length} contrôles, ${(html.length / 1024).toFixed(0)} Ko → ${out}`);
+const nbDoc = Object.keys(doctrine).length;
+console.log(`✔ référentiel: ${pack.dimensions.length} dimensions, ${merged.constraints.filter(c => /^CTL-/.test(c.id)).length} contrôles, `
+  + `doctrine sur ${nbDoc}/${pack.dimensions.length} dimensions (${Object.values(doctrine).reduce((n, d) => n + (d.themes ?? []).length, 0)} thèmes, `
+  + `${Object.values(doctrine).reduce((n, d) => n + (d.preuves ?? []).length, 0)} preuves, ${Object.values(doctrine).reduce((n, d) => n + (d.livrables ?? []).length, 0)} livrables), `
+  + `${(html.length / 1024).toFixed(0)} Ko → ${out}`);

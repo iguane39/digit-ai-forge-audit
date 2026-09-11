@@ -4,11 +4,11 @@
   "pack_version": "1.0.0",
   "generated": "2026-07-11",
   "counts": {
-    "total": 175,
+    "total": 184,
     "fatal": 17,
-    "bloquant": 62,
-    "majeur": 64,
-    "standard": 32
+    "bloquant": 65,
+    "majeur": 69,
+    "standard": 33
   },
   "constraints": [
     {
@@ -925,6 +925,44 @@
       ]
     },
     {
+      "id": "CTL-D01-16",
+      "adr_source": [
+        "ADR0709"
+      ],
+      "dimension_audit": "D01",
+      "regle": "Les langages et cadres applicatifs employés par l'application figurent dans la liste technologique normalisée en vigueur ; tout écart porte une dérogation motivée, datée et assortie d'une échéance de revue.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Extraire les technologies réellement employées depuis les manifestes de dépendances et les fichiers de construction du dépôt, puis les confronter à la liste normalisée versionnée ; pour chaque écart, exiger la dérogation correspondante.",
+      "preuve_attendue": "Liste technologique normalisée versionnée + inventaire des technologies extraites des manifestes du dépôt + dérogations datées avec échéance.",
+      "grille_verdict": "conforme = toutes les technologies employées figurent dans la liste, ou sont couvertes par une dérogation en cours de validité ; partiel = dérogation présente mais sans échéance, ou liste non versionnée ; non conforme = technologie hors liste sans dérogation",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire les manifestes de dépendances et fichiers de construction du dépôt ; en dresser l'inventaire des langages et cadres employés.",
+        "Confronter cet inventaire à la liste technologique normalisée en vigueur et relever chaque écart.",
+        "Si écart : produire ou renouveler la dérogation motivée, datée et échéancée, ou planifier la convergence."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
       "id": "CTL-D02-01",
       "adr_source": [
         "ADR0505"
@@ -1415,6 +1453,44 @@
         "OWASP SAMM — Governance (Strategy & Metrics, Education & Guidance)",
         "NIST SSDF — PO.1/PO.2"
       ]
+    },
+    {
+      "id": "CTL-D02-14",
+      "adr_source": [
+        "ADR0307"
+      ],
+      "dimension_audit": "D02",
+      "regle": "La voie d'exposition de l'application correspond à celle que commande la matrice de décision d'exposition pour ses critères, et aucune exposition n'a lieu directement depuis la zone qui héberge la charge de travail.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Relever les critères de l'application (sortie réseau, partenaires externes, criticité, obligation réglementaire), lire la voie que la matrice leur associe, puis la confronter à la configuration réelle des points d'entrée et à l'origine des flux entrants.",
+      "preuve_attendue": "Matrice d'exposition datée + critères renseignés pour l'application + configuration réelle des points d'entrée (pare-feu applicatif web, passerelle d'API, filtrage réseau, chiffrement en transit).",
+      "grille_verdict": "conforme = voie conforme à la matrice et entrée depuis la zone de connectivité dédiée ; partiel = voie conforme mais critères de l'application non renseignés dans la matrice ; non conforme = exposition directe depuis la zone des charges de travail, ou voie divergente non justifiée",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "mobile",
+          "ml",
+          "infra"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Renseigner les critères de l'application dans la matrice d'exposition et relever la voie qu'elle commande.",
+        "Comparer à la configuration réelle des points d'entrée et vérifier qu'aucun flux entrant ne part de la zone des charges de travail.",
+        "Si écart : replacer l'entrée derrière le point de contrôle prescrit, ou motiver et dater la divergence."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
     },
     {
       "id": "CTL-D03-01",
@@ -2770,6 +2846,78 @@
       ]
     },
     {
+      "id": "CTL-D05-17",
+      "adr_source": [
+        "ADR0623"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Chaque flux d'échange de données entrant ou sortant de l'application porte un nom conforme à la convention de nommage des flux documentée, et aucun flux actif ne reste hors convention.",
+      "criticite": "Standard",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Extraire l'inventaire des flux actifs de l'application depuis l'outil qui les exécute, puis vérifier la conformité de chaque nom à la convention versionnée par un contrôle automatisé ou une revue tracée.",
+      "preuve_attendue": "Convention de nommage des flux versionnée + inventaire des flux actifs extrait de l'outil d'exécution + résultat du contrôle de conformité des noms.",
+      "grille_verdict": "conforme = 100 % des flux actifs conformes à la convention ; partiel = convention publiée mais conformité partielle ou contrôle non rejoué ; non conforme = aucune convention documentée, ou majorité de flux hors convention",
+      "enforcement": "advisory",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Extraire la liste des flux actifs entrants et sortants de l'application depuis l'outil qui les exécute.",
+        "Vérifier la conformité de chaque nom à la convention versionnée et relever les flux hors convention.",
+        "Si écart : renommer les flux non conformes selon un plan de migration, ou retirer les flux devenus orphelins."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D05-18",
+      "adr_source": [
+        "ADR0624"
+      ],
+      "dimension_audit": "D05",
+      "regle": "Les chaînes d'ingestion qui alimentent l'application sont définies par un artefact déclaratif versionné, portant les dépendances entre jeux de données et les attentes de qualité, et promu par la chaîne de livraison.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier que chaque chaîne d'ingestion possède un artefact de définition versionné dans le dépôt, que cet artefact déclare les dépendances et les attentes de qualité, et que sa mise en service passe par la chaîne de livraison plutôt que par une configuration directe dans l'outil.",
+      "preuve_attendue": "Artefacts de définition des chaînes d'ingestion versionnés + attentes de qualité déclarées + trace de promotion par la chaîne de livraison.",
+      "grille_verdict": "conforme = 100 % des chaînes d'ingestion déclarées, versionnées et promues par la chaîne de livraison, attentes de qualité présentes ; partiel = déclaration versionnée sans attentes de qualité, ou couverture partielle ; non conforme = ingestion configurée hors versionnement, ou scripts impératifs non revus",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Lister les chaînes d'ingestion alimentant l'application et localiser leur artefact de définition dans le dépôt.",
+        "Vérifier la présence des dépendances déclarées et des attentes de qualité dans chaque artefact.",
+        "Si écart : porter la définition manquante en déclaratif versionné et la faire promouvoir par la chaîne de livraison."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
       "id": "CTL-D06-01",
       "adr_source": [
         "ADR0705"
@@ -3909,6 +4057,40 @@
       "standards": [
         "DORA (Accelerate) — Time to Restore Service (MTTR)",
         "ISO/IEC 27002:2022 — 5.30"
+      ]
+    },
+    {
+      "id": "CTL-D09-08",
+      "adr_source": [
+        "ADR0510"
+      ],
+      "dimension_audit": "D09",
+      "regle": "Les mises en production de l'application passent par un emplacement de préproduction vérifié hors trafic puis une bascule, et le retour arrière est la bascule inverse, éprouvée.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Vérifier l'existence et la configuration de l'emplacement de préproduction, la trace horodatée des dernières bascules, et la preuve d'un retour arrière réellement joué par bascule inverse.",
+      "preuve_attendue": "Configuration de l'emplacement de préproduction + journal horodaté des dernières bascules + trace d'un retour arrière joué (date, durée, résultat).",
+      "grille_verdict": "conforme = emplacement configuré, bascules tracées et retour arrière éprouvé ≤ 12 mois ; partiel = emplacement configuré mais retour arrière jamais joué ; non conforme = déploiement en place sur l'instance en service",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Relever la configuration de l'emplacement de préproduction et le journal horodaté des dernières bascules.",
+        "Demander la trace du dernier retour arrière joué par bascule inverse et le temps mesuré.",
+        "Si écart : outiller la bascule depuis la chaîne de livraison et planifier l'exercice de retour arrière manquant."
+      ],
+      "derogation": null,
+      "a_completer": true,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
       ]
     },
     {
@@ -6048,6 +6230,82 @@
       ]
     },
     {
+      "id": "CTL-D15-10",
+      "adr_source": [
+        "ADR0627"
+      ],
+      "dimension_audit": "D15",
+      "regle": "L'applicabilité des principes data by design au projet est déterminée par les critères déclarés et consignée par écrit ; toute exclusion du périmètre porte un motif et une date.",
+      "criticite": "Majeur",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "déclaratif + revue",
+      "verification": "Vérifier l'existence de critères d'applicabilité versionnés, la présence d'une fiche d'applicabilité renseignée et datée pour le projet, et la cohérence entre les critères déclarés et la décision consignée.",
+      "preuve_attendue": "Critères d'applicabilité versionnés + fiche d'applicabilité du projet renseignée et datée + motif d'exclusion le cas échéant.",
+      "grille_verdict": "conforme = applicabilité consignée, datée et cohérente avec les critères ; partiel = applicabilité consignée sans motif, ou datée de plus de 12 mois sur un projet ayant évolué ; non conforme = aucune décision d'applicabilité tracée",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Récupérer les critères d'applicabilité en vigueur et la fiche d'applicabilité renseignée pour le projet.",
+        "Vérifier la cohérence entre les critères (nature des données, exposition, criticité) et la décision consignée.",
+        "Si écart : faire prononcer et dater la décision d'applicabilité manquante, avec son motif."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D15-11",
+      "adr_source": [
+        "ADR0629"
+      ],
+      "dimension_audit": "D15",
+      "regle": "L'évaluation data by design du projet se conclut par un verdict daté — accord, accord sous réserve avec échéances, ou refus — prononcé par une autorité nommée avant la mise en production, et motivé par le score et par les critères fataux.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Vérifier que la fiche d'évaluation porte un verdict daté antérieur à la mise en production, prononcé par une autorité nommée, motivé par le score et par le relevé des critères fataux, et que chaque réserve porte une échéance.",
+      "preuve_attendue": "Fiche d'évaluation avec score + relevé des critères fataux + verdict daté et signé par l'autorité nommée + réserves avec échéances.",
+      "grille_verdict": "conforme = verdict daté antérieur à la mise en production, motivé, réserves échéancées ; partiel = verdict prononcé mais non motivé, ou réserves sans échéance ; non conforme = aucun verdict, ou verdict postérieur à la mise en production",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Récupérer la fiche d'évaluation data by design du projet et son verdict daté.",
+        "Vérifier l'antériorité du verdict sur la mise en production, l'autorité qui l'a prononcé, son motif et l'échéance de chaque réserve.",
+        "Si écart : faire prononcer le verdict manquant avant bascule, ou échéancer les réserves restées ouvertes."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
       "id": "CTL-D16-01",
       "adr_source": [
         "ADR0602"
@@ -6386,6 +6644,80 @@
         "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
         "RGPD — art. 32.1.c"
       ]
+    },
+    {
+      "id": "CTL-D16-10",
+      "adr_source": [
+        "ADR0625"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Les données propres à l'application résident dans une couche applicative déclarée, distincte des couches de raffinement analytiques, et aucune écriture applicative n'est constatée dans ces dernières.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Lire la cartographie des couches pour identifier la couche applicative déclarée, puis relever les écritures réellement effectuées par l'application par couche (droits d'écriture accordés, objets créés, journaux d'accès).",
+      "preuve_attendue": "Cartographie des couches avec la couche applicative identifiée + inventaire des écritures réelles de l'application par couche (droits, objets, journaux).",
+      "grille_verdict": "conforme = toutes les écritures applicatives dans la couche applicative déclarée ; partiel = couche déclarée mais écritures résiduelles dans une couche analytique ; non conforme = aucune couche applicative déclarée, ou écritures directes dans les couches analytiques",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identifier la couche applicative déclarée dans la cartographie des couches de données.",
+        "Relever les droits d'écriture de l'application et les objets qu'elle crée, couche par couche.",
+        "Si écart : déplacer les écritures résiduelles vers la couche applicative et retirer les droits d'écriture sur les couches analytiques."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D16-11",
+      "adr_source": [
+        "ADR0626"
+      ],
+      "dimension_audit": "D16",
+      "regle": "La persistance applicative repose sur un moteur relationnel managé, avec schéma versionné et migrations rejouables ; aucune plateforme de données à faible écriture de code ne porte de données applicatives de production sans dérogation documentée.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventorier les socles de persistance réellement utilisés par l'application en production, vérifier que le schéma et ses migrations sont versionnés et rejouables, et exiger une dérogation datée pour tout socle non relationnel ou à faible écriture de code.",
+      "preuve_attendue": "Inventaire des socles de persistance de l'application + historique versionné des migrations de schéma + dérogation datée le cas échéant.",
+      "grille_verdict": "conforme = persistance sur moteur relationnel managé, migrations versionnées et rejouables ; partiel = moteur conforme mais migrations non versionnées ; non conforme = persistance de production sur plateforme à faible écriture de code sans dérogation",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inventorier les socles de persistance réellement utilisés par l'application en production.",
+        "Vérifier que le schéma et ses migrations sont versionnés dans le dépôt et rejouables sur un environnement vierge.",
+        "Si écart : engager la migration vers un moteur relationnel managé, ou produire la dérogation motivée et datée."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
     },
     {
       "id": "CTL-D17-01",

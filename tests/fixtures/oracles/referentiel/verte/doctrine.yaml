@@ -1,0 +1,36 @@
+# FIXTURE VERTE — D00 porte les quatre objets, D01 n'en porte qu'un (un seul suffit : la règle
+# RF1 refuse l'absence des TROIS, pas l'absence de l'un). D17 est sans objet partout : elle n'a
+# pas de doctrine et ne doit PAS être jugée — elle doit ressortir dans `non_juge`.
+pack: doctrine-v1
+adosse_a: fixture-verte
+genere_par: fixture
+source:
+  nature: "fixture synthétique de test, aucune donnée réelle"
+  empreinte_sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+  pseudonymisation: "sans objet : contenu inventé pour le test"
+comptes: { dimensions: 2, themes: 2, preuves: 1, livrables: 1 }
+dimensions:
+  D00:
+    libelle_courant: "Dimension applicable complète"
+    appariement: exact
+    themes:
+      - titre: "Premier thème de périmètre"
+        points: ["Un point observable", "Un second point observable"]
+    preuves:
+      - type: DOC
+        description: "Document attendu pour motiver la note"
+    livrables: ["Un livrable attendu en sortie d'audit"]
+    bareme:
+      "1": "Rien de ce qui est attendu n'existe."
+      "2": "Des fragments existent, non gouvernés."
+      "3": "Acceptable, à consolider."
+      "4": "Solide, quelques optimisations."
+      "5": "État de l'art."
+  D01:
+    libelle_courant: "Dimension partiellement applicable, complète"
+    appariement: par_identifiant
+    themes:
+      - titre: "Un thème suffit à rendre la dimension instruite"
+    preuves: []
+    livrables: []
+    bareme: {}

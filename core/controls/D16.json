@@ -341,6 +341,80 @@
         "ISO/IEC 27002:2022 — 8.13 (sauvegarde des informations)",
         "RGPD — art. 32.1.c"
       ]
+    },
+    {
+      "id": "CTL-D16-10",
+      "adr_source": [
+        "ADR0625"
+      ],
+      "dimension_audit": "D16",
+      "regle": "Les données propres à l'application résident dans une couche applicative déclarée, distincte des couches de raffinement analytiques, et aucune écriture applicative n'est constatée dans ces dernières.",
+      "criticite": "Majeur",
+      "profil": [
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Lire la cartographie des couches pour identifier la couche applicative déclarée, puis relever les écritures réellement effectuées par l'application par couche (droits d'écriture accordés, objets créés, journaux d'accès).",
+      "preuve_attendue": "Cartographie des couches avec la couche applicative identifiée + inventaire des écritures réelles de l'application par couche (droits, objets, journaux).",
+      "grille_verdict": "conforme = toutes les écritures applicatives dans la couche applicative déclarée ; partiel = couche déclarée mais écritures résiduelles dans une couche analytique ; non conforme = aucune couche applicative déclarée, ou écritures directes dans les couches analytiques",
+      "enforcement": "required",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Identifier la couche applicative déclarée dans la cartographie des couches de données.",
+        "Relever les droits d'écriture de l'application et les objets qu'elle crée, couche par couche.",
+        "Si écart : déplacer les écritures résiduelles vers la couche applicative et retirer les droits d'écriture sur les couches analytiques."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
+    },
+    {
+      "id": "CTL-D16-11",
+      "adr_source": [
+        "ADR0626"
+      ],
+      "dimension_audit": "D16",
+      "regle": "La persistance applicative repose sur un moteur relationnel managé, avec schéma versionné et migrations rejouables ; aucune plateforme de données à faible écriture de code ne porte de données applicatives de production sans dérogation documentée.",
+      "criticite": "Bloquant",
+      "profil": [
+        "light",
+        "complet"
+      ],
+      "mode_de_controle": "revue",
+      "verification": "Inventorier les socles de persistance réellement utilisés par l'application en production, vérifier que le schéma et ses migrations sont versionnés et rejouables, et exiger une dérogation datée pour tout socle non relationnel ou à faible écriture de code.",
+      "preuve_attendue": "Inventaire des socles de persistance de l'application + historique versionné des migrations de schéma + dérogation datée le cas échéant.",
+      "grille_verdict": "conforme = persistance sur moteur relationnel managé, migrations versionnées et rejouables ; partiel = moteur conforme mais migrations non versionnées ; non conforme = persistance de production sur plateforme à faible écriture de code sans dérogation",
+      "enforcement": "blocking",
+      "applicabilite": {
+        "types": [
+          "web-app",
+          "api",
+          "data",
+          "mobile",
+          "ml"
+        ],
+        "defaut": "applicable"
+      },
+      "actions_audit": [
+        "Inventorier les socles de persistance réellement utilisés par l'application en production.",
+        "Vérifier que le schéma et ses migrations sont versionnés dans le dépôt et rejouables sur un environnement vierge.",
+        "Si écart : engager la migration vers un moteur relationnel managé, ou produire la dérogation motivée et datée."
+      ],
+      "derogation": null,
+      "standards": [
+        "à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"
+      ],
+      "a_completer": true
     }
   ]
 }
