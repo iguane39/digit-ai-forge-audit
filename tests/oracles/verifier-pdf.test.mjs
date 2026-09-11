@@ -20,6 +20,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+// La dépendance « moteur d'impression » est celle de l'OUTIL, pas une liste recopiée ici (TF-1017).
+import { NAVIGATEURS, trouverNavigateur } from '../../tools/fiche-en-pdf.mjs';
+import { verdictNavigateur } from '../verdicts.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ORACLE = path.join(RACINE, 'oracles', 'verifier-pdf.mjs');
@@ -132,30 +135,34 @@ test('sans --apres ni --source, la fraîcheur est DÉCLARÉE non jugée — jama
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-test('les DEUX formats dans la même passe : build-fiche rend le PDF et le RELIT (SKIP motivé sans navigateur)', () => {
-  const NAVIGATEURS = [
-    process.env.FORGE_NAVIGATEUR,
-    'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-    'C:/Program Files/Microsoft/Edge/Application/msedge.exe',
-    'C:/Program Files/Google/Chrome/Application/chrome.exe',
-    '/usr/bin/google-chrome', '/usr/bin/chromium',
-  ].filter(Boolean);
+// TF-1017 (11/09/2026) — CE TEST DÉCLARE SA DÉPENDANCE, IL NE LA DEVINE PLUS.
+//
+// Il re-listait LUI-MÊME six chemins de navigateurs, quand `tools/fiche-en-pdf.mjs` en cherche dix.
+// Deux listes pour une seule dépendance : sur un runner porteur d'un chemin connu de l'outil et
+// inconnu du test, le test croyait la dépendance absente et exigeait le code 3, tandis que l'outil
+// la trouvait et rendait 0 — rouge sur le runner, vert ici, huit exécutions d'affilée du 24/08 au
+// 10/09. La dépendance est donc DEMANDÉE à l'outil (`trouverNavigateur`), et surtout : c'est la
+// SORTIE de l'outil qui la déclare — code 3 + motif écrit = dépendance absente, sur tous les
+// runners. Le verdict devient SKIP MOTIVÉ, jamais un PASS silencieux ni un ÉCHEC de circonstance.
+// Quand le moteur d'impression est là, RIEN ne change : les mêmes assertions s'appliquent, et
+// c'est le runner qui en a un qui tient la garantie pour les autres.
+test('les DEUX formats dans la même passe : build-fiche rend le PDF et le RELIT (SKIP motivé sans moteur d\'impression)', (t) => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-duo-'));
   const html = path.join(dir, 'fiche.html');
   const r = spawnSync(process.execPath, [path.join(RACINE, 'tools', 'build-fiche.mjs'),
     path.join(RACINE, 'config', 'tenants', 'exemple', 'tenant.yaml'), '--out', html],
     { encoding: 'utf-8', timeout: 180_000 });
   assert.ok(fs.existsSync(html), 'le HTML est écrit dans tous les cas');
-  if (!NAVIGATEURS.some((n) => fs.existsSync(n))) {
-    // SKIP MOTIVÉ, jamais un PASS silencieux : le poste n'a pas de moteur d'impression, et le
-    // générateur doit le DIRE avec un code distinct — ni 0 (le jeu est incomplet) ni 1 (le
-    // livrable n'a rien fait de mal).
-    assert.equal(r.status, 3, 'sans navigateur : code 3, et le motif écrit');
-    assert.match(r.stderr, /PDF NON RENDU/);
+
+  const v = verdictNavigateur({ status: r.status, stderr: r.stderr, navigateur: trouverNavigateur() });
+  if (v.verdict === 'SKIP') {
+    // Le moteur d'impression manque : le générateur l'a DIT avec un code distinct — ni 0 (le jeu
+    // serait incomplet sans le dire) ni 1 (le livrable n'a rien fait de mal). Le test le répète.
     fs.rmSync(dir, { recursive: true, force: true });
+    t.skip(v.motif + ` (cherchés : ${NAVIGATEURS.join(', ')})`);
     return;
   }
-  assert.equal(r.status, 0, `build-fiche a échoué : ${r.stderr}`);
+  assert.equal(v.verdict, 'JUGE', `${v.motif} — sortie : ${r.stderr}`);
   const pdf = path.join(dir, 'fiche.pdf');
   assert.ok(fs.existsSync(pdf), 'le PDF est rendu dans la MÊME passe — un jeu incomplet ne se remet pas');
   assert.match(r.stdout, /relu dans le fichier : P1\+P2\+P3\+P4/);

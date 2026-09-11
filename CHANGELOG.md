@@ -4,13 +4,129 @@ Versionnement SemVer (PADR-0005) : MAJEUR = rupture de schéma / retrait de cont
 MINEUR = nouveaux contrôles/ADR · PATCH = corrections. Chaque release liste les standards
 sources mis à jour.
 
-## [Non publié] — 2026-08-14
+## [1.18.0] — 2026-09-11
+
+> **MINEUR** au sens de PADR-0005 : cette version apporte de NOUVEAUX contrôles — portes machine de
+> la fiche sécurité, parité FR/EN des gabarits, cohérence du plan de remédiation, couverture
+> `couverte_par`, oracle de modèle sémantique, recette qui rejoue la CI — sans rupture de schéma ni
+> retrait de contrôle. Numéro choisi en suite du dernier repère posé, `v1.17.0` (18/08/2026).
+>
+> **RATTRAPAGE DE JOURNAL (TF-1016).** Le journal dormait. La section « [Non publié] » était ouverte
+> depuis le **14/08**, le dernier enregistrement la touchant date du **15/08** (`e979c0f`), et
+> **onze** enregistrements touchant `tools/`, `core/` et `oracles/` se sont empilés derrière **sans
+> une ligne** — jusqu'au 10/09. Chacun est **nommé ci-dessous** (empreinte courte + objet) ; aucun
+> n'est résumé par un « divers ». Deux constats sont consignés avec eux, parce qu'ils expliquent la
+> dérive plutôt que de la masquer :
+>
+> 1. les repères `v1.8.0` → `v1.17.0` (14/08 → 18/08) ont été posés **sans entrée de journal** ; ce
+>    rattrapage ne les reconstitue pas — il reprend le fil à partir du dernier enregistrement
+>    journalisé (`e979c0f`) et couvre tout ce qui suit ;
+> 2. `package.json` déclarait encore `1.0.0` sous des repères allant jusqu'à `v1.17.0`. Il est aligné
+>    sur **1.18.0** par cette version.
+>
+> **CE QUI EMPÊCHE LA RÉCIDIVE** : la recette porte désormais une règle de journal. Au-delà de
+> `PLAFOND_ENREGISTREMENTS_SANS_JOURNAL` (constante nommée, **5**) enregistrements touchant `tools/`,
+> `core/` ou `oracles/` depuis la dernière modification de `CHANGELOG.md`, `node tools/verifier.mjs`
+> sort **ROUGE** et **NOMME** les enregistrements à rattraper. Un journal qui dort ne se signale
+> jamais lui-même : il fallait une règle qui le réveille.
+>
+> Le contenu qui était sous « [Non publié] — 2026-08-14 » (qualifié PATCH) est figé ici, sans
+> retouche, sous « Contenu de la section « [Non publié] » du 14/08 ».
+
+### Ajouté
+- **Pack de doctrine par dimension** (TF-1014, 11/09) : `core/dimensions/doctrine.yaml` (17 dimensions, 152 thèmes, 109 types de preuve, 131 livrables, 17 barèmes) versé mécaniquement par `tools/importer-doctrine.mjs` depuis une extraction de référence pseudonymisée (garde-fou de noms interdits, appariement par identifiant seul), écarts consignés dans `core/dimensions/doctrine-ecarts.md` ; schéma `core/schemas/doctrine.schema.json` ; rendu par `tools/build-referentiel.mjs` (bloc périmètre / preuves / livrables / barème, pack facultatif) ; juge `tools/verifier-referentiel.mjs` (une dimension applicable sans doctrine est incomplète) avec fixtures rouge/verte (`tests/oracles/verifier-referentiel.test.mjs`, 5 tests).
+- **Neuf ADR et neuf contrôles dérivés** (TF-1014) : ADR0307, ADR0510, ADR0623 à ADR0627, ADR0629, ADR0709 (FR et EN), marqués `a_completer` là où la source ne cite aucune norme ; contrôles CTL-D02-14, D09-08, D05-17, D05-18, D16-10, D16-11, D15-10, D15-11, D01-16 — 175 → 184 contrôles, 75 → 84 ADR, `invariants.json` inchangé.
+
+- **`bffcc52`** (23/08) — *fiche sécurité : les DEUX formats dans la même passe, et le PDF est RELU*
+  (TF-0506). Nouvel oracle `oracles/verifier-pdf.mjs` : le tirage est **relu dans le fichier**
+  (P1 intégrité, P2 format, P3 pagination, P4 fraîcheur) au lieu d'être cru sur le retour de la
+  commande — le piège du 22/08, un PDF verrouillé par une visionneuse et un ancien tirage revalidé.
+  `tools/build-fiche.mjs` rend les deux formats dans la même passe.
+- **`d8bb934`** (24/08) — *fiche-securite : le canevas demande QUI est admis et ce qu'un engagement
+  engage — et la parité FR/EN cesse d'être une confiance*. Nouvel oracle
+  `oracles/verifier-parite-gabarits.mjs` (TF-0563) : un champ présent d'un seul côté est un champ
+  absent, et c'est la génération qui échoue.
+- **`1d8b57b`** (24/08) — *TF-0553 : `npm test` rejoue la CI en la LISANT — et les deux ensembles
+  étaient disjoints DANS LES DEUX SENS*. Nouvel outil `tools/verifier.mjs` : il lit
+  `.github/workflows/*.yml` et rejoue ses blocs `run:`, au lieu de tenir une liste recopiée qui
+  dérive au premier ajout.
+- **`bfe6d6f`** (25/08) — *la porte machine juge désormais la COHÉRENCE du plan, pas seulement sa
+  forme* (`tools/rapport-engine.mjs`, +77 lignes de contrôle).
+- **`8c90381`** (02/09) — *le PDF de la fiche sécurité est IMPRIMÉ, et il a enfin une porte*
+  (TF-0700, TF-0701). Nouveaux `oracles/verifier-fiche-securite.mjs` et `tools/fiche-en-pdf.mjs` :
+  le PDF est **imprimé** par le protocole DevTools (drapeau `preferCSSPageSize` mesuré par
+  l'auto-test), jamais capturé ; `tools/build-kit.mjs` distribue l'outil au projet audité.
+- **`03ec225`** (07/09) — *TF-0862 (GO A-26) : `oracles/verifier-modele-semantique.mjs`*. Le modèle
+  sémantique décisionnel est jugé **sur ses fichiers de définition tabulaire**, sans point de
+  terminaison d'interrogation : mesure définie une seule fois, relations non ambiguës, table de
+  dates marquée, mode de stockage déclaré, rôles de sécurité (MS1–MS6). Mécanise `CTL-D16-01/02`,
+  `CTL-D05-02/04/10/13/14`, `CTL-D01-03` ; bindings du profil `powerbi` en 1.1.0 ; recette
+  `node --test` 3/3 câblée en CI.
+- **`53ca664`** (10/09) — *plan de remédiation : une action peut COUVRIR plusieurs règles*
+  (`couverte_par`, D-7 (a)). Moteur de couverture dans `tools/rapport-engine.mjs` (+31) et
+  `tools/verifier-rapport.mjs` (+15), avec sa porte `tests/oracles/couverture-plan.test.mjs` : la
+  batterie d'oracles passe de **94 à 101 tests**.
+- **TF-1017** (11/09) — *la recette rejoue l'ENVIRONNEMENT de la CI, plus seulement ses étapes*.
+  `tools/verifier.mjs` pose `CI=true` sur chaque étape rejouée, lit et pose les blocs `env:` du YAML
+  aux **trois** niveaux (workflow, job, étape — l'étape l'emportant sur le job, le job sur le
+  workflow), et **DIT** chaque condition qu'il ne peut pas reproduire, une ligne `[non rejouable] …`
+  par condition : plateformes de la matrice, actions `uses:`, version de Node imposée, valeurs
+  `${{ … }}` résolues côté serveur, moteur d'impression, accès réseau aux registres. Le fait
+  fondateur, mesuré le 10/09 : **huit exécutions rouges d'affilée** du 24/08 au 10/09 pendant que la
+  recette locale rendait vert. Fixtures à double sens : `tests/oracles/recette-environnement.test.mjs`
+  (18 tests) et les décisions pures de `tests/verdicts.mjs`.
+- **TF-1016** (11/09) — *règle de journal dans la recette* : `PLAFOND_ENREGISTREMENTS_SANS_JOURNAL`,
+  `CHEMINS_JOURNALISES`, `verdictJournal()` et `releveJournal()` dans `tools/verifier.mjs`, avec
+  fixtures à double sens (au plafond → vert ; plafond + 1 → rouge, les enregistrements nommés ;
+  journal en cours d'écriture → vert).
+
+### Modifié
+
+- **`01bf62b`** (21/08) — *TF-0438 : gardes de chiffre sur quatre assertions numériques*
+  (`tools/verifier-rapport-html.mjs`).
+- **`b1c7899`** (22/08) — *build-fiche : un livrable ne naît plus dans le dépôt de la forge, et il
+  porte sa marque* (TF-0505, `tools/build-fiche.mjs`).
+- **`14543d0`** (23/08) — *les générateurs de page ADHÈRENT au contrôle des promesses de commentaire*
+  (choix humain « 1c ») : une classe ou un attribut nommé dans un commentaire de ces fichiers doit
+  exister dans leur code. Signataires : `build-catalogue`, `build-fiche`, `build-referentiel`,
+  `build-slides`, `build-theme`, `rapport-engine`. Adhésion volontaire par fichier, chacun joué
+  avant signature.
+- **`0a172f3`** (02/09) — *la fiche cesse de réserver un tiers de page à ses intitulés, et son NOM
+  porte enfin un indice* (TF-0697, TF-0693) : `tools/build-fiche.mjs` refondu, nouvel outil
+  `tools/allouer-indice.mjs`.
+- **TF-1017** (11/09) — `tests/oracles/verifier-pdf.test.mjs` : le test **déclare** sa dépendance au
+  moteur d'impression au lieu de la deviner. Il re-listait lui-même six chemins de navigateurs quand
+  `tools/fiche-en-pdf.mjs` en cherche dix ; il demande maintenant à l'outil (`trouverNavigateur`) et,
+  surtout, lit la **sortie** de l'outil — code 3 + motif écrit = dépendance absente, donc **SKIP
+  motivé sur tous les runners**. Verdict inchangé quand le moteur d'impression est là.
+  `.github/workflows/ci.yml` : la batterie d'oracles est recomptée en la JOUANT — **104 tests**
+  avant ce lot, **122** après (le nom de l'étape annonçait encore 101, périmé de trois depuis
+  `03ec225` ; un intitulé qui compte à la main dérive, exactement comme une liste d'étapes recopiée).
+
+### Corrigé
+
+- **TF-1017** (11/09) — `tests/oracles/maj-versions.test.mjs` : le volet EOL n'a plus **qu'un seul
+  verdict par situation**. Il portait un `IN_CI` qui transformait un SKIP en ÉCHEC — « aucun
+  composant à statut de fraîcheur » sautait le test en local et le faisait échouer en intégration
+  continue, sur une hypothèse écrite en clair dans le message (« registre injoignable ? »). L'une des
+  deux causes des huit exécutions rouges. Mesuré le 11/09, l'hypothèse était **fausse** : le registre
+  répond, et l'absence de composant à statut de fraîcheur vient de la fixture elle-même (ses deux
+  composants sortent en `reco_correctif` et `reco_deprecie`). La situation vaut désormais **SKIP
+  motivé partout**, le motif écrit avec ce qui a été MESURÉ — nombre de composants, statuts observés,
+  composants non vérifiés — et non avec une cause supposée. Ce qui reste jugé partout, et qui est le
+  vrai contrôle (défaut 4) : dès qu'un composant porte un statut de fraîcheur, `eol_non_verifies`
+  doit être ≥ 1 et aucun de ces composants ne doit être présenté comme vérifié côté EOL.
+
+### Contenu de la section « [Non publié] » du 14/08, figé ici
+
+> Repris sans retouche, note d'origine comprise. La qualification **PATCH** de cette note vaut pour
+> ce seul contenu ; la version 1.18.0 est MINEURE du fait des contrôles ajoutés listés plus haut.
 
 > Numéro de version à figer à la release. **PATCH** au sens de PADR-0005 : corrections de
 > citations et complétion d'un corpus de traduction — aucun contrôle ajouté ni retiré, aucun
 > schéma touché.
 
-### Corrigé
+#### Corrigé
 - **Migration des citations `standards[]` vers ASVS 5.0.0** (TF-0221, PADR-0010). Les 22
   citations `OWASP ASVS 5.0 — Vxx` employaient la numérotation de chapitres d'**ASVS 4.0.x** :
   **21 réécrites** vers leur cible 5.0.0 réelle, **1 supprimée** (`CTL-D02-01` — 4.0.3 V1
@@ -23,7 +139,7 @@ sources mis à jour.
   `docs/CORRESPONDANCE-ASVS-4.0.x-5.0.0.md` §6, `docs/MAPPING-CONTROLES-ASVS.md` §7 bis.
   Contrôles porteurs d'une citation ASVS : 10 → **9**.
 
-### Ajouté
+#### Ajouté
 - **Le rapport d'audit se lit par VUES** — doctrine « restitution lisible » portée dans le
   moteur de rendu (TF-0235 volet P4, référentiel `REFERENTIEL-RESTITUTION.md` de forge-design,
   famille `rapport`). Le livrable, c'est le GÉNÉRATEUR : la refonte entre dans

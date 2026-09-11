@@ -24,6 +24,7 @@ import {
   parsePackageJson, runWithLadder, classer, runCmd, canRun, COVERS, eolMajor,
   nonRegistrySource, successorFromDeprecation,
 } from '../../oracles/maj-versions.mjs';
+import { verdictEol } from '../verdicts.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const MV = path.join(HERE, '..', '..', 'oracles', 'maj-versions.mjs');
@@ -234,14 +235,23 @@ test('POSITIVE : audit natif capte adm-zip transitif (défauts 1+2+3)', (t) => {
 });
 
 // Complément défaut 4 en intégration : endoflife injoignable → eol_non_verifies, pas « pas EOL » silencieux.
+//
+// TF-1017 (11/09/2026) — UN SEUL VERDICT PAR SITUATION. Ce test portait un `IN_CI` qui transformait
+// un SKIP en ÉCHEC : hors intégration continue, « aucun composant à statut de fraîcheur » sautait le
+// test ; sous `CI`, la MÊME situation le faisait échouer sur une HYPOTHÈSE écrite en clair dans le
+// message — « registre injoignable ? ». Huit exécutions rouges d'affilée du 24/08 au 10/09 pendant
+// que la recette locale rendait vert, et l'hypothèse était fausse : mesuré le 11/09, le registre
+// répond, et l'absence de composant à statut de fraîcheur vient simplement de la FIXTURE — ses deux
+// composants sortent en `reco_correctif` et `reco_deprecie`. Une situation qui n'a rien à juger
+// vaut SKIP MOTIVÉ partout, motif écrit avec ce qui a été MESURÉ (nombre de composants, statuts
+// observés, composants non vérifiés) et non avec une cause supposée.
+// CE QUI RESTE JUGÉ PARTOUT, et qui est le vrai contrôle (défaut 4) : dès qu'un composant porte un
+// statut de fraîcheur, `eol_non_verifies` doit être ≥ 1 et AUCUN de ces composants ne doit être
+// présenté comme vérifié côté EOL — sinon ÉCHEC, ici comme sur n'importe quel runner. Le verdict
+// sort d'une fonction PURE (`verdictEol`) qui ne lit jamais l'environnement.
 test('EOL injoignable (forcé) → eol_non_verifies >= 1, jamais silencieusement conforme', (t) => {
   const d = runScript('multiblock', { MAJVER_TEST_FORCE_EOL_FAIL: '1' });
-  const currency = Object.values(d.composants).filter(c => ['a_jour', 'veille_majeur', 'couvert_plage'].includes(c.statut));
-  if (!currency.length) { // registre currency injoignable en local → rien à évaluer côté EOL
-    if (IN_CI) assert.fail('CI : aucun composant à statut de fraîcheur — registre injoignable ?');
-    t.skip('aucun composant à statut de fraîcheur (registre injoignable hors CI)');
-    return;
-  }
-  assert.ok(d.resume.eol_non_verifies >= 1, 'volet EOL marqué non vérifié');
-  assert.ok(currency.every(c => c.eol_verifie === false), 'aucun composant EOL présenté comme vérifié');
+  const v = verdictEol(d);
+  if (v.verdict === 'SKIP') { t.skip(v.motif); return; }
+  assert.equal(v.verdict, 'JUGE', v.motif); // ECHEC = eol_non_verifies nul, ou un composant « conforme » en silence
 });
