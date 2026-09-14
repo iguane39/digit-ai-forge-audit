@@ -36,6 +36,10 @@
  *         ABSENTE — mesuré le 14/09/2026 : une instance remplie sans ce champ rendait PASS sur
  *         FS1 à FS7. « S'authentifier n'est pas être admis » : « aucune restriction » est une
  *         réponse valide, une ligne manquante ne l'est jamais.
+ *   FS9 · le document REND VISIBLEMENT son gabarit et sa version (`Gabarit : gd-… · version du
+ *         gabarit x.y.z`) — restes archivés TF-0690/TF-0702 (Produit-11, 27-28/08) : une instance
+ *         périmée était INVISIBLE SUR L'ARTEFACT, sans registre pour la dater. Même convention
+ *         que `oracle-gabarits-documents.mjs` G4 du pilot.
  *
  *   node oracles/verifier-fiche-securite.mjs <fiche.html> [--seuil-texte N] [--sans-pdf]
  *                                            [--json-only]
@@ -53,6 +57,9 @@ import { fileURLToPath } from 'node:url';
 export const SEUIL_TEXTE = 300;
 /** Le canevas de la fiche : huit sections numérotées. */
 export const SECTIONS = 8;
+/** FS9 (TF-1095) : mêmes expressions que `oracle-gabarits-documents.mjs` G4 du pilot. */
+export const RE_GABARIT_ID = /gabarit\s*:\s*(gd-[a-z0-9-]+)/i;
+export const RE_VERSION_GABARIT = /version[_ ]du[_ ]gabarit\s*:?\s*\d+\.\d+\.\d+/i;
 /** La référence interne : trigramme, objet, environnement, jour, indice. */
 export const RE_REF = /\b([A-Z0-9]{2,6})-SEC-DEV-(\d{8})([a-z])\b/g;
 
@@ -249,6 +256,18 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
     }
   }
 
+  // ── FS9 · le document rend VISIBLEMENT son gabarit et sa version (TF-1095) ─────────────────
+  const idGabarit = RE_GABARIT_ID.exec(html);
+  const versionRendue = RE_VERSION_GABARIT.test(html);
+  if (!idGabarit || !versionRendue) {
+    const manque = [!idGabarit && "l'identifiant (« Gabarit : gd-… »)", !versionRendue && 'la « version du gabarit x.y.z »']
+      .filter(Boolean).join(' ni ');
+    add('FAIL', 'FS9', `le document ne rend pas ${manque} : une instance périmée reste invisible sur `
+      + "l'artefact — sans eux, aucun tiers ne peut dater sa conformité (TF-0690, restes archivés).");
+  } else {
+    add('PASS', 'FS9', `gabarit ${idGabarit[1]} rendu avec sa version`);
+  }
+
   const echecs = F.filter((f) => f.statut === 'FAIL').length;
   return {
     oracle: 'verifier-fiche-securite',
@@ -277,7 +296,7 @@ ${Array.from({ length: 8 }, (_, k) => `<section><h2>${k + 1} · Section ${k + 1}
     + (k === 0 ? '<tr><th>Lien environnement DEV</th><td>https://dev.exemple.test/app</td></tr>'
       + '<tr><th>Population effectivement admise</th><td>Collaborateurs du tenant (128)</td></tr>' : '')
     + `<tr><th>Champ ${k + 1}</th><td>valeur</td></tr></tbody></table></section>`).join('\n')}
-<footer>Réf. ${ref} — 0 placeholder exigé avant diffusion.</footer>
+<footer>Réf. ${ref} — 0 placeholder exigé avant diffusion. Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0.</footer>
 </body></html>`;
 
 /** Un PDF minimal VALIDE dont on choisit la quantité de texte montré et le nombre d'images. */
@@ -358,14 +377,21 @@ function selfTest() {
     FICHE_VERTE('ACM-SEC-DEV-20260902m').replace('<td>Collaborateurs du tenant (128)</td>', '<td></td>'),
     'FS8');
 
+  // FS9 — LE DÉFAUT MESURÉ CHEZ PRODUIT-11 (27/08) : « ni gd-fiche-securite, ni version ».
+  // Une instance périmée est invisible sur l'artefact tant que ce couple n'est pas rendu.
+  rouge('ACM - Fiche Securite - Dev - 20260902n.html',
+    FICHE_VERTE('ACM-SEC-DEV-20260902n').replace(' Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0.', ''),
+    'FS9');
+
   fs.rmSync(dir, { recursive: true, force: true });
   console.log(casse.length
     ? 'SELF-TEST FAIL : ' + casse.join(' · ')
-    : 'Self-test verifier-fiche-securite : 13/13 PASS — fiche complète acceptée · placeholder résiduel (FS1), '
+    : 'Self-test verifier-fiche-securite : 14/14 PASS — fiche complète acceptée · placeholder résiduel (FS1), '
       + 'section perdue (FS2), références divergentes en-tête/pied (FS3), indice du nom ≠ indice imprimé (FS3bis), '
       + 'lien DEV sans URL (FS4), colonne à 32 % sans table-layout fixe (FS5), PDF de diffusion absent (FS6), '
       + 'PDF sans texte à 9 images — la capture du 24/07 (FS7), champ « Population effectivement admise » absent '
-      + 'et champ présent mais vide (FS8, TF-1089) : tous REFUSÉS · --sans-pdf rendu en SKIP motivé');
+      + 'et champ présent mais vide (FS8, TF-1089), gabarit et sa version non rendus (FS9, TF-1095) : tous '
+      + 'REFUSÉS · --sans-pdf rendu en SKIP motivé');
   return casse.length ? 1 : 0;
 }
 

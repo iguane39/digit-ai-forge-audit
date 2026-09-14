@@ -29,6 +29,15 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { rel, loadTenant, loadJson } from './lib.mjs';
 import { allouerIndice } from './allouer-indice.mjs';
 
+// TF-1095 (restes archivés TF-0690, TF-0702, releve P-2 du 14/09/2026) : « une instance perimee
+// est INVISIBLE SUR L'ARTEFACT » — le meme defaut mesure ailleurs (Produit-11, 27/08) existait
+// aussi ici, sans qu'aucun mandat n'ait encore permis de le corriger. Rendu VISIBLEMENT dans le
+// document livre (pas en commentaire HTML : un commentaire ne se rend pas), meme convention que
+// `oracle-gabarits-documents.mjs` G4 du pilot (`Gabarit : gd-… · version du gabarit x.y.z`) — un
+// tiers qui tient la fiche peut dater sa conformite SANS registre, y compris recue par courriel.
+export const GABARIT_ID = 'gd-fiche-securite-auditcore';
+export const GABARIT_VERSION = '1.0.0';
+
 const tenantYaml = process.argv[2];
 const USAGE = 'Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>] (--produit <racine> | --out <fichier.html>) [--sans-pdf]';
 if (!tenantYaml) { console.error(USAGE); process.exit(2); }
@@ -136,7 +145,8 @@ Réf. ${ref} — généré par AuditCore build-fiche (M9) pour ${esc(cfg.tenant.
      le texte de pied ferait échouer la règle « 0 placeholder résiduel » du vérificateur sur une
      fiche pourtant complète — le document se signalerait lui-même comme un trou à combler.
      C'est la même leçon que la règle P0 du lint d'agnosticité, et elle a mordu ici le 02/09. -->
-Porte de diffusion : <code>node oracles/verifier-fiche-securite.mjs &lt;cette fiche&gt;</code> → exit 0. Le PDF de diffusion est IMPRIMÉ depuis ce HTML, jamais capturé.</footer>
+Porte de diffusion : <code>node oracles/verifier-fiche-securite.mjs &lt;cette fiche&gt;</code> → exit 0. Le PDF de diffusion est IMPRIMÉ depuis ce HTML, jamais capturé.<br>
+Gabarit : ${GABARIT_ID} · version du gabarit ${GABARIT_VERSION} — à reporter tel quel dans tout retour sur ce document.</footer>
 </div></body></html>`;
 };
 

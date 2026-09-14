@@ -7,6 +7,19 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1095** (restes archivés TF-0690, TF-0702, relevé P-2 du 14/09/2026) — la fiche sécurité rend
+  désormais VISIBLEMENT son gabarit et sa version en pied de page (`Gabarit :
+  gd-fiche-securite-auditcore · version du gabarit 1.0.0`, `tools/build-fiche.mjs`), même
+  convention que la règle G4 d'`oracle-gabarits-documents.mjs` du pilot. Défaut d'origine (TF-0690,
+  Produit-11, 27/08) : « ni gd-fiche-securite, ni version » — une instance périmée était invisible
+  sur l'artefact, sans registre pour la dater, y compris reçue par courriel hors de tout dépôt.
+  Règle FS9 ajoutée à `oracles/verifier-fiche-securite.mjs` : une fiche qui ne rend pas ce couple
+  est refusée. Fixture rouge dédiée, self-test 13/13 → 14/14. AUCUNE option `--gabarit` ajoutée à
+  `build-fiche.mjs` — la proposition originale de TF-0702 (accepter un gabarit HTML fourni par le
+  produit, une porte de sortie qui aurait contourné la cause plutôt que la mesurer) a été
+  délibérément écartée au profit de la mesure, conformément au dossier de campagne du 14/09
+  (« remplacer --gabarit par une mesure »).
+
 - **TF-1089** — `oracles/verifier-fiche-securite.mjs` : nouvelle règle FS8, la présence ET le
   remplissage du champ « Population effectivement admise » (TF-0563, l'incident des 3 128 comptes
   invités admis sans que la fiche le dise). Mesuré le 14/09/2026 (preuve de couverture P-1) : une
