@@ -6,6 +6,7 @@
 // Usage: node tools/verifier-rapport.mjs <rapport-data.json> [--tenant <tenant.yaml>]
 import fs from 'node:fs';
 import { rel, loadJson, loadYaml, loadTenant } from './lib.mjs';
+import { STR } from './rapport-engine.mjs';
 
 const file = process.argv[2];
 if (!file) { console.error('Usage: node tools/verifier-rapport.mjs <rapport-data.json> [--tenant <tenant.yaml>]'); process.exit(2); }
@@ -62,9 +63,36 @@ for (const a of data.actions ?? []) if (!a.adr?.length && !a.constat_ref) errors
 // 5. Auto-portance (rapport sans référence à un audit antérieur)
 if (/audit précédent|rapport précédent|précédemment audité/i.test(raw)) errors.push('auto-portance: référence à un audit antérieur détectée (règle B.1)');
 
+// 6. Six champs que le moteur (rapport-engine.mjs) sait rendre, absents ici sans qu'aucune porte
+// ne le dise (TF-1001, 09/09/2026) : le rapport rendu les affiche vides/« — », le plan de
+// remédiation embarqué porte un `date: null`, et le manifeste d'écarts du rapport DÉCLARE déjà
+// l'absence de synthèse/reprise — sans qu'aucune chaîne automatique ne l'escalade. En
+// AVERTISSEMENT (non bloquant) : ces six champs restent légitimement absents pour certains
+// audits (ex. sans reprise applicative) — un rapport correctement rempli ne doit pas être refusé
+// pour ce qu'il n'a rien à dire.
+const warnings = [];
+if (!data.projet?.nom && !data.titre) warnings.push('ni projet.nom ni titre : le document rendu porte un titre vide');
+if (!data.date) warnings.push('date absente : le plan de remédiation embarqué (planJson.meta.date) sera null');
+if (!data.indice) warnings.push('indice absent : la référence de document (audit_ref) est incomplète');
+if (!data.auditeur) warnings.push('auditeur absent : affiché « — » dans l’en-tête du rapport');
+if (!data.syntheses) warnings.push('aucune synthèse rédigée transmise (le manifeste d’écarts du rapport le déclare déjà, en silence)');
+if (!(data.reprise ?? []).length) warnings.push('aucun élément de reprise applicative déclaré (le manifeste d’écarts du rapport le déclare déjà, en silence)');
+
+// 7. Titre dédoublé (TF-1001) : rapport-engine.mjs COMPOSE déjà `${tenant} — ${L.rapport} —
+// ${projet}` — si `projet.nom` (ou son repli `titre`) répète lui-même ce libellé de document,
+// le titre rendu se dédouble (« Rapport d'audit — Rapport d'audit - Produit-61 », mesuré au
+// 09/09/2026). Bloquant : contrairement aux six champs ci-dessus, un titre dédoublé n'est jamais
+// un manque légitime — c'est une valeur incorrecte.
+const projetAffiche = data.projet?.nom ?? data.titre ?? '';
+if (projetAffiche && (projetAffiche.includes(STR.fr.rapport) || projetAffiche.includes(STR.en.rapport)))
+  errors.push(`projet/titre « ${projetAffiche} » répète déjà le libellé de document que le moteur ajoute `
+    + `(« ${STR.fr.rapport} » / « ${STR.en.rapport} ») — le titre rendu serait dédoublé`);
+
+if (warnings.length) for (const w of warnings) console.error(`AVERTISSEMENT: ${w}`);
+
 if (errors.length) {
   for (const e of errors) console.error(`ERREUR: ${e}`);
   console.error(`\n✖ rapport NON diffusable (${errors.length} erreur(s))${tenant ? ` — tenant ${tenant.tenant.name}` : ''}`);
   process.exit(1);
 }
-console.log(`✔ rapport diffusable — ${got.length} dimensions, ${(data.regles ?? []).length} règles, ${(data.constats ?? []).length} constats${tenant ? ` — tenant ${tenant.tenant.name}` : ''}`);
+console.log(`✔ rapport diffusable — ${got.length} dimensions, ${(data.regles ?? []).length} règles, ${(data.constats ?? []).length} constats${tenant ? ` — tenant ${tenant.tenant.name}` : ''}${warnings.length ? ` (${warnings.length} avertissement(s) ci-dessus)` : ''}`);

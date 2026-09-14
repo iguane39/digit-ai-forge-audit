@@ -29,7 +29,7 @@ const SEV = { critique: 0, majeur: 1, mineur: 2 };
 const SEUIL_FILTRE = 8;
 const TAG = { urgent: 0, prio: 1, quick: 2, norm: 3 };
 // i18n du moteur (RAF-012) — self-contained : les kits standalone inlinent ce fichier.
-const STR = {
+export const STR = {
   fr: { rapport: "Rapport d'audit", gate: 'Verdict gate', score: 'Score global', instruites: 'dimensions instruites',
     bloquants: 'Bloquants', regles: 'Règles instruites', nc: 'non conformes', familles: 'Scores par famille',
     toutes: 'Toutes les règles', reprise: 'Reprise applicative', schemas: 'Architecture & BDD',

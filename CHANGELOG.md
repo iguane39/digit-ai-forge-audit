@@ -7,6 +7,18 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-1001** — `tools/verifier-rapport.mjs` : six champs que `rapport-engine.mjs` sait rendre
+  (`projet`, `date`, `indice`, `auditeur`, `syntheses`, `reprise`) pouvaient rester vides sans
+  qu'aucune porte machine ne le dise — le rapport les affichait blancs/« — », le plan de
+  remédiation embarqué portait `date: null`, et le manifeste d'écarts du rapport déclarait déjà
+  deux absences que personne ne lisait. Portés en AVERTISSEMENT nommé (non bloquant : légitimement
+  absents pour certains audits). Ajout d'une règle BLOQUANTE distincte : un `projet`/`titre` qui
+  répète le libellé de document que le moteur ajoute déjà (« Rapport d'audit ») dédouble le titre
+  rendu (mesuré : `Digit-AI - Rapport d'audit - Rapport d'audit - Produit-61`) — refusé. Fixture
+  rouge dédiée `tests/fixtures/rapport-data-titre-duplique.json`, câblée dans le job `batterie`
+  aux côtés des fixtures valide/invalide existantes ; `STR` exporté de `rapport-engine.mjs` pour
+  partager les libellés FR/EN entre moteur et vérificateur (source unique, pas de chaîne dupliquée).
+
 - **TF-1000** — `tools/build-theme.mjs` : la typographie d'un DESIGN.md (reliquat de scaffold,
   potentiellement la charte d'exemple fictive livrée avec la forge) écrasait silencieusement une
   `branding.typography` pourtant déclarée EXPLICITEMENT dans `tenant.yaml` — un rapport client a
