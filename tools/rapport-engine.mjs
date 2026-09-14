@@ -288,6 +288,20 @@ const badge = (cls, texte, titre) =>
 
 // ── M5 v1.5 · ERD : data.db_schema = { bandes:[{key,label}], tables:[{id,bande,label,
 //    columns:[{n,t,k(PK|UK|FK),nn,pii,note}]}], relations:[{from,to,enforced,label}] }
+//
+// ── MOTEUR HÉRITÉ, PAS CELUI QUI FAIT FOI (TF-0940, 08/09/2026). Un second moteur de
+//    schéma de base de données existe : digit-ai-forge-agents ·
+//    .claude/skills/digit-ai-schemas/assets/template-modele-donnees.html (cartes HTML +
+//    calque SVG, badges PK/UK/FK/NN, arêtes ancrées colonne à colonne, fitSchema,
+//    dictionnaire compagnon). Sa propre référence (canevas-modele-donnees.md § « Laquelle
+//    fait foi ») DÉCLARE que c'est LUI qui fait foi, précisément parce que ce renderERD-ci
+//    est plus pauvre (SVG pur, sans badges, sans ancrage colonne à colonne, sans mise à
+//    l'échelle). Un rapport produit par cette fonction rend donc l'ANCIEN rendu — à savoir
+//    avant de le citer comme modèle ou de le comparer à une capture du canevas cité
+//    ci-dessus. RESTE À FAIRE, hors périmètre chirurgical de ce commentaire : que ce module
+//    consomme ce canevas (import ou copie conforme avec empreinte) et que renderERD
+//    disparaisse ou devienne un appel — geste côté propriétaire du rapport, donc ici, mais
+//    qui n'est pas un diff minimal et se traite dans une campagne dédiée.
 function renderERD(db, L = STR.fr, T = RES.fr) {
   if (!db?.tables?.length) return '';
   const bandes = db.bandes?.length ? db.bandes : [{ key: '_', label: '' }];
