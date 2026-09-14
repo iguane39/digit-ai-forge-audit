@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url';
 import {
   etapes, blocEnv, nonRejouables, familleRunner, rejouer, shellPosix,
   verdictJournal, PLAFOND_ENREGISTREMENTS_SANS_JOURNAL, CHEMINS_JOURNALISES, JOURNAL,
+  policesPresentes,
 } from '../../tools/verifier.mjs';
 import { verdictEol, verdictNavigateur } from '../verdicts.mjs';
 
@@ -194,6 +195,69 @@ test('VERT (aucun écart évitable) : ni plateforme, ni action, ni version de No
   // d'impression PRÉSENT ici est tout aussi non reproductible qu'un moteur absent.
   assert.equal(lignes.filter((l) => /moteur d'impression présent ici/.test(l)).length, 1);
   assert.equal(lignes.filter((l) => /accès réseau aux registres/.test(l)).length, 1);
+});
+
+// ───────────── 3. Polices du thème, mesurées (TF-1020) ─────────────
+//
+// FAIT mesuré le 11/09/2026 (run 34581219111) : le job `oracles (ubuntu-latest)` refuse la fiche
+// sécurité sur P3 (2 pages pour 1 maximum) alors que `oracles (windows-latest)` la rend `ok`. La
+// pile `--font-body` du thème (system-ui, Segoe UI, Roboto, Arial) n'a aucune de ses polices
+// nommées installée sur le runner Linux — le navigateur retombe sur DejaVu Sans, plus large, et le
+// tirage déborde. Ni le workflow (aucune installation de police) ni la recette (avant TF-1020)
+// n'en disaient rien : le poste de travail (Windows, Segoe UI présent) ne pouvait pas voir ce
+// défaut, il ne se voit que côté runner — exactement la classe de TF-1017 sur une DEUXIÈME
+// dimension de l'environnement (les polices), pas seulement le moteur d'impression.
+
+test('policesPresentes : ROUGE — une police cherchée mais absente du poste est dite, jamais tue', () => {
+  const table = { roboto: '/fonts/Roboto-Regular.ttf', 'segoe ui': '/fonts/segoeui.ttf', arial: '/fonts/arial.ttf' };
+  const existe = (p) => p === '/fonts/segoeui.ttf'; // seule Segoe UI « existe » dans cette fixture
+  const r = policesPresentes('system-ui, Segoe UI, Roboto, Arial, sans-serif', {
+    plateforme: 'linux', existe, table,
+  });
+  assert.deepEqual(r.cherchees, ['Segoe UI', 'Roboto', 'Arial']); // generiques system-ui/sans-serif exclus
+  assert.deepEqual(r.presentes, ['Segoe UI']);
+  assert.deepEqual(r.absentes, ['Roboto', 'Arial']);
+});
+
+test('policesPresentes : mesure réelle par plateforme, dans les DEUX sens (présente/absente/non mesurable)', () => {
+  // VERT — présente : le chemin connu existe.
+  let r = policesPresentes('Roboto, Arial, sans-serif', { plateforme: 'linux', existe: () => true });
+  assert.deepEqual(r.presentes, ['Roboto', 'Arial']);
+  assert.deepEqual(r.absentes, []);
+  // ROUGE — absente : le chemin connu n'existe pas (le cas réel du run ubuntu du 11/09).
+  r = policesPresentes('Roboto, Arial, sans-serif', { plateforme: 'linux', existe: () => false });
+  assert.deepEqual(r.absentes, ['Roboto', 'Arial']);
+  assert.deepEqual(r.presentes, []);
+  // NON MESURABLE — une famille sans chemin connu dans la table de cette plateforme n'est ni
+  // présente ni absente : deviner serait le même défaut que se taire.
+  r = policesPresentes('Comic Sans MS, sans-serif', { plateforme: 'linux', existe: () => true });
+  assert.deepEqual(r.nonMesurables, ['Comic Sans MS']);
+  assert.deepEqual(r.presentes, []);
+  assert.deepEqual(r.absentes, []);
+  // Les mots-clés génériques (system-ui, -apple-system, sans-serif…) ne sont jamais des polices à
+  // mesurer : ils résolvent à ce que l'OS choisit, pas à un fichier nommé.
+  r = policesPresentes('system-ui, -apple-system, sans-serif', { plateforme: 'linux', existe: () => true });
+  assert.deepEqual(r.cherchees, []);
+});
+
+test('nonRejouables dit les polices du thème dans les DEUX sens, jamais en silence', () => {
+  const rouge = nonRejouables(WF_SANS_ECART, {
+    plateforme: 'linux', navigateur: '/usr/bin/chromium', navigateursCherches: ['/usr/bin/chromium'],
+    polices: { cherchees: ['Segoe UI', 'Roboto', 'Arial'], presentes: [], absentes: ['Segoe UI', 'Roboto', 'Arial'], nonMesurables: [] },
+  });
+  assert.equal(rouge.filter((l) => /police\(s\) du thème ABSENTE\(S\) ici : Segoe UI, Roboto, Arial/.test(l)).length, 1);
+  assert.equal(rouge.filter((l) => /police\(s\) du thème présente/.test(l)).length, 0);
+
+  const vert = nonRejouables(WF_SANS_ECART, {
+    plateforme: 'windows', navigateur: '/usr/bin/chromium', navigateursCherches: ['/usr/bin/chromium'],
+    polices: { cherchees: ['Segoe UI', 'Arial'], presentes: ['Segoe UI', 'Arial'], absentes: [], nonMesurables: [] },
+  });
+  assert.equal(vert.filter((l) => /police\(s\) du thème présente\(s\) ici : Segoe UI, Arial/.test(l)).length, 1);
+  assert.equal(vert.filter((l) => /police\(s\) du thème ABSENTE/.test(l)).length, 0);
+
+  // Sans info de police injectée (compat. arrière : aucun appelant existant ne casse), rien n'est dit.
+  const silencieux = nonRejouables(WF_SANS_ECART, { plateforme: 'linux', navigateur: '/usr/bin/chromium', navigateursCherches: [] });
+  assert.equal(silencieux.filter((l) => /police\(s\) du thème/.test(l)).length, 0);
 });
 
 test('familleRunner : la plateforme Node se lit en famille de runner', () => {

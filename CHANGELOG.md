@@ -6,6 +6,24 @@ sources mis à jour.
 
 ## [Non publié]
 
+### Ajouté
+- **TF-1020 (diagnostic, NON CLOS)** — `tools/verifier.mjs` mesure désormais, dans les deux sens,
+  quelles polices de la pile `--font-body` du tenant de référence sont réellement présentes sur le
+  poste qui rejoue la recette (`policesPresentes`, fichier standard par plateforme, jamais deviné).
+  Fait qui motive cette mesure : le job `oracles (ubuntu-latest)` refuse la fiche sécurité sur P3
+  (2 pages pour 1 maximum, run 34581219111 du 11/09) alors que `oracles (windows-latest)` la rend
+  `ok` — la pile `system-ui, Segoe UI, Roboto, Arial` n'a AUCUNE police nommée installée sur ce
+  runner Linux, le navigateur y retombe sur DejaVu Sans (plus large) et le tirage déborde. Mesuré
+  ICI (poste Windows) : Segoe UI et Arial présentes, **Roboto absente même sur ce poste** — la
+  cause n'est donc pas hypothétique. LE CORRECTIF (police embarquée en `@font-face`, ou
+  `fonts-roboto` installée dans `.github/workflows/ci.yml` job `oracles`) N'EST PAS APPLIQUÉ ici :
+  aucun runner Linux disponible sur ce poste pour en prouver l'effet, aucun fichier de police
+  librement licencié disponible localement à embarquer sans deviner — appliquer l'un ou l'autre
+  sans preuve locale serait exactement le défaut que TF-1017 a coûté trois versions à corriger.
+  Fixtures à double sens (présente/absente/non mesurable) dans
+  `tests/oracles/recette-environnement.test.mjs` (+3, 127 → 130 tests, nombre mis à jour dans
+  `.github/workflows/ci.yml`).
+
 ### Corrigé
 - **TF-1001** — `tools/verifier-rapport.mjs` : six champs que `rapport-engine.mjs` sait rendre
   (`projet`, `date`, `indice`, `auditeur`, `syntheses`, `reprise`) pouvaient rester vides sans
