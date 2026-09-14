@@ -7,6 +7,19 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1102** (constat né en clôturant TF-1089, décidé sous mandat le 14/09/2026) — les DEUX autres
+  champs du bloc doctrinal TF-0563 (« Restriction d'accès effective », « Comptes externes / invités
+  en portée ») restaient sans règle après TF-1089, qui n'avait couvert que « Population
+  effectivement admise » (FS8). Les trois champs existent pour la MÊME raison (3 128 comptes
+  invités admis sans que la fiche le dise) : aucun n'est plus optionnel que les deux autres.
+  Règles sœurs FS10 et FS11 ajoutées à `oracles/verifier-fiche-securite.mjs` (factorisées avec FS8
+  dans un helper commun `champDuBloc`, bilingue FR/EN comme FS8) ; les deux champs rendus par
+  `tools/build-fiche.mjs` (section 5 · Exposition). Fixtures rouges dédiées (une ligne SUPPRIMÉE par
+  règle), self-test 14/14 → 16/16. La fiche complète (5 champs du bloc, tous remplis) tient
+  toujours sur UNE page A4 — prouvé par le test bout en bout réel (impression Edge + relecture PDF,
+  `tests/oracles/fiche-securite.test.mjs`), sans retente supplémentaire du rythme vertical au-delà
+  de celle déjà faite pour TF-1089.
+
 - **TF-1095** (restes archivés TF-0690, TF-0702, relevé P-2 du 14/09/2026) — la fiche sécurité rend
   désormais VISIBLEMENT son gabarit et sa version en pied de page (`Gabarit :
   gd-fiche-securite-auditcore · version du gabarit 1.0.0`, `tools/build-fiche.mjs`), même

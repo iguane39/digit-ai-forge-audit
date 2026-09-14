@@ -40,6 +40,12 @@
  *         gabarit x.y.z`) — restes archivés TF-0690/TF-0702 (Produit-11, 27-28/08) : une instance
  *         périmée était INVISIBLE SUR L'ARTEFACT, sans registre pour la dater. Même convention
  *         que `oracle-gabarits-documents.mjs` G4 du pilot.
+ *   FS10 · le champ « Restriction d'accès effective » (TF-0563, TF-1102) est PRÉSENT et REMPLI —
+ *          sœur de FS8, sur le DEUXIÈME champ du même bloc doctrinal resté en reste après TF-1089.
+ *   FS11 · le champ « Comptes externes / invités en portée » (TF-0563, TF-1102) est PRÉSENT et
+ *          REMPLI — sœur de FS8/FS10, sur le TROISIÈME champ du même bloc. Les trois existent
+ *          parce que la MÊME fiche a un jour dit vrai et fait comprendre faux (3 128 comptes
+ *          invités admis au même titre que les collaborateurs) : aucun des trois n'est optionnel.
  *
  *   node oracles/verifier-fiche-securite.mjs <fiche.html> [--seuil-texte N] [--sans-pdf]
  *                                            [--json-only]
@@ -235,26 +241,32 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
     }
   }
 
-  // ── FS8 · le champ « Population effectivement admise » est présent ET rempli (TF-1089) ────
+  // ── FS8 / FS10 / FS11 · les TROIS champs du bloc doctrinal TF-0563, chacun PRÉSENT ET REMPLI ─
   // FS1 ne voit qu'un PLACEHOLDER résiduel, FS2 ne voit que des SECTIONS entières manquantes :
   // aucune des deux ne voit une LIGNE de champ absente à l'intérieur d'une section par ailleurs
-  // complète. Bilingue (le canevas source, deliverables/templates/fiche-securite.template.en.md,
-  // porte « Population actually admitted »), même si ce générateur ne rend que du FR.
-  const RE_POPULATION = /<tr>\s*<th[^>]*>\s*population\s+(?:effectivement\s+admise|actually\s+admitted)\s*<\/th>\s*<td[^>]*>([\s\S]*?)<\/td>/i;
-  const mPop = RE_POPULATION.exec(html);
-  if (!mPop) {
-    add('FAIL', 'FS8', "aucune ligne « Population effectivement admise » dans le document. Le champ "
-      + "existe au canevas depuis TF-0563 (3 128 comptes invités admis sans que la fiche le dise) : "
-      + "une ligne SUPPRIMÉE plutôt que remplie n'est vue par AUCUNE autre règle de cet oracle.");
-  } else {
-    const valeur = mPop[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    if (!valeur) {
-      add('FAIL', 'FS8', "le champ « Population effectivement admise » est présent mais VIDE. "
-        + '« aucune restriction » est une réponse valide à porter au rapport ; une case vide ne l\'est jamais.');
-    } else {
-      add('PASS', 'FS8', `population effectivement admise renseignée : « ${valeur.slice(0, 80)}${valeur.length > 80 ? '…' : ''} »`);
+  // complète. Bilingue (le canevas source, deliverables/templates/fiche-securite.template.en.md),
+  // même si ce générateur ne rend que du FR. Un seul mécanisme pour les trois : ils existent
+  // parce que la MÊME fiche a un jour dit vrai et fait comprendre faux (3 128 comptes invités
+  // admis au même titre que les collaborateurs, TF-0563) — aucun n'est optionnel par rapport aux
+  // deux autres (TF-1089 n'avait couvert que le premier, FS8 ; TF-1102 clôt les deux restants).
+  const champDuBloc = (regle, motifLabel, nomAffiche) => {
+    const re = new RegExp(`<tr>\\s*<th[^>]*>\\s*(?:${motifLabel})\\s*<\\/th>\\s*<td[^>]*>([\\s\\S]*?)<\\/td>`, 'i');
+    const m = re.exec(html);
+    if (!m) {
+      add('FAIL', regle, `aucune ligne « ${nomAffiche} » dans le document. Le champ existe au canevas `
+        + "depuis TF-0563 (3 128 comptes invités admis sans que la fiche le dise) : une ligne "
+        + "SUPPRIMÉE plutôt que remplie n'est vue par AUCUNE autre règle de cet oracle.");
+      return;
     }
-  }
+    const valeur = m[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    if (!valeur) {
+      add('FAIL', regle, `le champ « ${nomAffiche} » est présent mais VIDE. « aucune restriction » `
+        + 'est une réponse valide à porter au rapport ; une case vide ne l\'est jamais.');
+    } else {
+      add('PASS', regle, `${nomAffiche} renseigné(e) : « ${valeur.slice(0, 80)}${valeur.length > 80 ? '…' : ''} »`);
+    }
+  };
+  champDuBloc('FS8', "population\\s+(?:effectivement\\s+admise|actually\\s+admitted)", 'Population effectivement admise');
 
   // ── FS9 · le document rend VISIBLEMENT son gabarit et sa version (TF-1095) ─────────────────
   const idGabarit = RE_GABARIT_ID.exec(html);
@@ -267,6 +279,12 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
   } else {
     add('PASS', 'FS9', `gabarit ${idGabarit[1]} rendu avec sa version`);
   }
+
+  // ── FS10 / FS11 · les deux champs restés en reste après TF-1089 (TF-1102) ──────────────────
+  champDuBloc('FS10', "restriction\\s+d['’]acc[eè]s\\s+effective|effective\\s+access\\s+restriction",
+    "Restriction d'accès effective");
+  champDuBloc('FS11', 'comptes\\s+externes\\s*/\\s*invit[ée]s\\s+en\\s+port[ée]e|external\\s*/\\s*guest\\s+accounts\\s+in\\s+scope',
+    'Comptes externes / invités en portée');
 
   const echecs = F.filter((f) => f.statut === 'FAIL').length;
   return {
@@ -294,7 +312,9 @@ th{background:#eee;width:20%}td{overflow-wrap:break-word}</style></head><body>
 <h1>Fiche sécurité</h1>
 ${Array.from({ length: 8 }, (_, k) => `<section><h2>${k + 1} · Section ${k + 1}</h2><table><tbody>`
     + (k === 0 ? '<tr><th>Lien environnement DEV</th><td>https://dev.exemple.test/app</td></tr>'
-      + '<tr><th>Population effectivement admise</th><td>Collaborateurs du tenant (128)</td></tr>' : '')
+      + '<tr><th>Population effectivement admise</th><td>Collaborateurs du tenant (128)</td></tr>'
+      + "<tr><th>Restriction d'accès effective</th><td>assignation de rôle requise</td></tr>"
+      + '<tr><th>Comptes externes / invités en portée</th><td>0 (portail invités désactivé)</td></tr>' : '')
     + `<tr><th>Champ ${k + 1}</th><td>valeur</td></tr></tbody></table></section>`).join('\n')}
 <footer>Réf. ${ref} — 0 placeholder exigé avant diffusion. Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0.</footer>
 </body></html>`;
@@ -383,15 +403,25 @@ function selfTest() {
     FICHE_VERTE('ACM-SEC-DEV-20260902n').replace(' Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0.', ''),
     'FS9');
 
+  // FS10 / FS11 (TF-1102) — les deux champs frères de FS8, restés en reste après TF-1089 : une
+  // ligne SUPPRIMÉE sur l'un des deux n'est vue par AUCUNE des règles précédentes.
+  rouge('ACM - Fiche Securite - Dev - 20260902o.html',
+    FICHE_VERTE('ACM-SEC-DEV-20260902o').replace("<tr><th>Restriction d'accès effective</th><td>assignation de rôle requise</td></tr>", ''),
+    'FS10');
+  rouge('ACM - Fiche Securite - Dev - 20260902p.html',
+    FICHE_VERTE('ACM-SEC-DEV-20260902p').replace('<tr><th>Comptes externes / invités en portée</th><td>0 (portail invités désactivé)</td></tr>', ''),
+    'FS11');
+
   fs.rmSync(dir, { recursive: true, force: true });
   console.log(casse.length
     ? 'SELF-TEST FAIL : ' + casse.join(' · ')
-    : 'Self-test verifier-fiche-securite : 14/14 PASS — fiche complète acceptée · placeholder résiduel (FS1), '
+    : 'Self-test verifier-fiche-securite : 16/16 PASS — fiche complète acceptée · placeholder résiduel (FS1), '
       + 'section perdue (FS2), références divergentes en-tête/pied (FS3), indice du nom ≠ indice imprimé (FS3bis), '
       + 'lien DEV sans URL (FS4), colonne à 32 % sans table-layout fixe (FS5), PDF de diffusion absent (FS6), '
       + 'PDF sans texte à 9 images — la capture du 24/07 (FS7), champ « Population effectivement admise » absent '
-      + 'et champ présent mais vide (FS8, TF-1089), gabarit et sa version non rendus (FS9, TF-1095) : tous '
-      + 'REFUSÉS · --sans-pdf rendu en SKIP motivé');
+      + 'et champ présent mais vide (FS8, TF-1089), gabarit et sa version non rendus (FS9, TF-1095), '
+      + '« Restriction d\'accès effective » absente (FS10, TF-1102), « Comptes externes / invités en portée » '
+      + 'absente (FS11, TF-1102) : tous REFUSÉS · --sans-pdf rendu en SKIP motivé');
   return casse.length ? 1 : 0;
 }
 

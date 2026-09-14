@@ -134,8 +134,13 @@ ${S('5 · Exposition', [['Exposition réseau (interne/externe)', 'exposition'], 
   // deliverables/templates/fiche-securite.template.md) — « fournisseur mono-tenant, connexion
   // obligatoire » a déjà laissé comprendre « audience restreinte » quand 3 128 comptes invités
   // étaient admis au même titre que les collaborateurs. Ce générateur (le seul dont la sortie est
-  // effectivement jugée par verifier-fiche-securite.mjs, FS8) n'avait jamais reçu le champ.
-  ['Population effectivement admise', 'population_admise']])}
+  // effectivement jugée par verifier-fiche-securite.mjs) n'avait jamais reçu le bloc.
+  // TF-1102 (14/09/2026) : les DEUX AUTRES champs du même bloc doctrinal, restés en reste après
+  // TF-1089 (FS8, population_admise seul). « aucune restriction » et « 0 compte invité » sont des
+  // réponses VALIDES à porter au rapport — jamais une case vide, jamais une ligne absente.
+  ['Population effectivement admise', 'population_admise'],
+  ["Restriction d'accès effective", 'restriction'],
+  ['Comptes externes / invités en portée', 'invites']])}
 ${S('6 · IA / LLM', [["Brique d'IA présente", 'ia_presente'], ['Modèle(s) et usage', 'ia_usage'], ['Garde-fous & supervision humaine', 'ia_gardefous']])}
 ${S('7 · Contrat de service & observabilité', [['Journalisation & traces', 'observabilite'], ['Alerting', 'alerting'], ['Sauvegardes (RPO/RTO)', 'sauvegardes']])}
 ${S('8 · FinOps', [['Étiquetage / imputation', 'tags'], ['Budget & alertes de coût', 'budget']])}
