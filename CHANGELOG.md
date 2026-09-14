@@ -4,6 +4,19 @@ Versionnement SemVer (PADR-0005) : MAJEUR = rupture de schéma / retrait de cont
 MINEUR = nouveaux contrôles/ADR · PATCH = corrections. Chaque release liste les standards
 sources mis à jour.
 
+## [Non publié]
+
+### Corrigé
+- **TF-1000** — `tools/build-theme.mjs` : la typographie d'un DESIGN.md (reliquat de scaffold,
+  potentiellement la charte d'exemple fictive livrée avec la forge) écrasait silencieusement une
+  `branding.typography` pourtant déclarée EXPLICITEMENT dans `tenant.yaml` — un rapport client a
+  été rendu dans la police d'un tenant fictif. Priorité inversée pour la typographie (le tenant
+  déclaré l'emporte, DESIGN.md ne comble que ce qui manque) ; auto-test à double sens
+  `node tools/build-theme.mjs --self-test`, câblé dans `.github/workflows/ci.yml` (job `batterie`).
+  Mesuré sur le tenant `exemple` : `--font-body` passe de `system-ui, Segoe UI, Roboto, Arial,
+  sans-serif` (DESIGN.md fictif) à `system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`
+  (déclaration réelle du tenant).
+
 ## [1.18.0] — 2026-09-11
 
 > **MINEUR** au sens de PADR-0005 : cette version apporte de NOUVEAUX contrôles — portes machine de

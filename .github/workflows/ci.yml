@@ -59,6 +59,13 @@ jobs:
           node tools/build-kit.mjs config/tenants/exemple/tenant.yaml --kind both
           node tools/build-kit.mjs tests/fixtures/tenant-valid-min.yaml --kind both
 
+      # TF-1000 : un rapport client rendu dans la police d'une charte FICTIVE — DESIGN.md
+      # (reliquat de scaffold) écrasait silencieusement une typographie pourtant déclarée
+      # explicitement dans tenant.yaml. Auto-test à double sens : la déclaration explicite
+      # gagne (rouge rejoué) ET le repli sur DESIGN.md reste intact sans elle (vert).
+      - name: Thème — priorité de la typographie explicite du tenant (TF-1000)
+        run: node tools/build-theme.mjs --self-test
+
       - name: Rendu rapport + catalogue (moteurs M5/M7)
         run: |
           node tools/build-rapport.mjs tests/fixtures/rapport-data-valid.json --tenant config/tenants/exemple/tenant.yaml --out /tmp/rapport.html
