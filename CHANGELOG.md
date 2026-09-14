@@ -7,6 +7,22 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1089** — `oracles/verifier-fiche-securite.mjs` : nouvelle règle FS8, la présence ET le
+  remplissage du champ « Population effectivement admise » (TF-0563, l'incident des 3 128 comptes
+  invités admis sans que la fiche le dise). Mesuré le 14/09/2026 (preuve de couverture P-1) : une
+  instance remplie SANS ce champ rendait déjà PASS sur FS1 à FS7 — ni le contrôle des placeholders
+  (FS1) ni celui des 8 sections (FS2) ne voient une LIGNE de champ supprimée à l'intérieur d'une
+  section par ailleurs complète. Fixtures à double sens : ligne absente (FAIL) et ligne présente
+  mais vide (FAIL), self-test 11/11 → 13/13.
+  **Écart constaté en le faisant** : `tools/build-fiche.mjs` (le seul générateur dont la sortie est
+  réellement jugée par cet oracle, `tests/oracles/fiche-securite.test.mjs`) n'avait JAMAIS reçu ce
+  champ — seul `deliverables/templates/fiche-securite.template.md` (le canevas markdown des kits
+  client, TF-0563/d8bb934) l'avait. Sans corriger aussi le générateur, FS8 aurait rendu invérifiable
+  toute fiche produite par cette forge. Champ `population_admise` ajouté à la section « 5 ·
+  Exposition » ; rythme vertical du tirage retendu (une ligne de table de plus suffisait à faire
+  déborder sur une 2e page — mesuré et corrigé localement, `tests/oracles/fiche-securite.test.mjs`
+  « TF-0700 — bout en bout », toujours 1 page).
+
 - **TF-1020 (diagnostic, NON CLOS)** — `tools/verifier.mjs` mesure désormais, dans les deux sens,
   quelles polices de la pile `--font-body` du tenant de référence sont réellement présentes sur le
   poste qui rejoue la recette (`policesPresentes`, fichier standard par plateforme, jamais deviné).

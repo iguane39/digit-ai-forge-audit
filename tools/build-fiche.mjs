@@ -102,12 +102,15 @@ th{background:var(--bg);width:20%}td{overflow-wrap:break-word}
   @page{size:A4 portrait;margin:8mm}
   .wrap{width:auto;max-width:none;min-height:0;overflow:visible;margin:0;padding:0}
   section{break-inside:avoid}
-  /* Rythme vertical compact : les 8 sections renseignées tiennent sur UNE page A4.
-     Réglé contre l'oracle de rendu (compte de pages du PDF A4), pas à l'estime. */
-  h1{font-size:19px;margin:6px 0}
-  h2{margin:9px 0 3px}
-  th,td{padding:3px 7px;font-size:10.5px}
-  header{font-size:11px}
+  /* Rythme vertical compact : les 8 sections renseignées, PLUS le champ « Population
+     effectivement admise » (TF-1089, 9 lignes de plus qu'au dernier réglage), tiennent sur
+     UNE page A4. Réglé contre l'oracle de rendu (compte de pages du PDF A4), pas à l'estime :
+     l'ajout d'une seule ligne de table a suffi à faire déborder sur une 2e page (mesuré
+     localement le 14/09/2026, tests/oracles/fiche-securite.test.mjs) au réglage précédent. */
+  h1{font-size:18px;margin:4px 0}
+  h2{margin:7px 0 2px}
+  th,td{padding:2px 6px;font-size:10px}
+  header{font-size:10.5px}
 }
 </style></head><body><div class="wrap">
 <header><span class="brand">${esc(cfg.tenant.short_code)}</span> <b>${esc(cfg.tenant.name)} — Fiche sécurité de mise à disposition (environnement de développement)</b><br>
@@ -117,7 +120,13 @@ ${S('1 · Identification', [['Application / trigramme', 'projet'], ['Objet méti
 ${S('2 · Environnement & hébergement', [['Hébergement', 'hebergement'], ['Environnements actifs', 'environnements'], ['IaC / provisionnement', 'iac']])}
 ${S('3 · Sensibilité & conformité', [['Classification des données', 'classification'], ['Données personnelles (PII)', 'pii'], ['Juridiction(s) applicable(s)', 'juridictions'], ['Analyses requises (impact, IA)', 'analyses']])}
 ${S('4 · Criticité', [['Criticité métier', 'criticite'], ['Disponibilité attendue', 'disponibilite'], ["Impact en cas d'incident", 'impact']])}
-${S('5 · Exposition', [['Exposition réseau (interne/externe)', 'exposition'], ["Point de contrôle d'entrée", 'point_controle'], ['Authentification', 'authentification']])}
+${S('5 · Exposition', [['Exposition réseau (interne/externe)', 'exposition'], ["Point de contrôle d'entrée", 'point_controle'], ['Authentification', 'authentification'],
+  // TF-1089 (14/09/2026) : s'authentifier n'est pas être admis (TF-0563, d8bb934, canevas
+  // deliverables/templates/fiche-securite.template.md) — « fournisseur mono-tenant, connexion
+  // obligatoire » a déjà laissé comprendre « audience restreinte » quand 3 128 comptes invités
+  // étaient admis au même titre que les collaborateurs. Ce générateur (le seul dont la sortie est
+  // effectivement jugée par verifier-fiche-securite.mjs, FS8) n'avait jamais reçu le champ.
+  ['Population effectivement admise', 'population_admise']])}
 ${S('6 · IA / LLM', [["Brique d'IA présente", 'ia_presente'], ['Modèle(s) et usage', 'ia_usage'], ['Garde-fous & supervision humaine', 'ia_gardefous']])}
 ${S('7 · Contrat de service & observabilité', [['Journalisation & traces', 'observabilite'], ['Alerting', 'alerting'], ['Sauvegardes (RPO/RTO)', 'sauvegardes']])}
 ${S('8 · FinOps', [['Étiquetage / imputation', 'tags'], ['Budget & alertes de coût', 'budget']])}

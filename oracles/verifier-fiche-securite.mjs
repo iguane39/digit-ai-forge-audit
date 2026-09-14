@@ -31,6 +31,11 @@
  *         machine, et MUET POUR UN LECTEUR D'ÉCRAN alors que le destinataire est l'équipe
  *         sécurité. Mesuré le 24/07 sur le PDF réellement diffusé : 0 caractère extractible,
  *         9 images, 653 169 octets — contre 124 Ko pour le même document imprimé en texte.
+ *   FS8 · le champ « Population effectivement admise » (TF-0563, TF-1089) est PRÉSENT et REMPLI.
+ *         Ni FS1 (placeholder résiduel) ni FS2 (8 sections) ne voient une LIGNE ENTIÈREMENT
+ *         ABSENTE — mesuré le 14/09/2026 : une instance remplie sans ce champ rendait PASS sur
+ *         FS1 à FS7. « S'authentifier n'est pas être admis » : « aucune restriction » est une
+ *         réponse valide, une ligne manquante ne l'est jamais.
  *
  *   node oracles/verifier-fiche-securite.mjs <fiche.html> [--seuil-texte N] [--sans-pdf]
  *                                            [--json-only]
@@ -223,6 +228,27 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
     }
   }
 
+  // ── FS8 · le champ « Population effectivement admise » est présent ET rempli (TF-1089) ────
+  // FS1 ne voit qu'un PLACEHOLDER résiduel, FS2 ne voit que des SECTIONS entières manquantes :
+  // aucune des deux ne voit une LIGNE de champ absente à l'intérieur d'une section par ailleurs
+  // complète. Bilingue (le canevas source, deliverables/templates/fiche-securite.template.en.md,
+  // porte « Population actually admitted »), même si ce générateur ne rend que du FR.
+  const RE_POPULATION = /<tr>\s*<th[^>]*>\s*population\s+(?:effectivement\s+admise|actually\s+admitted)\s*<\/th>\s*<td[^>]*>([\s\S]*?)<\/td>/i;
+  const mPop = RE_POPULATION.exec(html);
+  if (!mPop) {
+    add('FAIL', 'FS8', "aucune ligne « Population effectivement admise » dans le document. Le champ "
+      + "existe au canevas depuis TF-0563 (3 128 comptes invités admis sans que la fiche le dise) : "
+      + "une ligne SUPPRIMÉE plutôt que remplie n'est vue par AUCUNE autre règle de cet oracle.");
+  } else {
+    const valeur = mPop[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    if (!valeur) {
+      add('FAIL', 'FS8', "le champ « Population effectivement admise » est présent mais VIDE. "
+        + '« aucune restriction » est une réponse valide à porter au rapport ; une case vide ne l\'est jamais.');
+    } else {
+      add('PASS', 'FS8', `population effectivement admise renseignée : « ${valeur.slice(0, 80)}${valeur.length > 80 ? '…' : ''} »`);
+    }
+  }
+
   const echecs = F.filter((f) => f.statut === 'FAIL').length;
   return {
     oracle: 'verifier-fiche-securite',
@@ -248,7 +274,8 @@ th{background:#eee;width:20%}td{overflow-wrap:break-word}</style></head><body>
 <header>Réf. ${ref} · validée par le responsable sécurité</header>
 <h1>Fiche sécurité</h1>
 ${Array.from({ length: 8 }, (_, k) => `<section><h2>${k + 1} · Section ${k + 1}</h2><table><tbody>`
-    + (k === 0 ? '<tr><th>Lien environnement DEV</th><td>https://dev.exemple.test/app</td></tr>' : '')
+    + (k === 0 ? '<tr><th>Lien environnement DEV</th><td>https://dev.exemple.test/app</td></tr>'
+      + '<tr><th>Population effectivement admise</th><td>Collaborateurs du tenant (128)</td></tr>' : '')
     + `<tr><th>Champ ${k + 1}</th><td>valeur</td></tr></tbody></table></section>`).join('\n')}
 <footer>Réf. ${ref} — 0 placeholder exigé avant diffusion.</footer>
 </body></html>`;
@@ -321,13 +348,24 @@ function selfTest() {
   if (statut(j, 'FS6') !== 'SKIP' || statut(j, 'FS7') !== 'SKIP')
     casse.push('--sans-pdf ne rend pas un SKIP motivé : un écart déclaré doit se lire, jamais se taire');
 
+  // FS8 — LE DÉFAUT DE TF-1089 : une ligne SUPPRIMÉE, pas un placeholder. FS1/FS2 restent au
+  // vert (aucun {{…}}, 8 sections présentes) alors que le champ d'audience n'existe plus.
+  rouge('ACM - Fiche Securite - Dev - 20260902l.html',
+    FICHE_VERTE('ACM-SEC-DEV-20260902l').replace('<tr><th>Population effectivement admise</th><td>Collaborateurs du tenant (128)</td></tr>', ''),
+    'FS8');
+  // FS8, second sens — la ligne existe mais sa valeur est VIDE (le canevas rempli à moitié).
+  rouge('ACM - Fiche Securite - Dev - 20260902m.html',
+    FICHE_VERTE('ACM-SEC-DEV-20260902m').replace('<td>Collaborateurs du tenant (128)</td>', '<td></td>'),
+    'FS8');
+
   fs.rmSync(dir, { recursive: true, force: true });
   console.log(casse.length
     ? 'SELF-TEST FAIL : ' + casse.join(' · ')
-    : 'Self-test verifier-fiche-securite : 11/11 PASS — fiche complète acceptée · placeholder résiduel (FS1), '
+    : 'Self-test verifier-fiche-securite : 13/13 PASS — fiche complète acceptée · placeholder résiduel (FS1), '
       + 'section perdue (FS2), références divergentes en-tête/pied (FS3), indice du nom ≠ indice imprimé (FS3bis), '
-      + 'lien DEV sans URL (FS4), colonne à 32 % sans table-layout fixe (FS5), PDF de diffusion absent (FS6) et '
-      + 'PDF sans texte à 9 images — la capture du 24/07 (FS7) : tous REFUSÉS · --sans-pdf rendu en SKIP motivé');
+      + 'lien DEV sans URL (FS4), colonne à 32 % sans table-layout fixe (FS5), PDF de diffusion absent (FS6), '
+      + 'PDF sans texte à 9 images — la capture du 24/07 (FS7), champ « Population effectivement admise » absent '
+      + 'et champ présent mais vide (FS8, TF-1089) : tous REFUSÉS · --sans-pdf rendu en SKIP motivé');
   return casse.length ? 1 : 0;
 }
 

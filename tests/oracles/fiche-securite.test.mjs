@@ -40,7 +40,7 @@ const temporaire = () => fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-t-'));
 test('verifier-fiche-securite --self-test : le cas vert est accepté, chaque cas rouge est refusé', () => {
   const r = jouer(ORACLE, '--self-test');
   assert.equal(r.status, 0, `auto-test rouge : ${r.stdout}${r.stderr}`);
-  assert.match(r.stdout, /11\/11 PASS/, 'le compte de cas exercés a changé sans que le test le dise');
+  assert.match(r.stdout, /13\/13 PASS/, 'le compte de cas exercés a changé sans que le test le dise');
 });
 
 test('fiche-en-pdf --self-test : la règle d\'indice mord, et preferCSSPageSize est MESURÉ', () => {
@@ -61,7 +61,7 @@ test('TF-0701 — la fiche produite par la forge passe la porte, et exit 0 vaut 
     fs.writeFileSync(donnees, JSON.stringify(Object.fromEntries([
       'projet', 'objet', 'equipe', 'hebergement', 'environnements', 'iac', 'classification', 'pii',
       'juridictions', 'analyses', 'criticite', 'disponibilite', 'impact', 'exposition',
-      'point_controle', 'authentification', 'ia_presente', 'ia_usage', 'ia_gardefous',
+      'point_controle', 'authentification', 'population_admise', 'ia_presente', 'ia_usage', 'ia_gardefous',
       'observabilite', 'alerting', 'sauvegardes', 'tags', 'budget', 'porteur', 'business_owner',
     ].map((k) => [k, `valeur ${k}`]).concat([['lien_dev', 'https://dev.exemple.test/app']]))), 'utf8');
     const b = jouer(BUILD, TENANT, '--data', donnees, '--produit', prod, '--sans-pdf');
@@ -77,7 +77,7 @@ test('TF-0701 — la fiche produite par la forge passe la porte, et exit 0 vaut 
     r = jouer(ORACLE, fiche, '--sans-pdf', '--json-only');
     assert.equal(r.status, 0, `la fiche complète est refusée : ${r.stdout}`);
     const rapport = JSON.parse(r.stdout);
-    for (const regle of ['FS1', 'FS2', 'FS3', 'FS3bis', 'FS4', 'FS5'])
+    for (const regle of ['FS1', 'FS2', 'FS3', 'FS3bis', 'FS4', 'FS5', 'FS8'])
       assert.equal(rapport.findings.find((f) => f.regle === regle)?.statut, 'PASS',
         `${regle} n'est pas vert sur une fiche pourtant complète`);
     assert.ok(rapport.non_juge.length >= 3, 'un oracle qui ne déclare pas ce qu\'il ne juge pas ment par omission');
