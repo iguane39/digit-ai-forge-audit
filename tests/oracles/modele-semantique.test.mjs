@@ -43,6 +43,56 @@ test('modèle sémantique rouge : mesure dupliquée, relations ambiguës, pas de
   assert.match(r.stdout, /CTL-D05-13/, 'chaque règle nomme le contrôle AuditCore qu\'elle mécanise');
 });
 
+// ── TF-1175 · UN PASS D'AUDIT N'EST PAS « LIVRABLE VÉRIFIÉ » ─────────────────────────────────
+// Le fait, le 17/09/2026 : un projet Power BI généré passe 22 contrôles de recette et 7 contrôles
+// d'audit, est publié sur GO humain, et ne rend AUCUN visuel — référence de source PBIR invalide,
+// « Chargement… » sans fin, export PDF de 943 octets et 0 caractère après 560 s. 29 contrôles PASS
+// sur un livrable invisible. Aucun de ces défauts n'est visible d'un contrôle qui LIT le fichier.
+// Cet oracle-ci lit des fichiers TMDL : son périmètre est légitime, sa réserve ne l'était pas —
+// elle n'existait pas. Les deux sens portent sur la DÉCLARATION, pas sur le verdict :
+//   ROUGE · un projet PBIP dont le modèle est irréprochable et dont le rapport est cassé (le
+//           défaut réel recopié en fixture) rend OK, exit 0. C'est vrai, et c'est le piège : le
+//           contrôle DOIT alors dire que le rendu n'est pas jugé, NOMMER le rapport qu'il laisse
+//           de côté et le geste qui manque. Sans ces trois phrases, ce OK se relit « vérifié ».
+//   VERT  · un modèle SANS rapport à côté porte la même réserve générique, sans inventer un nom
+//           de rapport qui n'existe pas — une réserve devinée ne vaut pas mieux qu'un silence.
+test('TF-1175 — sur un projet PBIP au rapport CASSÉ, le modèle rend OK et le contrôle refuse de se faire lire « livrable vérifié »', () => {
+  const r = run(['--modele', path.join(FIX, 'projet-pbip', 'Exemple.SemanticModel', 'definition')]);
+  assert.equal(r.status, 0, r.stdout);
+  const j = rapport(r);
+  assert.equal(j.verdict, 'OK', 'le modèle de la fixture est irréprochable : c\'est ce qui rend le piège réel');
+
+  const declaration = j.non_juge.join('\n');
+  assert.match(declaration, /RENDU DU RAPPORT DANS L'OUTIL/,
+    'le rapport JSON ne déclare pas que le rendu n\'est pas jugé — un PASS se relira « livrable vérifié »');
+  assert.match(declaration, /ne vaut PAS « livrable vérifié »/,
+    'la déclaration ne dit pas ce que le OK NE vaut pas');
+  assert.match(declaration, /ExportTo/,
+    'le geste de vérification manquant n\'est pas nommé : un « ce n\'est pas jugé » sans geste ne se rattrape pas');
+  assert.match(declaration, /Exemple\.Report/,
+    'le rapport laissé de côté n\'est pas NOMMÉ — une réserve générique s\'oublie, une réserve qui nomme se remarque');
+
+  // Et la réserve est LÀ OÙ LE VERDICT SE LIT, pas seulement dans un JSON que personne n'ouvre.
+  assert.match(r.stdout, /verdict : OK — Aucun constat bloquant ni majeur \(MS1-MS6\) SUR LE MODÈLE/,
+    'la ligne de verdict ne borne pas sa portée au modèle');
+  assert.match(r.stdout, /non jugé : LE RENDU DU RAPPORT DANS L'OUTIL[\s\S]*Exemple\.Report/,
+    'la ligne lisible ne porte pas la réserve avec le nom du rapport non jugé');
+  assert.match(r.stdout, /geste manquant : [\s\S]*TÉLÉCHARGER le fichier produit/,
+    'la ligne lisible ne nomme pas le geste manquant — c\'est le « Succeeded » cru sans téléchargement qui a coûté deux jours');
+});
+
+test('TF-1175 — sans rapport à côté, la réserve reste, et aucun nom de rapport n\'est inventé', () => {
+  const r = run(['--modele', path.join(FIX, 'verte')]);
+  assert.equal(r.status, 0, r.stdout);
+  const j = rapport(r);
+  const declaration = j.non_juge.join('\n');
+  assert.match(declaration, /RENDU DU RAPPORT DANS L'OUTIL/, 'la réserve disparaît quand aucun rapport n\'est visible');
+  assert.doesNotMatch(declaration, /rapport\(s\) PRÉSENT\(S\)/,
+    'un rapport est déclaré présent alors qu\'aucun ne l\'est : une réserve devinée n\'est pas une mesure');
+  assert.doesNotMatch(r.stdout, /rapport\(s\) non jugé\(s\) ici/,
+    'la ligne de verdict nomme des rapports inexistants');
+});
+
 test('usage : dossier absent → exit 2, jamais un OK par défaut', () => {
   const r = run(['--modele', path.join(FIX, 'inexistant')]);
   assert.equal(r.status, 2);

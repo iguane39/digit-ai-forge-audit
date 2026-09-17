@@ -124,7 +124,7 @@ jobs:
       - name: Dépendances outillage
         run: npm ci || npm install
 
-      - name: Batterie des oracles (130 tests — projet, rendu du rapport, porte de clôture)
+      - name: Batterie des oracles (135 tests — projet, rendu du rapport, porte de clôture)
         # TF-0553 (24/08) : les DEUX ensembles etaient disjoints DANS LES DEUX SENS. La CI jouait
         # sept fichiers d'oracles, le `npm test` local en jouait deux AUTRES — build-fiche-destination
         # et verifier-pdf n'etaient donc joues par AUCUNE chaine automatique. Ils entrent ici, et le

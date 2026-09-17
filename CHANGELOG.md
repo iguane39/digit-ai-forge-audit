@@ -7,6 +7,24 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1175** (part forge-audit, retour Produit-62 RF-21, 17/09/2026) — **un OK de
+  `oracles/verifier-modele-semantique.mjs` ne se lit plus « livrable vérifié ».** Le 17/09, un
+  projet Power BI généré a passé 22 contrôles de recette et 7 contrôles d'audit, a été publié sur
+  GO humain, et ne rendait AUCUN visuel : la référence de source de chaque requête visuelle était
+  invalide (`SourceRef: {Entity, Name}` au lieu de `SourceRef: {Source: alias}`), le service
+  acceptait le fichier, et l'export PDF sortait 943 octets et 0 caractère après 560 s. 29 contrôles
+  PASS sur un livrable invisible, deux jours de mandat et deux diagnostics faux. Aucun contrôle qui
+  LIT le fichier ne voit ce défaut. L'oracle déclare désormais le RENDU en `non_juge`, en TÊTE de
+  liste, NOMME les rapports (`*.Report`) du projet PBIP qu'il laisse de côté — et seulement quand
+  ils existent, rien n'est deviné — et imprime le geste manquant avec sa ligne de verdict (publier,
+  `ExportTo` PDF, TÉLÉCHARGER le fichier, le rendre en image, juger durée / octets / texte extrait
+  par page / libellés d'erreur du service). Aucun verdict ni code de sortie n'est modifié : le
+  périmètre de l'oracle était légitime, c'est sa réserve qui manquait. Fixture à double sens
+  (`tests/fixtures/oracles/modele-semantique/projet-pbip/`) : un projet dont le modèle est
+  irréprochable et dont le rapport porte le défaut réel recopié — l'oracle rend OK, et c'est le
+  texte de sa réserve qui est jugé. 3 → 5 tests. Périmètre : la part forge-audit du retour ; l'oracle
+  de rendu proposé en (1) revient à forge-data, la règle de forme PBIR (2) n'est pas outillée ici.
+
 - **TF-1020** (17/09/2026) — **la police du corps voyage désormais DANS le livrable.** Le thème
   porte ses `@font-face` incorporés en base64 (`assets/polices/`, Roboto sous SIL OFL 1.1, licence
   et provenance jointes) : aucun téléchargement au rendu, aucun fichier à côté, le HTML reste

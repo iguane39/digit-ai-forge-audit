@@ -1,0 +1,4 @@
+role 'Lecteur FR'
+	modelPermission: read
+
+	tablePermission Client = Client[pays] = "FR"

@@ -24,3 +24,15 @@ et mécanise CTL-D16-01/02, CTL-D05-02/04/10/13/14 et CTL-D01-03 (règles MS1-MS
 chaque commit). Les contrôles de portail (certification, propriétaire, accessibilité) restent en
 revue outillée, et l'oracle le déclare. Niveau : barre « TabularEditor/BestPracticeRules » du
 registre la-barre du pilot.
+
+**Un verdict OK de cet oracle ne vaut PAS « livrable vérifié » (TF-1175, 17/09/2026).** Le
+17/09, un projet Power BI généré a passé 22 contrôles de recette et 7 contrôles d'audit, a été
+publié sur GO humain, et ne rendait aucun visuel : la référence de source de chaque requête
+visuelle était invalide (`SourceRef: {Entity, Name}` au lieu de `SourceRef: {Source: alias}`),
+le service acceptait le fichier, et l'export PDF sortait 943 octets et 0 caractère après 560 s.
+Aucun contrôle qui LIT le fichier ne voit ce défaut. L'oracle de modèle sémantique déclare donc
+désormais le rendu en `non_juge`, nomme les rapports (`*.Report`) du projet qu'il laisse de côté,
+et imprime le geste qui manque avec son verdict : publier, exporter en PDF par `ExportTo`,
+**télécharger** le fichier, le rendre en image, juger sur durée, octets, texte extrait par page
+et absence des libellés d'erreur du service. C'est ce geste — et non le `Succeeded` de l'export —
+qui prouve qu'un lecteur voit quelque chose.
