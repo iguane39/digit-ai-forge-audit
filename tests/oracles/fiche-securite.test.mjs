@@ -238,6 +238,74 @@ test('TF-0700 — bout en bout : la fiche ACME est IMPRIMÉE, relue par verifier
   } finally { fs.rmSync(prod, { recursive: true, force: true }); }
 });
 
+// ── TF-1020 · LE TIRAGE NE DÉPEND PLUS D'UNE POLICE DU POSTE ─────────────────────────────────
+// Ce que les tests ci-dessus NE prouvent pas : que la fiche tienne sur une page ICI ne dit rien
+// de ce qu'elle fera ailleurs. Le 11/09, elle tenait sur une page sous Windows et sortait sur
+// DEUX sur le runner Linux, où son propre juge la refusait (P3) — parce que la pile du thème ne
+// nommait que des polices DU POSTE et que le moteur y retombait sur DejaVu Sans, plus large.
+//
+// La preuve demandée n'est donc pas « une page ici », c'est « la police résolue est celle qui
+// voyage avec le livrable ». On la mesure DANS le moteur, à double sens :
+//   VERT  · thème complet : `var(--font-body)` rend à la largeur de la face INCORPORÉE, et
+//           `document.fonts` porte cette face chargée ;
+//   ROUGE · le MÊME thème amputé de ses `@font-face` : la largeur CHANGE. Si elle ne changeait
+//           pas, c'est que la face incorporée n'était pas celle que le moteur résolvait — la
+//           correction ne prouverait rien et le défaut serait intact.
+//
+// Pourquoi la famille s'appelle « AuditCore Sans » et pas « Roboto » : parce que la fixture rouge
+// ne mordait PAS sous le vrai nom. Mesuré ici le 17/09/2026, sur un poste où Roboto n'est installé
+// ni pour la machine ni pour l'utilisateur, le moteur rend quand même `font-family:Roboto` à
+// 183,52 px contre 183,64 px pour la face incorporée : 0,12 px d'écart, et donc aucune preuve
+// possible de laquelle des deux a servi. Sous un nom qu'aucun poste ne possède, le repli est
+// franc (system-ui → 180,61 px ici, DejaVu Sans ailleurs) et la mesure tranche.
+test('TF-1020 — la police résolue est la police EMBARQUÉE, pas celle du poste', async (t) => {
+  const { trouverNavigateur, mesurer, webSocketDisponible } = await import(
+    path.join(RACINE, 'tools', 'fiche-en-pdf.mjs').replace(/\\/g, '/').replace(/^/, 'file:///'));
+  const navigateur = webSocketDisponible() ? trouverNavigateur() : null;
+  if (!navigateur) {
+    t.skip("aucun moteur d'impression (ou pas de WebSocket natif) sur ce poste — la police "
+      + 'RÉELLEMENT résolue n\'est PAS mesurée ici (SKIP motivé, jamais un PASS)');
+    return;
+  }
+  const { genererTheme } = await import(
+    path.join(RACINE, 'tools', 'build-theme.mjs').replace(/\\/g, '/').replace(/^/, 'file:///'));
+
+  const dir = temporaire();
+  try {
+    const css = genererTheme(TENANT, path.join(dir, 'theme')).css;
+    assert.match(css, /@font-face\{font-family:'AuditCore Sans'/, 'le thème ne porte plus de face incorporée');
+    assert.match(css, /--font-body:AuditCore Sans,/,
+      'la pile du thème ne commence pas par la face incorporée : le moteur résoudra une police du poste');
+    const sansFaces = css.replace(/@font-face\{[^}]*\}/g, '');
+    assert.ok(!/@font-face/.test(sansFaces), 'la fixture rouge porte encore une face : elle ne mord pas');
+
+    // Le texte mesuré est celui qui décide du nombre de pages : des intitulés de la fiche.
+    const page = (feuille) => `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>t</title>`
+      + `<style>${feuille}\n#m{font-family:var(--font-body);font-size:12.5px;`
+      + `white-space:nowrap;display:inline-block}</style></head><body>`
+      + `<span id="m">Population effectivement admise · Restriction d'accès effective</span></body></html>`;
+    const sonde = 'JSON.stringify({l:document.getElementById("m").getBoundingClientRect().width,'
+      + 'faces:[...document.fonts].map(f=>f.family+":"+f.status)})';
+
+    const vertFichier = path.join(dir, 'vert.html');
+    const rougeFichier = path.join(dir, 'rouge.html');
+    fs.writeFileSync(vertFichier, page(css), 'utf8');
+    fs.writeFileSync(rougeFichier, page(sansFaces), 'utf8');
+
+    const vert = JSON.parse(await mesurer(vertFichier, sonde, { navigateur }));
+    const rouge = JSON.parse(await mesurer(rougeFichier, sonde, { navigateur }));
+
+    assert.ok(vert.faces.includes('AuditCore Sans:loaded'),
+      `aucune face incorporée chargée dans la page : ${vert.faces.join(', ') || '(aucune)'} — la police `
+      + 'ne voyage donc pas avec le livrable');
+    assert.equal(rouge.faces.length, 0, 'la fixture rouge charge quand même une face');
+    assert.notEqual(Math.round(vert.l), Math.round(rouge.l),
+      `même largeur avec (${vert.l.toFixed(2)} px) et sans (${rouge.l.toFixed(2)} px) la face incorporée : `
+      + 'le moteur ne résout PAS la police embarquée, il retombe sur une police du poste — le tirage '
+      + 'reste dépendant de la machine qui imprime, et le défaut TF-1020 est intact');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 // ── Utilitaires ──────────────────────────────────────────────────────────────────────────────
 function fichesDe(racine) {
   const out = [];

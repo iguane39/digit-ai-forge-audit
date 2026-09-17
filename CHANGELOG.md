@@ -7,6 +7,24 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1020** (17/09/2026) — **la police du corps voyage désormais DANS le livrable.** Le thème
+  porte ses `@font-face` incorporés en base64 (`assets/polices/`, Roboto sous SIL OFL 1.1, licence
+  et provenance jointes) : aucun téléchargement au rendu, aucun fichier à côté, le HTML reste
+  autoportant. Défaut d'origine (run de CI 34581219111, 11/09) : la pile `--font-body`
+  (`system-ui, Segoe UI, Roboto, Arial`) ne nommait que des polices DU POSTE ; la fiche sécurité
+  tenait sur une page sous Windows et sortait sur DEUX sur le runner Linux, où son propre juge P3
+  la refusait — neuvième publication rouge d'affilée, invisible depuis la machine qui produit.
+  La famille déclarée est `AuditCore Sans` et non `Roboto` : mesuré ici, un poste sans Roboto
+  installé rend quand même `font-family:Roboto` à 0,12 px près de la face incorporée, si bien
+  qu'aucune fixture ne pouvait plus prouver laquelle servait. Sous un nom qu'aucun poste ne
+  possède, la mesure tranche. Un tenant qui déclare sa propre pile garde la main (TF-1000) ;
+  `tools/verifier.mjs` DIT alors que son tirage redevient dépendant du poste, et dit aussi la face
+  embarquée — la seule condition de sa liste qui soit redevenue rejouable. Fixtures à double sens
+  dans `tools/build-theme.mjs --self-test` (5/5), `tests/oracles/recette-environnement.test.mjs`
+  (23 tests) et un cas de banc qui MESURE dans le moteur d'impression que la face résolue est bien
+  l'incorporée (`tests/oracles/fiche-securite.test.mjs`, 13 tests). Reste hors de portée de ce
+  poste : la preuve sur un vrai runner Linux, qui demande une publication humaine.
+
 - **TF-1102** (constat né en clôturant TF-1089, décidé sous mandat le 14/09/2026) — les DEUX autres
   champs du bloc doctrinal TF-0563 (« Restriction d'accès effective », « Comptes externes / invités
   en portée ») restaient sans règle après TF-1089, qui n'avait couvert que « Population

@@ -56,6 +56,7 @@ import path, { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { NAVIGATEURS, trouverNavigateur } from './fiche-en-pdf.mjs';
+import { famillesEmbarquees } from './build-theme.mjs';
 import { loadYaml } from './lib.mjs';
 
 export const ICI = join(import.meta.dirname, '..');
@@ -202,19 +203,26 @@ const GENERIQUES = /^(system-ui|-apple-system|ui-sans-serif|sans-serif|serif|mon
  * standard trouvé sur disque), jamais devinée. Fonction PURE (le chemin de police et le
  * détecteur `existe` sont injectés) pour qu'une fixture la joue dans les deux sens sans poser de
  * fichier réel — TF-1020, proposition (b).
+ *
+ * Une famille EMBARQUÉE au thème (`@font-face` en base64, TF-1020 proposition (a)) sort à part :
+ * elle n'est ni « présente » ni « absente » du poste, la question ne se pose plus — elle voyage
+ * DANS le livrable. La ranger parmi les présentes dirait « ce poste l'a », ce qui est vrai ici et
+ * faux ailleurs ; c'est justement le raisonnement qui a laissé passer neuf publications rouges.
  */
 export function policesPresentes(pileFontFamily, { plateforme = process.platform,
   existe = (p) => { try { return existsSync(p); } catch { return false; } },
-  table = FICHIERS_POLICES[plateforme] ?? {} } = {}) {
+  table = FICHIERS_POLICES[plateforme] ?? {}, embarquees = famillesEmbarquees() } = {}) {
   const cherchees = (pileFontFamily || '').split(',').map((f) => f.trim().replace(/^["']|["']$/g, ''))
     .filter((f) => f && !GENERIQUES.test(f));
-  const presentes = [], absentes = [], nonMesurables = [];
+  const incorporees = new Set((embarquees ?? []).map((f) => f.toLowerCase()));
+  const presentes = [], absentes = [], nonMesurables = [], embarquee = [];
   for (const f of cherchees) {
+    if (incorporees.has(f.toLowerCase())) { embarquee.push(f); continue; }
     const chemin = table[f.toLowerCase()];
     if (!chemin) { nonMesurables.push(f); continue; }
     (existe(chemin) ? presentes : absentes).push(f);
   }
-  return { cherchees, presentes, absentes, nonMesurables };
+  return { cherchees, presentes, absentes, nonMesurables, embarquees: embarquee };
 }
 
 /**
@@ -282,6 +290,11 @@ export function nonRejouables(brut, { plateforme = process.platform, nodeVersion
   //    quand ce poste n'a pas de chemin connu pour la vérifier (une lacune de la table, pas de la
   //    police).
   if (polices && polices.cherchees.length) {
+    if (polices.embarquees?.length)
+      lignes.push(`police(s) du thème EMBARQUÉE(S) dans le livrable : ${polices.embarquees.join(', ')} `
+        + `— incorporée(s) en @font-face base64, sans téléchargement au rendu : sur cette/ces `
+        + `famille(s) le tirage NE DÉPEND PLUS des polices du poste, ici comme sur le runner. `
+        + `C'est une condition redevenue rejouable, la seule de cette liste.`);
     if (polices.absentes.length)
       lignes.push(`police(s) du thème ABSENTE(S) ici : ${polices.absentes.join(', ')} — un tirage `
         + `jugé sur son nombre de pages peut déborder sur une page de plus selon la police de repli `

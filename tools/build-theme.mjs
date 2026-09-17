@@ -13,12 +13,79 @@
 // livré avec la forge) resté en place alors que `tenant.yaml`, lui, avait été personnalisé — le
 // merge faisait gagner le reliquat de scaffold sur la déclaration réelle, sans qu'aucune porte ne
 // le voie. DESIGN.md reste la référence pour tout ce que tenant.yaml NE déclare PAS.
+// ── TF-1020 (17/09/2026) : LA POLICE DU CORPS VOYAGE AVEC LE LIVRABLE ──────────────────────
+// Le nombre de pages d'un tirage dépend de la police que le moteur d'impression SUBSTITUE
+// réellement, pas de celle que la CSS nomme. La pile du thème ne nommait que des polices DU POSTE
+// (system-ui, Segoe UI, Roboto, Arial) : sous Windows la fiche sécurité tenait sur une page, sur
+// le runner Linux — où aucune des quatre n'est installée — le moteur retombait sur DejaVu Sans,
+// plus large, et le juge P3 refusait un tirage de DEUX pages (run 34581219111, 11/09/2026). Neuf
+// publications rouges d'affilée, et le poste qui produit ne pouvait pas voir le défaut.
+// La correction : `theme.css` porte ses `@font-face` en base64 (assets/polices/, licence jointe),
+// donc AUCUN téléchargement au rendu et aucun fichier à côté — le HTML reste autoportant.
+// Ce qui n'est PAS fait ici, et c'est délibéré : forcer la police embarquée en tête de la pile
+// d'un tenant qui a déclaré la sienne. TF-1000 a coûté un rapport rendu dans la police d'une
+// charte fictive ; la déclaration du tenant prime, et `tools/verifier.mjs` DIT alors que son
+// tirage redevient dépendant du poste au lieu de le laisser croire reproductible.
 // Usage: node tools/build-theme.mjs <tenant.yaml> [--out <dir>]
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadTenant, frontmatter } from './lib.mjs';
+
+export const RACINE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+/**
+ * Les faces embarquées : famille CSS, graisse, fichier versionné sous `assets/polices/`.
+ *
+ * LE NOM DE FAMILLE EST UN NOM QU'AUCUN POSTE NE PEUT POSSÉDER, et c'est délibéré. Déclarée sous
+ * son vrai nom (« Roboto »), la face incorporée cohabiterait avec ce que la machine appelle
+ * « Roboto » : mesuré ici le 17/09/2026, sur un poste où Roboto n'est installé NI pour la machine
+ * NI pour l'utilisateur, le moteur rend quand même `font-family:Roboto` à une largeur à lui
+ * (183,52 px contre 183,64 px pour la face incorporée, sur le même texte). Deux faces sous un même
+ * nom, et plus aucun moyen de PROUVER laquelle a servi. Sous « AuditCore Sans », le tirage n'a
+ * qu'une résolution possible — celle qui voyage dans le fichier. La police EST Roboto : son fichier,
+ * sa licence et sa provenance sont dans `assets/polices/`, rien n'est masqué.
+ */
+export const POLICES_EMBARQUEES = [
+  { famille: 'AuditCore Sans', origine: 'Roboto', poids: 400, fichier: 'roboto-latin-400-normal.woff2' },
+  { famille: 'AuditCore Sans', origine: 'Roboto', poids: 700, fichier: 'roboto-latin-700-normal.woff2' },
+];
+
+/**
+ * Les familles réellement embarquables ICI — MESURÉES (le fichier est sur le disque), jamais
+ * déclarées : une liste écrite à la main resterait vraie après la disparition du fichier, et le
+ * thème se dirait reproductible en ne l'étant plus. Exportée pour que `tools/verifier.mjs` dise
+ * la même vérité que ce qu'il embarque.
+ */
+export function famillesEmbarquees(racine = RACINE) {
+  const vues = [];
+  for (const p of POLICES_EMBARQUEES) {
+    if (!fs.existsSync(path.join(racine, 'assets', 'polices', p.fichier))) continue;
+    if (!vues.includes(p.famille)) vues.push(p.famille);
+  }
+  return vues;
+}
+
+/**
+ * Le bloc `@font-face` du thème, police incorporée en base64. Un fichier manquant n'est pas
+ * comblé en silence : le thème sortirait dépendant des polices du poste sans que rien ne le dise
+ * — exactement le défaut TF-1020. On REFUSE de générer.
+ */
+export function fontFaceEmbarquee(racine = RACINE) {
+  return POLICES_EMBARQUEES.map((p) => {
+    const chemin = path.join(racine, 'assets', 'polices', p.fichier);
+    if (!fs.existsSync(chemin))
+      throw new Error(`police embarquée introuvable : ${path.relative(racine, chemin)} — sans elle le `
+        + `thème dépendrait des polices du poste et un tirage jugé sur son nombre de pages sortirait `
+        + `différemment d'une machine à l'autre (TF-1020). Restaurer le fichier, ou retirer la face de `
+        + `POLICES_EMBARQUEES en assumant la dépendance.`);
+    const b64 = fs.readFileSync(chemin).toString('base64');
+    return `/* ${p.famille} ${p.poids} = ${p.origine}, ${p.fichier} (SIL OFL 1.1) */\n`
+      + `@font-face{font-family:'${p.famille}';font-style:normal;font-weight:${p.poids};`
+      + `src:url(data:font/woff2;base64,${b64}) format('woff2');}`;
+  }).join('\n');
+}
 
 /** Génère theme.css + header.html pour un tenant. Retourne {outDir, css, header, domains}. */
 export function genererTheme(file, outArg) {
@@ -41,6 +108,11 @@ export function genererTheme(file, outArg) {
   const domains = cfg.domains ?? [];
 
   const css = `/* AuditCore theme — généré pour ${cfg.tenant.name} (ne pas éditer à la main, PADR-0004) */
+/* Polices INCORPORÉES (TF-1020) — assets/polices/, SIL OFL 1.1, licence jointe au dépôt.
+   En base64 : aucun téléchargement au rendu, aucun fichier à côté, tirage identique sur tout
+   poste. Sans elles, le nombre de pages d'un tirage dépend de ce qui est installé sur la
+   machine qui imprime, et le juge de pages refuse chez celui qui vérifie. */
+${fontFaceEmbarquee()}
 :root{
   --bg:${c('panel-bg', c('background', '#f4f6f9'))}; --panel:#fff; --line:#dce3ec;
   --txt:${c('ink', '#1b2733')}; --muted:#5f7081;
@@ -115,11 +187,37 @@ function selfTest() {
   if (!cssB.includes('--font-body:Segoe UI, Arial, sans-serif;'))
     casse.push(`sans typographie déclarée au tenant, le repli sur DESIGN.md est cassé : ${cssB.match(/--font-body:[^;]+/)?.[0]}`);
 
+  // ── TF-1020 · LA POLICE VOYAGE AVEC LE LIVRABLE ────────────────────────────────────────────
+  // VERT : chaque face déclarée sort en @font-face INCORPORÉ — base64, jamais une URL. Une URL
+  // ferait dépendre le tirage du réseau du poste qui imprime, au lieu de ses polices : le même
+  // défaut déplacé d'un cran.
+  const familles = famillesEmbarquees();
+  if (familles.length !== 1 || familles[0] !== 'AuditCore Sans')
+    casse.push(`familles embarquées mesurées : ${familles.join(', ') || '(aucune)'} — attendu `
+      + `« AuditCore Sans » (fichiers sous assets/polices/)`);
+  for (const p of POLICES_EMBARQUEES) {
+    const re = new RegExp(`@font-face\\{font-family:'${p.famille}';font-style:normal;font-weight:${p.poids};`
+      + `src:url\\(data:font/woff2;base64,[A-Za-z0-9+/=]{5000,}\\) format\\('woff2'\\);\\}`);
+    if (!re.test(cssA)) casse.push(`la face ${p.famille} ${p.poids} n'est pas incorporée en base64 dans le thème`);
+  }
+  if (/@font-face[\s\S]{0,200}url\((?!data:)/.test(cssA))
+    casse.push('une face du thème pointe une URL au lieu d\'être incorporée : le tirage dépendrait du '
+      + 'réseau du poste qui imprime');
+  // ROUGE : la police disparue, le thème REFUSE de sortir. Sans ce refus il sortirait dépendant
+  // des polices du poste sans que rien ne le dise — le défaut TF-1020 lui-même, en silence.
+  let refus = null;
+  try { fontFaceEmbarquee(path.join(dir, 'racine-sans-polices')); } catch (e) { refus = e.message; }
+  if (!refus) casse.push('un thème SANS police embarquée est généré en silence : le tirage redeviendrait '
+    + 'dépendant du poste sans que rien ne le signale (défaut TF-1020)');
+  else if (!/TF-1020/.test(refus)) casse.push(`le refus ne dit pas de quel défaut il protège : ${refus}`);
+
   fs.rmSync(dir, { recursive: true, force: true });
   console.log(casse.length
     ? 'SELF-TEST FAIL : ' + casse.join(' · ')
-    : "Self-test build-theme : 2/2 PASS — typographie explicite du tenant priorisée sur un DESIGN.md "
-      + "de scaffold (TF-1000) · repli sur DESIGN.md intact quand rien n'est déclaré");
+    : "Self-test build-theme : 5/5 PASS — typographie explicite du tenant priorisée sur un DESIGN.md "
+      + "de scaffold (TF-1000) · repli sur DESIGN.md intact quand rien n'est déclaré · "
+      + `${POLICES_EMBARQUEES.length} face(s) incorporée(s) en base64, aucune URL (TF-1020) · `
+      + 'police manquante = génération REFUSÉE, jamais un thème muet');
   return casse.length ? 1 : 0;
 }
 

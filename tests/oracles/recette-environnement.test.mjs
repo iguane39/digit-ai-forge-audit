@@ -29,6 +29,8 @@ import {
   verdictJournal, PLAFOND_ENREGISTREMENTS_SANS_JOURNAL, CHEMINS_JOURNALISES, JOURNAL,
   policesPresentes,
 } from '../../tools/verifier.mjs';
+import { famillesEmbarquees } from '../../tools/build-theme.mjs';
+import { loadYaml } from '../../tools/lib.mjs';
 import { verdictEol, verdictNavigateur } from '../verdicts.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -240,6 +242,50 @@ test('policesPresentes : mesure réelle par plateforme, dans les DEUX sens (pré
   assert.deepEqual(r.cherchees, []);
 });
 
+// ── LA CORRECTION (TF-1020, 17/09/2026) : la face EMBARQUÉE sort du classement du poste.
+// Une famille incorporée au thème (`@font-face` base64, tools/build-theme.mjs) n'est ni présente
+// ni absente de cette machine — la question ne se pose plus, elle voyage DANS le livrable. La
+// ranger parmi les « présentes » dirait « ce poste l'a », vrai ici et faux sur le runner : c'est
+// exactement le raisonnement qui a laissé passer neuf publications rouges.
+test('policesPresentes : une famille EMBARQUÉE ne se classe ni présente ni absente (TF-1020)', () => {
+  const table = { 'segoe ui': '/fonts/segoeui.ttf' };
+  // VERT — la face incorporée sort à part, même si aucun fichier n'existe sur ce poste.
+  let r = policesPresentes('AuditCore Sans, system-ui, sans-serif', {
+    plateforme: 'linux', existe: () => false, table, embarquees: ['AuditCore Sans'],
+  });
+  assert.deepEqual(r.embarquees, ['AuditCore Sans']);
+  assert.deepEqual(r.absentes, []);
+  assert.deepEqual(r.presentes, []);
+  assert.deepEqual(r.nonMesurables, []);
+  // ROUGE — la MÊME pile sans que rien ne soit embarqué : la famille redevient une inconnue du
+  // poste, et le tirage redevient dépendant de la machine. C'est l'état d'avant la correction.
+  r = policesPresentes('AuditCore Sans, system-ui, sans-serif', {
+    plateforme: 'linux', existe: () => false, table, embarquees: [],
+  });
+  assert.deepEqual(r.embarquees, []);
+  assert.deepEqual(r.nonMesurables, ['AuditCore Sans']);
+  // ROUGE — une pile qui ne nomme que des polices du poste ne gagne rien à ce que le thème
+  // embarque par ailleurs : elle reste jugée sur ce que la machine possède.
+  r = policesPresentes('Segoe UI, sans-serif', {
+    plateforme: 'linux', existe: () => false, table, embarquees: ['AuditCore Sans'],
+  });
+  assert.deepEqual(r.embarquees, []);
+  assert.deepEqual(r.absentes, ['Segoe UI']);
+});
+
+test('la pile du tenant de référence est EFFECTIVEMENT couverte par la face embarquée (TF-1020)', () => {
+  // Le contrôle qui compte : pas « une face existe quelque part » mais « la pile qui IMPRIME la
+  // fiche sécurité ne nomme plus aucune police du poste ». Mesuré sur les fichiers du dépôt.
+  const pile = loadYaml(path.join(RACINE, 'config', 'tenants', 'exemple', 'tenant.yaml'))
+    .branding?.typography?.body ?? '';
+  const r = policesPresentes(pile);
+  assert.deepEqual(r.embarquees, famillesEmbarquees(),
+    `la pile « ${pile} » ne commence pas par la ou les familles embarquées ${famillesEmbarquees().join(', ')}`);
+  assert.deepEqual([...r.presentes, ...r.absentes, ...r.nonMesurables], [],
+    `la pile du tenant de référence nomme encore des polices DU POSTE : ${[...r.presentes, ...r.absentes, ...r.nonMesurables].join(', ')} `
+    + '— le nombre de pages de son tirage redevient dépendant de la machine qui imprime');
+});
+
 test('nonRejouables dit les polices du thème dans les DEUX sens, jamais en silence', () => {
   const rouge = nonRejouables(WF_SANS_ECART, {
     plateforme: 'linux', navigateur: '/usr/bin/chromium', navigateursCherches: ['/usr/bin/chromium'],
@@ -258,6 +304,17 @@ test('nonRejouables dit les polices du thème dans les DEUX sens, jamais en sile
   // Sans info de police injectée (compat. arrière : aucun appelant existant ne casse), rien n'est dit.
   const silencieux = nonRejouables(WF_SANS_ECART, { plateforme: 'linux', navigateur: '/usr/bin/chromium', navigateursCherches: [] });
   assert.equal(silencieux.filter((l) => /police\(s\) du thème/.test(l)).length, 0);
+
+  // TF-1020 — la face EMBARQUÉE se dit elle aussi, et elle se dit comme ce qu'elle est : la seule
+  // condition de cette liste qui soit redevenue rejouable. Le taire laisserait croire que la
+  // recette n'a rien à dire des polices, alors qu'elle a justement cessé d'avoir à s'en inquiéter.
+  const embarquee = nonRejouables(WF_SANS_ECART, {
+    plateforme: 'linux', navigateur: '/usr/bin/chromium', navigateursCherches: ['/usr/bin/chromium'],
+    polices: { cherchees: ['AuditCore Sans'], presentes: [], absentes: [], nonMesurables: [], embarquees: ['AuditCore Sans'] },
+  });
+  assert.equal(embarquee.filter((l) => /police\(s\) du thème EMBARQUÉE\(S\) dans le livrable : AuditCore Sans/.test(l)).length, 1);
+  assert.equal(embarquee.filter((l) => /NE DÉPEND PLUS des polices du poste/.test(l)).length, 1);
+  assert.equal(embarquee.filter((l) => /police\(s\) du thème (ABSENTE|présente|NON MESURABLE)/.test(l)).length, 0);
 });
 
 test('familleRunner : la plateforme Node se lit en famille de runner', () => {
