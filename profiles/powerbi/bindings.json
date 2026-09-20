@@ -1,6 +1,6 @@
 {
   "profile": "powerbi",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Instanciation des contrôles de modélisation et de gouvernance de la restitution (modèle sémantique en étoile, source unique, homogénéité des modes de stockage, gouvernance de la certification, dimension de temps) ainsi que des contrôles d'accessibilité des rapports (D11) sur la plateforme Power BI.",
   "bindings": [
     {
@@ -46,9 +46,15 @@
       "evidence": "Registre des Data Owners par modèle sémantique + export des métadonnées de propriété/certification du portail Power BI Service."
     },
     {
+      "control": "CTL-D08-01",
+      "instanciation": "La DÉFINITION du rapport en format texte (PBIR, dossier `*.Report/definition/` d'un projet PBIP) est soumise à une validation de forme automatisée avant fusion : toute référence de source est résoluble (`SourceRef: { Source: alias }` résolu dans le `From` de la même requête, ou `SourceRef: { Entity }` seul — jamais la forme d'une entrée de `From` recopiée, `{ Entity, Name }`), les alias d'un `From` sont uniques, et aucune projection ne porte `active: false`. Cette recette est PBIP-native : elle se joue sur les fichiers du dépôt, sans publication ni capacité de service.",
+      "verification_command": "node oracles/verifier-rapport-pbir.mjs --rapport <dossier *.Report/> — règles PB1 (référence de source résoluble, deux sens), PB2 (alias uniques), PB3 (aucune projection désactivée) ; exit 0 exigé avant fusion (TF-1183, reste déclaré de TF-1175).",
+      "evidence": "Rapport JSON `auditcore.rapport-pbir/v1` de l'oracle (verdict OK) attaché à la demande de fusion, daté de la révision du rapport."
+    },
+    {
       "control": "CTL-D11-01",
       "instanciation": "Chaque rapport Power BI destiné à une diffusion large fait l'objet d'un audit d'accessibilité outillé (Vérificateur d'accessibilité de Power BI Desktop) couvrant les critères WCAG 2.2 AA applicables (alternatives textuelles, ordre de lecture, contrastes), avec un plan de remédiation pour tout écart.",
-      "verification_command": "Revue outillée : Power BI Desktop, menu Affichage puis Vérificateur d'accessibilité — exécuter sur chaque page du rapport et exporter la liste des problèmes détectés.",
+      "verification_command": "Revue outillée : Power BI Desktop, menu Affichage puis Vérificateur d'accessibilité — exécuter sur chaque page du rapport et exporter la liste des problèmes détectés. ; sur fichiers PBIR (projet PBIP, avant publication) : node oracles/verifier-rapport-pbir.mjs --rapport <dossier *.Report/> — règle PB4 (chaque colonne d'un visuel tabulaire porte son en-tête dans `columnProperties` : sans lui, le lecteur d'écran reçoit le nom technique du champ) (TF-1183).",
       "evidence": "Rapport du Vérificateur d'accessibilité par page de rapport + plan de remédiation daté des écarts identifiés."
     },
     {

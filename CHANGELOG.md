@@ -7,6 +7,30 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1183** (part forge-audit, reste déclaré de TF-1175 / RF-21 (2), 20/09/2026) — **la forme
+  native des expressions PBIR est jugée**, par `oracles/verifier-rapport-pbir.mjs`. C'était le
+  reste : le 17/09, 29 contrôles PASS sur un rapport Power BI qui ne rendait AUCUN visuel, parce
+  qu'aucun contrôle ne lisait le fichier de RAPPORT — `verifier-modele-semantique.mjs` lit le
+  MODÈLE (TMDL) et nommait le `*.Report` comme non jugé, ce qui était honnête mais laissait le
+  défaut passer. Quatre règles, chacune nommant le contrôle AuditCore qu'elle mécanise :
+  **PB1** toute référence de source est résoluble (CTL-D08-01) — deux sens : un
+  `SourceRef: { Source: alias }` dont l'alias n'est déclaré par aucun `From` en portée est
+  bloquant, et un `SourceRef` portant à la fois `Entity` et `Name` l'est aussi, parce que c'est la
+  forme d'une ENTRÉE DE `From` recopiée à la place d'une référence de source — le défaut réel du
+  17/09 ; un `SourceRef: { Entity }` seul reste licite, sinon la règle condamnerait la forme émise
+  par Power BI Desktop et ne serait que du bruit. **PB2** les alias d'un `From` sont uniques
+  (CTL-D08-01). **PB3** aucune projection `active: false` (CTL-D05-10) : le champ est déclaré dans
+  la requête et ne parvient jamais au lecteur. **PB4** chaque colonne d'un visuel tabulaire porte
+  son en-tête dans `columnProperties` (CTL-D11-01, majeur) : sans lui, le lecteur d'écran reçoit le
+  nom technique du champ. Chaque constat est localisé fichier + pointeur JSON. Recette PBIP-native :
+  elle se joue sur les fichiers du dépôt, sans publication, sans capacité de service, avant fusion.
+  Fixtures à double sens (`tests/fixtures/oracles/rapport-pbir/{verte,rouge}`) — et surtout, la
+  fixture du défaut RÉEL déposée par TF-1175 (`modele-semantique/projet-pbip/Exemple.Report/`),
+  que personne ne lisait, sort désormais BLOQUANT. Le profil `powerbi` lie CTL-D08-01 (nouveau
+  binding) et étend CTL-D11-01 — 10 → 11 contrôles liés, profil 1.1.0 → 1.2.0. Batterie des
+  oracles 135 → 141 tests. Périmètre inchangé sur le rendu : cet oracle juge la FORME, son OK ne
+  vaut pas davantage « livrable vérifié », et il le déclare avec le geste qui reste dû.
+
 - **TF-1175** (part forge-audit, retour Produit-62 RF-21, 17/09/2026) — **un OK de
   `oracles/verifier-modele-semantique.mjs` ne se lit plus « livrable vérifié ».** Le 17/09, un
   projet Power BI généré a passé 22 contrôles de recette et 7 contrôles d'audit, a été publié sur

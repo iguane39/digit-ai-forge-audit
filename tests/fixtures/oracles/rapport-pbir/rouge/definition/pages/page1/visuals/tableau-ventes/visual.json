@@ -1,0 +1,66 @@
+{
+  "_commentaire": "FIXTURE ROUGE PB1-PB4 — les quatre defauts de forme reunis dans un seul visuel : PB1b un SourceRef {Entity, Name} (le defaut reel du 17/09/2026, forme d'une entree de From recopiee a la place d'une reference de source) · PB1a un SourceRef.Source « c » qu'aucun alias du From ne declare · PB2 l'alias « v » declare deux fois dans le meme From · PB3 une projection active: false · PB4 aucune colonne du visuel tabulaire n'a d'en-tete declare (columnProperties absent).",
+  "name": "tableau-ventes",
+  "position": { "x": 0, "y": 0, "width": 640, "height": 320, "z": 0 },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": { "SourceRef": { "Entity": "Ventes", "Name": "v" } },
+                  "Property": "Montant HT"
+                }
+              },
+              "queryRef": "Ventes.Montant HT",
+              "nativeQueryRef": "Montant HT"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "Client" } },
+                  "Property": "Libelle"
+                }
+              },
+              "queryRef": "Client.Libelle",
+              "nativeQueryRef": "Libelle",
+              "active": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "hors-annules",
+        "filter": {
+          "From": [
+            { "Name": "v", "Entity": "Ventes", "Type": 0 },
+            { "Name": "v", "Entity": "Client", "Type": 0 }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Comparison": {
+                  "ComparisonKind": 1,
+                  "Left": {
+                    "Column": {
+                      "Expression": { "SourceRef": { "Source": "c" } },
+                      "Property": "Statut"
+                    }
+                  },
+                  "Right": { "Literal": { "Value": "'annule'" } }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "_commentaire": "FIXTURE VERTE PB1-PB4 — la forme attendue d'un rapport PBIR : chaque SourceRef est resoluble (Entity seul pour une reference directe, Source resolu dans le From de la meme requete), les alias du From sont uniques, aucune projection n'est desactivee, et chaque colonne du visuel tabulaire porte son en-tete dans columnProperties.",
+  "name": "tableau-ventes",
+  "position": { "x": 0, "y": 0, "width": 640, "height": 320, "z": 0 },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "Client" } },
+                  "Property": "Libelle"
+                }
+              },
+              "queryRef": "Client.Libelle",
+              "nativeQueryRef": "Libelle"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": { "SourceRef": { "Entity": "Ventes" } },
+                  "Property": "Montant HT"
+                }
+              },
+              "queryRef": "Ventes.Montant HT",
+              "nativeQueryRef": "Montant HT"
+            }
+          ]
+        }
+      }
+    },
+    "columnProperties": {
+      "Client.Libelle": { "displayName": "Client" },
+      "Ventes.Montant HT": { "displayName": "Montant HT" }
+    }
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "hors-annules",
+        "filter": {
+          "From": [
+            { "Name": "v", "Entity": "Ventes", "Type": 0 }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "Comparison": {
+                  "ComparisonKind": 1,
+                  "Left": {
+                    "Column": {
+                      "Expression": { "SourceRef": { "Source": "v" } },
+                      "Property": "Statut"
+                    }
+                  },
+                  "Right": { "Literal": { "Value": "'annule'" } }
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

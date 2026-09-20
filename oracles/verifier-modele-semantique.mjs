@@ -85,13 +85,16 @@ const RAPPORTS = rapportsVoisins(modeleArg);
 const NON_JUGE = [
   // TF-1175 en tête : c'est ce qui manque le plus au lecteur d'un PASS.
   `LE RENDU DU RAPPORT DANS L'OUTIL — ce contrôle lit des FICHIERS de modèle et ne juge RIEN de ce `
-  + `que le lecteur voit : ni que les visuels rendent, ni que les requêtes visuelles sont valides `
-  + `(forme des références de source PBIR), ni que l'export du rapport produit autre chose qu'une `
-  + `page vide. Un verdict OK ici ne vaut PAS « livrable vérifié ». Geste de vérification manquant, `
+  + `que le lecteur voit : ni que les visuels rendent, ni que l'export du rapport produit autre `
+  + `chose qu'une page vide. La FORME des requêtes visuelles (références de source PBIR) se juge `
+  + `depuis TF-1183 par oracles/verifier-rapport-pbir.mjs, à lancer sur le dossier *.Report/ — mais `
+  + `une forme valide ne prouve toujours pas un rendu. `
+  + `Un verdict OK ici ne vaut PAS « livrable vérifié ». Geste de vérification manquant, `
   + `à exécuter avant toute remise : ${GESTE_RENDU}`,
   ...(RAPPORTS.length
     ? [`rapport(s) PRÉSENT(S) dans ce projet et NON JUGÉ(S) ici : ${RAPPORTS.join(', ')} — leur `
-      + `définition (PBIR) n'est pas lue par cet oracle et leur rendu encore moins`]
+      + `définition (PBIR) n'est pas lue par cet oracle — la FORME de ses expressions se juge par `
+      + `oracles/verifier-rapport-pbir.mjs — et leur rendu encore moins`]
     : []),
   'statut de certification et propriétaire du modèle (CTL-D05-01 / CTL-D05-15) : métadonnées du portail, hors fichiers',
   'justesse des expressions DAX — seule leur unicité et leur format sont jugés',
