@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import { rel, loadJson, loadYaml, loadTenant } from './lib.mjs';
 import { STR } from './rapport-engine.mjs';
+import { STYLES_CANEVAS } from './canevas-modele-donnees.mjs';
 
 const file = process.argv[2];
 if (!file) { console.error('Usage: node tools/verifier-rapport.mjs <rapport-data.json> [--tenant <tenant.yaml>]'); process.exit(2); }
@@ -87,6 +88,40 @@ const projetAffiche = data.projet?.nom ?? data.titre ?? '';
 if (projetAffiche && (projetAffiche.includes(STR.fr.rapport) || projetAffiche.includes(STR.en.rapport)))
   errors.push(`projet/titre « ${projetAffiche} » répète déjà le libellé de document que le moteur ajoute `
     + `(« ${STR.fr.rapport} » / « ${STR.en.rapport} ») — le titre rendu serait dédoublé`);
+
+// 8. CONTRAT DU SCHÉMA DE BASE DE DONNÉES (TF-0940, décision humaine D-4 (b) du 20/09/2026).
+// `db_schema` est étendu des attributs que le canevas attend — `role`, `style`, `card`, `tip`,
+// plus `engine` pour le nom accessible du dessin. TOUS FACULTATIFS : un audit qui ne les
+// renseigne pas doit rester RENDABLE, c'est la règle dure de la décision. Ce qui est contrôlé,
+// c'est donc la FORME quand l'attribut est là — jamais sa présence. Une valeur de `style` hors
+// palette est en revanche BLOQUANTE : elle serait silencieusement ramenée au style neutre par
+// l'adaptateur, et un audit croirait avoir classé une table qui ne l'est pas.
+const db = data.db_schema;
+if (db) {
+  const txt = (v) => v === undefined || (typeof v === 'string');
+  if (db.engine !== undefined && typeof db.engine !== 'string') errors.push('db_schema.engine: doit être une chaîne quand il est présent');
+  for (const b of db.bandes ?? []) if (!b.key) errors.push(`db_schema: bande sans « key » — la bande ne peut être rattachée`);
+  for (const t of db.tables ?? []) {
+    if (!t.id) { errors.push('db_schema: table sans « id »'); continue; }
+    if (!txt(t.role)) errors.push(`db_schema table ${t.id}: « role » doit être une chaîne`);
+    if (!txt(t.tip)) errors.push(`db_schema table ${t.id}: « tip » doit être une chaîne`);
+    if (t.style !== undefined && !STYLES_CANEVAS.includes(t.style))
+      errors.push(`db_schema table ${t.id}: style « ${t.style} » hors palette (${STYLES_CANEVAS.join(', ')}) — `
+        + `il serait rendu en style neutre, et l'audit croirait avoir classé cette table. Retirer l'attribut `
+        + `déclare franchement que la classification n'est pas faite ; une valeur fausse la cache.`);
+  }
+  for (const r of db.relations ?? []) {
+    if (!txt(r.card)) errors.push(`db_schema relation ${r.from} → ${r.to}: « card » doit être une chaîne`);
+    if (!txt(r.tip)) errors.push(`db_schema relation ${r.from} → ${r.to}: « tip » doit être une chaîne`);
+    // AVERTISSEMENT et non erreur : une extrémité nommée « table » seule reste RENDABLE — l'arête
+    // retombe au milieu de l'en-tête, ce que faisait déjà le moteur remplacé. Refuser ici
+    // casserait des audits existants, ce que la décision D-4 (b) interdit explicitement.
+    for (const bout of ['from', 'to'])
+      if (typeof r[bout] === 'string' && !r[bout].includes('.'))
+        warnings.push(`db_schema relation: « ${bout} » vaut « ${r[bout]} » sans « table.colonne » — l'arête est `
+          + `ancrée au milieu de l'en-tête au lieu de la ligne de sa colonne`);
+  }
+}
 
 if (warnings.length) for (const w of warnings) console.error(`AVERTISSEMENT: ${w}`);
 

@@ -1,0 +1,57 @@
+{
+  "schema": "auditcore.heritage/v1",
+  "commentaire": [
+    "Ce que ce dépôt a COPIÉ d'un dépôt frère, et sur quelle version. Décision humaine D-4 (b) du",
+    "20/09/2026 (TF-0940) : la copie conforme déclarée est le mécanisme retenu, parce que les",
+    "scripts d'AuditCore doivent rester autoportants — ils sont embarqués dans le kit remis au",
+    "projet audité, qui n'a aucun dépôt frère sous la main. Un import à l'exécution est donc exclu.",
+    "Une copie non déclarée, elle, dérive en silence : c'est précisément ce que TF-0940 a constaté",
+    "avec les deux moteurs de schéma de base de données qui ont coexisté sans que rien ne dise",
+    "lequel faisait foi.",
+    "",
+    "La dérive se mesure par `node tools/verifier-heritage.mjs` : il recalcule l'empreinte de la",
+    "SOURCE quand le dépôt frère est présent sur le poste, et se déclare SKIP NOMMÉ quand il ne",
+    "l'est pas — ce qui est TOUJOURS le cas sur un runner de CI. Un dépôt absent n'est pas un",
+    "rouge d'environnement : c'est une mesure qu'on n'a pas pu faire, et elle se dit.",
+    "",
+    "NORMALISATION DE L'EMPREINTE — elle n'est pas cosmétique. Ce poste est sous Windows avec",
+    "`core.autocrlf=true` et AUCUN .gitattributes : un même contenu vit en CRLF dans la copie de",
+    "travail et en LF dans l'objet git. Une empreinte prise sur les octets bruts changerait au",
+    "premier passage d'un fichier par un outil Windows et accuserait une dérive qui n'existe pas.",
+    "Les fins de ligne sont donc ramenées à LF avant hachage. Le bloc de polices en base64 est",
+    "retiré pour la même raison de fond : il est régénéré par un script du dépôt amont et change",
+    "pour des motifs qui ne sont pas le moteur — l'empreinte doit parler du moteur, pas des polices."
+  ],
+  "copies": [
+    {
+      "nom": "canevas-modele-donnees",
+      "cible": "tools/canevas-modele-donnees.mjs",
+      "source_depot": "digit-ai-forge-agents",
+      "source_chemin": ".claude/skills/digit-ai-schemas/assets/template-modele-donnees.html",
+      "source_version": "c6200ac (2026-09-20) — « L echelle 4 pt tient aussi dans ce qu on COPIE : references et canevas recales, banc etendu »",
+      "date_copie": "2026-09-20",
+      "empreinte": {
+        "algo": "sha256",
+        "normalisation": "fins de ligne ramenées à LF ; bloc délimité par POLICES-EMBARQUEES:DEBUT .. POLICES-EMBARQUEES:FIN remplacé par un marqueur fixe",
+        "octets_normalises": 31634,
+        "valeur": "51638cb9cf3dd9c330af2b2e5386f43f6d4e6f99141b5dff373a4e13798df067"
+      },
+      "repris": [
+        "renderDbSchema — géométrie, cartes, badges PK/UK/FK/NN, arêtes ancrées colonne à colonne, couloirs et voie de saut de bande",
+        "renderDbLegend — légende doublée couleur + style de trait",
+        "le bloc CSS .db-* / .dbf-* et les jetons de couleur",
+        "fitSchema et son câblage resize / beforeprint / afterprint"
+      ],
+      "non_repris": [
+        "renderDbDictionary — il rend des CARTES ; le rapport d'audit doit un TABLEAU filtrable au-delà de 8 lignes (règle RL-5 de son propre gate). Le rapport garde son dictionnaire tabulaire.",
+        "monterSchema et l'infobulle de page — le balisage est rendu à la construction du rapport, pas monté au chargement",
+        "la projection sombre du canevas — le rapport d'audit n'a aucun thème sombre (mesuré : ni data-theme ni prefers-color-scheme dans rapport-engine.mjs ou build-theme.mjs)"
+      ],
+      "deltas_declares": [
+        "H1 · CSSV lit un jeton de la table JETONS du module au lieu d'appeler getComputedStyle — ce module rend côté Node, il n'y a pas de document à interroger.",
+        "H2 · fitSchema vérifie que son hôte expose querySelector avant de l'appeler — le gate tools/verifier-rapport-html.mjs exécute le moteur du rapport dans un DOM minimal qui ne l'expose pas.",
+        "renderDbLegend : les deux <svg> d'exemple de trait reçoivent role=\"img\" et un nom accessible — une image sans nom accessible est un défaut que le contrôle de page du socle relève."
+      ]
+    }
+  ]
+}

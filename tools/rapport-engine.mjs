@@ -22,6 +22,7 @@
 // des affordances mortes. Aucun contenu n'est résumé ni supprimé : les blocs changent
 // de conteneur, et ce qui est absent des données se déclare au manifeste d'écarts.
 import { TABLE_FILTERS_JS } from './table-filters.mjs';
+import { adapterDbSchema, renderDbSchema, renderDbLegend, CANEVAS_CSS, CANEVAS_FIT_JS } from './canevas-modele-donnees.mjs';
 
 const SEV = { critique: 0, majeur: 1, mineur: 2 };
 // Seuil du socle (check_html L4 / composant filtres-tableau G1) : au-delà, un tableau
@@ -289,58 +290,27 @@ const badge = (cls, texte, titre) =>
 // ── M5 v1.5 · ERD : data.db_schema = { bandes:[{key,label}], tables:[{id,bande,label,
 //    columns:[{n,t,k(PK|UK|FK),nn,pii,note}]}], relations:[{from,to,enforced,label}] }
 //
-// ── MOTEUR HÉRITÉ, PAS CELUI QUI FAIT FOI (TF-0940, 08/09/2026). Un second moteur de
-//    schéma de base de données existe : digit-ai-forge-agents ·
-//    .claude/skills/digit-ai-schemas/assets/template-modele-donnees.html (cartes HTML +
-//    calque SVG, badges PK/UK/FK/NN, arêtes ancrées colonne à colonne, fitSchema,
-//    dictionnaire compagnon). Sa propre référence (canevas-modele-donnees.md § « Laquelle
-//    fait foi ») DÉCLARE que c'est LUI qui fait foi, précisément parce que ce renderERD-ci
-//    est plus pauvre (SVG pur, sans badges, sans ancrage colonne à colonne, sans mise à
-//    l'échelle). Un rapport produit par cette fonction rend donc l'ANCIEN rendu — à savoir
-//    avant de le citer comme modèle ou de le comparer à une capture du canevas cité
-//    ci-dessus. RESTE À FAIRE, hors périmètre chirurgical de ce commentaire : que ce module
-//    consomme ce canevas (import ou copie conforme avec empreinte) et que renderERD
-//    disparaisse ou devienne un appel — geste côté propriétaire du rapport, donc ici, mais
-//    qui n'est pas un diff minimal et se traite dans une campagne dédiée.
+// ── LE CANEVAS FAIT FOI, ET LE RAPPORT LE CONSOMME (TF-0940, décision humaine D-4 (b) du
+//    20/09/2026). Deux moteurs de schéma de base de données ont coexisté : le canevas du skill
+//    digit-ai-schemas (cartes HTML + calque SVG, badges PK/UK/FK/NN, arêtes ancrées colonne à
+//    colonne, mise à l'échelle) et un `renderERD` en SVG pur écrit ici, plus pauvre, qui se
+//    déclarait lui-même « non faisant foi » depuis ae3dfd8. Déclarer ne suffisait pas : le
+//    rapport continuait de rendre le moteur pauvre. `renderERD` n'est plus un moteur, c'est un
+//    APPEL — le dessin et sa légende viennent de la copie conforme `canevas-modele-donnees.mjs`
+//    (déclarée dans HERITAGE.json, dérive mesurée par tools/verifier-heritage.mjs).
+//
+//    CE QUI RESTE AU RAPPORT : le DICTIONNAIRE, en tableau filtrable. Le canevas le rend en
+//    cartes ; le gate du rapport exige au-delà de 8 lignes un tableau qui se trie et se filtre
+//    (RL-5). Prendre les cartes aurait échangé un moteur de dessin contre une régression de
+//    restitution — le rapport garde donc son tableau et ne prend du canevas que le dessin.
 function renderERD(db, L = STR.fr, T = RES.fr) {
   if (!db?.tables?.length) return '';
-  const bandes = db.bandes?.length ? db.bandes : [{ key: '_', label: '' }];
-  const COLW = 250, GAPX = 60, ROWH = 15, HEADH = 26, GAPY = 26;
-  const pos = {}; let maxY = 0;
-  bandes.forEach((b, bi) => {
-    let y = 34;
-    for (const t of db.tables.filter(t => (t.bande ?? '_') === b.key)) {
-      const h = HEADH + (t.columns?.length ?? 0) * ROWH + 8;
-      pos[t.id] = { x: 20 + bi * (COLW + GAPX), y, w: COLW, h };
-      y += h + GAPY;
-    }
-    maxY = Math.max(maxY, y);
-  });
-  const W = 20 + bandes.length * (COLW + GAPX), H = maxY + 10;
-  const tbl = (t) => {
-    const p = pos[t.id];
-    return `<g class="erd-t"><rect x="${p.x}" y="${p.y}" width="${p.w}" height="${p.h}" rx="6"/>
-      <rect x="${p.x}" y="${p.y}" width="${p.w}" height="${HEADH - 6}" rx="6" class="erd-h"/>
-      <text x="${p.x + p.w / 2}" y="${p.y + 14}" text-anchor="middle" class="erd-tt">${esc(t.label ?? t.id)}</text>
-      ${(t.columns ?? []).map((c, i) => `<text x="${p.x + 10}" y="${p.y + HEADH + 6 + i * ROWH}" class="erd-c${c.pii ? ' pii' : ''}">${c.k ? `[${esc(c.k)}] ` : ''}${esc(c.n)}${c.nn ? ' *' : ''}${c.pii ? ' 🔒' : ''}</text>
-       <text x="${p.x + p.w - 10}" y="${p.y + HEADH + 6 + i * ROWH}" text-anchor="end" class="erd-ty">${esc(c.t ?? '')}</text>`).join('')}</g>`;
-  };
-  const rel = (r) => {
-    const a = pos[String(r.from).split('.')[0]], b = pos[String(r.to).split('.')[0]];
-    if (!a || !b) return '';
-    const x1 = a.x + a.w, y1 = a.y + 13, x2 = b.x, y2 = b.y + 13;
-    const mid = x2 > x1 ? (x1 + x2) / 2 : x1 + 24;
-    return `<path d="M ${x1} ${y1} L ${mid} ${y1} L ${mid} ${y2} L ${x2} ${y2}" class="erd-r${r.enforced === false ? ' soft' : ''}" marker-end="url(#erdArr)"><title>${esc(r.from)} → ${esc(r.to)}${r.enforced === false ? ' (référence logique)' : ' (FK)'}</title></path>`;
-  };
   const dict = db.tables.map(t => `<tr><td><b>${esc(t.label ?? t.id)}</b></td><td>${(t.columns ?? []).length}</td>
     <td>${(t.columns ?? []).filter(c => c.pii).map(c => `<code>${esc(c.n)}</code>`).join(' ') || '—'}</td>
     <td class="muted">${esc(t.note ?? '')}</td></tr>`).join('');
   return `<h3>${L.erd}</h3>
-  <div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="min-width:${Math.min(W, 1200)}px" role="img" aria-label="Schéma de base de données">
-    <defs><marker id="erdArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker></defs>
-    ${bandes.map((b, bi) => b.label ? `<text x="${20 + bi * (COLW + GAPX)}" y="18" class="erd-band">${esc(b.label)}</text>` : '').join('')}
-    ${(db.relations ?? []).map(rel).join('')}${db.tables.map(tbl).join('')}
-  </svg></div>
+  <div class="db-schema-hote"><div id="dbSchemaMount" data-rognage-assume="mise a l echelle par fitSchema : la hauteur du conteneur suit le facteur applique, aucun contenu n est masque"><div class="db-scaler">${renderDbSchema(adapterDbSchema(db))}</div></div>
+  ${renderDbLegend()}</div>
   ${db.tables.length >= SEUIL_FILTRE ? `<p class="exemple-lecture muted small">${esc(T.ex.erd)}</p>` : ''}
   ${tableau({ id: 't-__erd', lignes: db.tables.length, L: T, recherche: T.cherche,
     thead: `<tr><th>${L.table}</th><th>${L.colonnes}</th><th>PII 🔒</th><th>${L.note}</th></tr>`, tbody: dict })}
@@ -820,7 +790,7 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
 
   return `<!DOCTYPE html><html lang="${esc(lang)}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(tenant)} — ${L.rapport} — ${esc(projet)}</title>
-<style>${themeCss}
+<style>${themeCss}${CANEVAS_CSS}
 .wrap{max-width:clamp(75vw,1680px,92vw);margin:0 auto;padding:24px}h1{font-size:26px;margin:6px 0}
 h2{font-size:20px;margin:18px 0 8px}h3{margin:22px 0 8px}h4{margin:18px 0 6px}h5{margin:14px 0 6px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -871,10 +841,9 @@ th{background:var(--bg);position:relative}
 .constat{border-left:3px solid var(--line);padding:6px 10px;margin:6px 0;background:var(--panel)}
 .constat.s-critique{border-color:var(--fatal)}.constat.s-majeur{border-color:var(--maj)}
 .radar{max-width:460px}.rlab{font-size:10.5px;fill:var(--txt)}
-.erd-t rect{fill:var(--panel);stroke:var(--line);stroke-width:1.2}.erd-h{fill:var(--bg)!important}
-.erd-tt{font-weight:700;font-size:11.5px;fill:var(--txt)}.erd-c{font-size:10px;fill:var(--txt)}.erd-c.pii{fill:var(--fatal)}
-.erd-ty{font-size:9.5px;fill:var(--muted)}.erd-band{font-size:10px;font-weight:700;letter-spacing:.08em;fill:var(--muted);text-transform:uppercase}
-.erd-r{fill:none;stroke:var(--muted);stroke-width:1.3}.erd-r.soft{stroke-dasharray:5 3}
+/* .erd-band sert encore au schéma d'ARCHITECTURE (renderArchi) ; les autres classes .erd-*
+   ont disparu avec le moteur ERD en SVG pur remplacé par le canevas (TF-0940). */
+.erd-band{font-size:10px;font-weight:700;letter-spacing:.08em;fill:var(--muted);text-transform:uppercase}
 .a-t{font-weight:700;font-size:12px}.a-s{font-size:10px}
 .a-purple rect{fill:#ede9fe;stroke:#c4b5fd}.a-purple text{fill:#5b21b6}.a-blue rect{fill:#dbeafe;stroke:#93c5fd}.a-blue text{fill:#1d4ed8}
 .a-teal rect{fill:#ccfbf1;stroke:#5eead4}.a-teal text{fill:#0f766e}.a-coral rect{fill:#fee2e2;stroke:#fca5a5}.a-coral text{fill:#b91c1c}
@@ -910,6 +879,7 @@ ${L.footer.replace('{v}', esc(coreVersion)).replace('{t}', esc(tenant))}</footer
 <script type="application/json" id="remediation-plan-json">${planJson.replace(/</g, '\\u003c')}</script>
 <script type="application/json" id="audit-selftest-data">${selfTestJson.replace(/</g, '\\u003c')}</script>
 <script>${TABLE_FILTERS_JS.replace(/<\/script/gi, '<\\/script')}
+${CANEVAS_FIT_JS.replace(/<\/script/gi, '<\\/script')}
 /* ── Navigation par VUES (référentiel de restitution, RL-1/RL-6). La fonction est GLOBALE
    et nommée : le gate de rendu pilote chaque vue déclarée comme le ferait un lecteur, et
    une vue qui casse au clic sort en erreur au lieu de se découvrir à l'usage. */

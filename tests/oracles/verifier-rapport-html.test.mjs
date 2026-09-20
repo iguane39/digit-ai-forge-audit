@@ -107,6 +107,39 @@ test("manifeste d'écarts retiré → exit 1 (RL-10 : l'absence d'écart se déc
   assert.match(r.stderr, /manifeste d'écarts/);
 });
 
+// ── TF-0940 · LE CONTRÔLE DE COHÉRENCE SCHÉMA↔DICTIONNAIRE A CHANGÉ DE MARQUAGE, PAS DE FORCE ──
+// Le schéma de base de données est désormais rendu par le canevas vendoré (cartes `db-card`) et
+// non plus par le moteur SVG `erd-t` de rapport-engine. Un contrôle qu'on déplace en même temps
+// qu'on change le balisage qu'il regarde est un contrôle qui peut se désactiver sans que rien ne
+// le dise : c'est le mode de panne que ce dépôt paie le plus cher. Les deux sens sont donc joués
+// sur un rapport RICHE réellement généré — celui qui porte un `db_schema`.
+const REF_RICHE = path.join(os.tmpdir(), 'ecr02-rapport-riche.html');
+const genRiche = node([path.join(ROOT, 'tools', 'build-rapport.mjs'),
+  path.join(ROOT, 'tests', 'fixtures', 'rapport-data-riche.json'),
+  '--tenant', path.join(ROOT, 'config', 'tenants', 'exemple', 'tenant.yaml'), '--out', REF_RICHE]);
+assert.equal(genRiche.status, 0, 'le rapport riche doit se générer : ' + genRiche.stderr);
+const OK_RICHE = fs.readFileSync(REF_RICHE, 'utf8');
+const varianteRiche = (nom, muter) => {
+  const p = path.join(os.tmpdir(), `ecr02-riche-${nom}.html`);
+  fs.writeFileSync(p, muter(OK_RICHE), 'utf8');
+  return node([TOOL, p]);
+};
+
+test('TF-0940 — le rapport qui porte un schéma de base rend le CANEVAS et reste diffusable (exit 0)', () => {
+  const r = node([TOOL, REF_RICHE]);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(OK_RICHE, /class="db-card /, 'le schéma n\'est pas rendu par le canevas (cartes db-card)');
+  assert.doesNotMatch(OK_RICHE, /class="erd-t"/, 'le moteur SVG remplacé émet encore — la bascule n\'a pas eu lieu');
+  assert.match(OK_RICHE, /id="dbSchemaMount"/, 'le point de montage de la mise à l\'échelle est absent');
+  assert.match(OK_RICHE, /id="t-__erd"/, 'le dictionnaire TABULAIRE du rapport a disparu — RL-5 exige un tableau, pas les cartes du canevas');
+});
+
+test('TF-0940 — schéma rendu SANS son marquage PII → exit 1 (le contrôle déplacé mord toujours)', () => {
+  const r = varianteRiche('sans-pii', (h) => h.replaceAll('PII 🔒', 'PII'));
+  assert.equal(r.status, 1, 'un schéma sans dictionnaire des tables doit rester refusé');
+  assert.match(r.stderr, /schéma de base de données présent sans dictionnaire des tables/);
+});
+
 test('tableau long sans filtres → exit 1 (RL-5 : au-delà de 8 lignes, tri et filtres sont dus)', () => {
   const r = variante('table-nue', (h) => {
     const i = h.indexOf('<table id="rtable"');

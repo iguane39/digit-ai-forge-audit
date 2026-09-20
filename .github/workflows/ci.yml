@@ -59,6 +59,14 @@ jobs:
           if node tools/verifier-rapport.mjs tests/fixtures/rapport-data-titre-duplique.json > /dev/null 2>&1; then
             echo "REGRESSION: titre dédoublé accepté"; exit 1
           fi
+          # TF-0940 — le contrat `db_schema` étendu (role, style, card, tip) est VALIDÉ : la fixture
+          # riche le renseigne et passe ; celle qui porte un style hors palette et un rôle non
+          # textuel est REFUSÉE. Un style inconnu serait ramené au neutre par l'adaptateur, et
+          # l'audit croirait avoir classé une table qui ne l'est pas.
+          node tools/verifier-rapport.mjs tests/fixtures/rapport-data-riche.json
+          if node tools/verifier-rapport.mjs tests/fixtures/rapport-data-db-schema-invalid.json > /dev/null 2>&1; then
+            echo "REGRESSION: db_schema hors contrat accepté"; exit 1
+          fi
 
       - name: Kits marque-blanche (2 tenants fictifs)
         run: |
@@ -106,6 +114,17 @@ jobs:
           node oracles/verifier-fiche-securite.mjs --self-test
           node tools/fiche-en-pdf.mjs --self-test
 
+      # TF-0940 — LA COPIE CONFORME NE DOIT PAS DÉRIVER DE SA SOURCE. `HERITAGE.json` déclare ce
+      # que ce dépôt a copié du canevas de digit-ai-schemas et sur quelle version. Sur un runner,
+      # le dépôt frère n'est pas cloné : le contrôle se déclare alors SKIP NOMMÉ et sort 0 — un
+      # dépôt absent est une mesure qu'on n'a pas pu faire, jamais un rouge d'environnement.
+      # L'auto-test, lui, est DUR partout : il joue la dérive dans les deux sens, sans dépôt frère,
+      # et prouve que l'empreinte ne bouge pas quand seules les fins de ligne changent (CRLF).
+      - name: Héritage — copies conformes et dérive (auto-test dur, comparaison si la source est là)
+        run: |
+          node tools/verifier-heritage.mjs --self-test
+          node tools/verifier-heritage.mjs
+
       - name: Gate de rendu du rapport (restitution + moteur exécuté)
         run: |
           node tools/verifier-rapport-html.mjs /tmp/rapport.html
@@ -138,9 +157,9 @@ jobs:
       - name: Dépendances outillage
         run: npm ci || npm install
 
-      - name: Batterie des oracles (141 tests — projet, rendu du rapport, porte de clôture)
+      - name: Batterie des oracles (151 tests — projet, rendu du rapport, porte de clôture)
         # TF-0553 (24/08) : les DEUX ensembles etaient disjoints DANS LES DEUX SENS. La CI jouait
         # sept fichiers d'oracles, le `npm test` local en jouait deux AUTRES — build-fiche-destination
         # et verifier-pdf n'etaient donc joues par AUCUNE chaine automatique. Ils entrent ici, et le
         # `npm test` local rejoue desormais ce workflow au lieu d'en tenir sa propre liste.
-        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/build-fiche-destination.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/fiche-securite.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-pdf.test.mjs tests/oracles/verifier-rapport-html.test.mjs tests/oracles/modele-semantique.test.mjs tests/oracles/rapport-pbir.test.mjs tests/oracles/couverture-plan.test.mjs tests/oracles/recette-environnement.test.mjs tests/oracles/verifier-referentiel.test.mjs
+        run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/build-fiche-destination.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/fiche-securite.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-pdf.test.mjs tests/oracles/verifier-rapport-html.test.mjs tests/oracles/modele-semantique.test.mjs tests/oracles/rapport-pbir.test.mjs tests/oracles/canevas-modele-donnees.test.mjs tests/oracles/couverture-plan.test.mjs tests/oracles/recette-environnement.test.mjs tests/oracles/verifier-referentiel.test.mjs

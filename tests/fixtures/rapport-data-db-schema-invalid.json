@@ -231,7 +231,7 @@
           }
         ],
         "role": "Comptes utilisateurs",
-        "style": "coral"
+        "style": "turquoise-fonce"
       },
       {
         "id": "audits",
@@ -258,7 +258,7 @@
             "t": "uuid"
           }
         ],
-        "role": "Campagnes d audit",
+        "role": 42,
         "style": "blue"
       },
       {

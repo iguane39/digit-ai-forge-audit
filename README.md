@@ -45,8 +45,11 @@ auditcore/
 │                            #   — un tirage jugé sur son nombre de pages ne dépend plus du poste
 ├── config/tenants/<tenant>/ # overlays entreprise (branding, packs, aliases) — exemple = ACME fictif
 ├── deliverables/templates/  # gabarits des livrables (rapport, banc, matrices, + 6 nouveaux)
+├── HERITAGE.json            # ce que ce depot a COPIE d'un depot frere (copie conforme declaree,
+│                            #   source, version, empreinte) — derive mesuree par verifier-heritage
 ├── tools/                   # validate-config · build-theme · merge-packs · verifier · init · forge-adapter
 │                            #   · build-fiche (nom date, indice alloue) · fiche-en-pdf (imprime, jamais capture)
+│                            #   · canevas-modele-donnees (canevas ERD vendore, TF-0940) · verifier-heritage
 └── tests/                   # fixtures invalides (validateur), test iso, exemple adaptateur forge
 ```
 

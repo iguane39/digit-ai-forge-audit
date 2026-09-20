@@ -17,6 +17,47 @@ sources mis à jour.
   (la vue « Architecture & BDD » existe, le marquage PII est présent) : elles survivent à la bascule
   de moteur qui suit, et c'est le « avant » qu'aucune bascule n'avait.
 
+### Changé
+- **TF-0940** (part forge-audit, décision humaine D-4 (b) du 20/09/2026 — **bascule**) — **le rapport
+  d'audit CONSOMME le canevas qui fait foi ; `renderERD` n'est plus un moteur, c'est un appel.** Deux
+  moteurs de schéma de base de données coexistaient : le canevas du skill `digit-ai-schemas` (cartes
+  HTML + calque SVG, badges PK/UK/FK/NN, arêtes ancrées colonne à colonne, mise à l'échelle) et un
+  `renderERD` en SVG pur écrit dans `rapport-engine.mjs`, plus pauvre, qui se déclarait lui-même
+  « non faisant foi » depuis `ae3dfd8`. **Déclarer ne suffisait pas** : le rapport rendait toujours le
+  moteur pauvre. Il rend désormais le canevas.
+  - **Copie conforme, pas import** (`tools/canevas-modele-donnees.mjs`) : les scripts d'AuditCore sont
+    embarqués dans le kit remis au projet audité, qui n'a aucun dépôt frère sous la main — une
+    dépendance d'exécution était exclue. La copie est **déclarée** dans `HERITAGE.json` (source,
+    version du skill, empreinte sha256) et sa dérive est mesurée par `tools/verifier-heritage.mjs`,
+    qui compare quand le dépôt frère est là et se déclare **SKIP nommé** quand il ne l'est pas —
+    toujours le cas d'un runner. Un dépôt absent n'est pas un rouge d'environnement. **L'empreinte est
+    normalisée** (fins de ligne ramenées à LF, bloc de polices base64 exclu) : sous Windows avec
+    `core.autocrlf=true` et sans `.gitattributes`, une empreinte brute aurait crié à la dérive au
+    premier passage du fichier par un outil local. L'auto-test le prouve — même contenu en CRLF, même
+    empreinte — et joue la dérive dans les deux sens sans aucun dépôt frère.
+  - **Deux deltas de copie seulement, déclarés** : `CSSV` lit un jeton du module au lieu d'appeler
+    `getComputedStyle` (le rendu se fait côté Node, il n'y a pas de document) ; `fitSchema` vérifie que
+    son hôte expose `querySelector` avant de l'appeler (le gate du rapport exécute le moteur dans un
+    DOM minimal qui ne l'expose pas — un garde d'hôte, jamais un assouplissement).
+  - **Contrat de données étendu**, volet A de la décision : `db_schema` accueille `role`, `style`,
+    `card`, `tip` (plus `engine` pour le nom accessible du dessin), **tous facultatifs**. Un audit qui
+    ne les renseigne pas reste rendable, et le repli est **déclaré, jamais deviné** — une table sans
+    `style` est rendue sans liseré de couleur et son infobulle dit « classification non renseignée ».
+    Un `style` hors palette est en revanche **refusé** par `tools/verifier-rapport.mjs` : ramené
+    silencieusement au neutre, il ferait croire à une classification que personne n'a faite. Le champ
+    `label` d'une relation, que le moteur remplacé n'a jamais lu, alimente désormais l'infobulle.
+  - **Ce que le rapport garde** : son dictionnaire en **tableau filtrable**. Le canevas le rend en
+    cartes ; au-delà de 8 lignes le gate du rapport exige un tableau qui se trie et se filtre (RL-5).
+    Prendre les cartes aurait échangé un moteur de dessin contre une régression de restitution.
+  - **Le contrôle de cohérence schéma↔dictionnaire a changé de marquage, pas de force** :
+    `verifier-rapport-html.mjs` regarde `db-card` au lieu de `erd-t`, et une fixture rouge sur un
+    rapport riche réellement généré exige toujours l'exit 1 quand le marquage PII disparaît.
+  - Mesures : batterie des oracles **141 → 151 tests** ; recette locale **12 → 13 étapes**, toutes
+    vertes. Rapport de démonstration jugé avant et après par `verifier-rapport-html.mjs` (exit 0 des
+    deux côtés) et par les contrôles de page du socle installé — **21 bloquants statiques avant, 21
+    après, identiques ; 124 bloquants de rendu avant, 124 après, identiques en nature et en nombre** :
+    aucune régression, et aucun des bloquants préexistants ne touche le schéma.
+
 - **TF-1183** (part forge-audit, reste déclaré de TF-1175 / RF-21 (2), 20/09/2026) — **la forme
   native des expressions PBIR est jugée**, par `oracles/verifier-rapport-pbir.mjs`. C'était le
   reste : le 17/09, 29 contrôles PASS sur un rapport Power BI qui ne rendait AUCUN visuel, parce
