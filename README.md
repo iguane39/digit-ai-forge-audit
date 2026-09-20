@@ -41,6 +41,8 @@ auditcore/
 │   └── schemas/             # JSON Schemas : tenant, contrôle, doctrine, actions de remédiation
 ├── profiles/                # packs technologiques (azure, databricks-lakehouse, powerbi, elastic,
 │                             #   policy-as-code — démonstrateur OPA/Rego sur 3 contrôles, TF-0110)
+├── assets/polices/          # polices INCORPORÉES au thème (@font-face base64, TF-1020) + licence
+│                            #   — un tirage jugé sur son nombre de pages ne dépend plus du poste
 ├── config/tenants/<tenant>/ # overlays entreprise (branding, packs, aliases) — exemple = ACME fictif
 ├── deliverables/templates/  # gabarits des livrables (rapport, banc, matrices, + 6 nouveaux)
 ├── tools/                   # validate-config · build-theme · merge-packs · verifier · init · forge-adapter

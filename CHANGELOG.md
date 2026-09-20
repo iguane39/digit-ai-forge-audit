@@ -4,6 +4,127 @@ Versionnement SemVer (PADR-0005) : MAJEUR = rupture de schéma / retrait de cont
 MINEUR = nouveaux contrôles/ADR · PATCH = corrections. Chaque release liste les standards
 sources mis à jour.
 
+## [Non publié]
+
+### Ajouté
+- **TF-1175** (part forge-audit, retour Produit-62 RF-21, 17/09/2026) — **un OK de
+  `oracles/verifier-modele-semantique.mjs` ne se lit plus « livrable vérifié ».** Le 17/09, un
+  projet Power BI généré a passé 22 contrôles de recette et 7 contrôles d'audit, a été publié sur
+  GO humain, et ne rendait AUCUN visuel : la référence de source de chaque requête visuelle était
+  invalide (`SourceRef: {Entity, Name}` au lieu de `SourceRef: {Source: alias}`), le service
+  acceptait le fichier, et l'export PDF sortait 943 octets et 0 caractère après 560 s. 29 contrôles
+  PASS sur un livrable invisible, deux jours de mandat et deux diagnostics faux. Aucun contrôle qui
+  LIT le fichier ne voit ce défaut. L'oracle déclare désormais le RENDU en `non_juge`, en TÊTE de
+  liste, NOMME les rapports (`*.Report`) du projet PBIP qu'il laisse de côté — et seulement quand
+  ils existent, rien n'est deviné — et imprime le geste manquant avec sa ligne de verdict (publier,
+  `ExportTo` PDF, TÉLÉCHARGER le fichier, le rendre en image, juger durée / octets / texte extrait
+  par page / libellés d'erreur du service). Aucun verdict ni code de sortie n'est modifié : le
+  périmètre de l'oracle était légitime, c'est sa réserve qui manquait. Fixture à double sens
+  (`tests/fixtures/oracles/modele-semantique/projet-pbip/`) : un projet dont le modèle est
+  irréprochable et dont le rapport porte le défaut réel recopié — l'oracle rend OK, et c'est le
+  texte de sa réserve qui est jugé. 3 → 5 tests. Périmètre : la part forge-audit du retour ; l'oracle
+  de rendu proposé en (1) revient à forge-data, la règle de forme PBIR (2) n'est pas outillée ici.
+
+- **TF-1020** (17/09/2026) — **la police du corps voyage désormais DANS le livrable.** Le thème
+  porte ses `@font-face` incorporés en base64 (`assets/polices/`, Roboto sous SIL OFL 1.1, licence
+  et provenance jointes) : aucun téléchargement au rendu, aucun fichier à côté, le HTML reste
+  autoportant. Défaut d'origine (run de CI 34581219111, 11/09) : la pile `--font-body`
+  (`system-ui, Segoe UI, Roboto, Arial`) ne nommait que des polices DU POSTE ; la fiche sécurité
+  tenait sur une page sous Windows et sortait sur DEUX sur le runner Linux, où son propre juge P3
+  la refusait — neuvième publication rouge d'affilée, invisible depuis la machine qui produit.
+  La famille déclarée est `AuditCore Sans` et non `Roboto` : mesuré ici, un poste sans Roboto
+  installé rend quand même `font-family:Roboto` à 0,12 px près de la face incorporée, si bien
+  qu'aucune fixture ne pouvait plus prouver laquelle servait. Sous un nom qu'aucun poste ne
+  possède, la mesure tranche. Un tenant qui déclare sa propre pile garde la main (TF-1000) ;
+  `tools/verifier.mjs` DIT alors que son tirage redevient dépendant du poste, et dit aussi la face
+  embarquée — la seule condition de sa liste qui soit redevenue rejouable. Fixtures à double sens
+  dans `tools/build-theme.mjs --self-test` (5/5), `tests/oracles/recette-environnement.test.mjs`
+  (23 tests) et un cas de banc qui MESURE dans le moteur d'impression que la face résolue est bien
+  l'incorporée (`tests/oracles/fiche-securite.test.mjs`, 13 tests). Reste hors de portée de ce
+  poste : la preuve sur un vrai runner Linux, qui demande une publication humaine.
+
+- **TF-1102** (constat né en clôturant TF-1089, décidé sous mandat le 14/09/2026) — les DEUX autres
+  champs du bloc doctrinal TF-0563 (« Restriction d'accès effective », « Comptes externes / invités
+  en portée ») restaient sans règle après TF-1089, qui n'avait couvert que « Population
+  effectivement admise » (FS8). Les trois champs existent pour la MÊME raison (3 128 comptes
+  invités admis sans que la fiche le dise) : aucun n'est plus optionnel que les deux autres.
+  Règles sœurs FS10 et FS11 ajoutées à `oracles/verifier-fiche-securite.mjs` (factorisées avec FS8
+  dans un helper commun `champDuBloc`, bilingue FR/EN comme FS8) ; les deux champs rendus par
+  `tools/build-fiche.mjs` (section 5 · Exposition). Fixtures rouges dédiées (une ligne SUPPRIMÉE par
+  règle), self-test 14/14 → 16/16. La fiche complète (5 champs du bloc, tous remplis) tient
+  toujours sur UNE page A4 — prouvé par le test bout en bout réel (impression Edge + relecture PDF,
+  `tests/oracles/fiche-securite.test.mjs`), sans retente supplémentaire du rythme vertical au-delà
+  de celle déjà faite pour TF-1089.
+
+- **TF-1095** (restes archivés TF-0690, TF-0702, relevé P-2 du 14/09/2026) — la fiche sécurité rend
+  désormais VISIBLEMENT son gabarit et sa version en pied de page (`Gabarit :
+  gd-fiche-securite-auditcore · version du gabarit 1.0.0`, `tools/build-fiche.mjs`), même
+  convention que la règle G4 d'`oracle-gabarits-documents.mjs` du pilot. Défaut d'origine (TF-0690,
+  Produit-11, 27/08) : « ni gd-fiche-securite, ni version » — une instance périmée était invisible
+  sur l'artefact, sans registre pour la dater, y compris reçue par courriel hors de tout dépôt.
+  Règle FS9 ajoutée à `oracles/verifier-fiche-securite.mjs` : une fiche qui ne rend pas ce couple
+  est refusée. Fixture rouge dédiée, self-test 13/13 → 14/14. AUCUNE option `--gabarit` ajoutée à
+  `build-fiche.mjs` — la proposition originale de TF-0702 (accepter un gabarit HTML fourni par le
+  produit, une porte de sortie qui aurait contourné la cause plutôt que la mesurer) a été
+  délibérément écartée au profit de la mesure, conformément au dossier de campagne du 14/09
+  (« remplacer --gabarit par une mesure »).
+
+- **TF-1089** — `oracles/verifier-fiche-securite.mjs` : nouvelle règle FS8, la présence ET le
+  remplissage du champ « Population effectivement admise » (TF-0563, l'incident des 3 128 comptes
+  invités admis sans que la fiche le dise). Mesuré le 14/09/2026 (preuve de couverture P-1) : une
+  instance remplie SANS ce champ rendait déjà PASS sur FS1 à FS7 — ni le contrôle des placeholders
+  (FS1) ni celui des 8 sections (FS2) ne voient une LIGNE de champ supprimée à l'intérieur d'une
+  section par ailleurs complète. Fixtures à double sens : ligne absente (FAIL) et ligne présente
+  mais vide (FAIL), self-test 11/11 → 13/13.
+  **Écart constaté en le faisant** : `tools/build-fiche.mjs` (le seul générateur dont la sortie est
+  réellement jugée par cet oracle, `tests/oracles/fiche-securite.test.mjs`) n'avait JAMAIS reçu ce
+  champ — seul `deliverables/templates/fiche-securite.template.md` (le canevas markdown des kits
+  client, TF-0563/d8bb934) l'avait. Sans corriger aussi le générateur, FS8 aurait rendu invérifiable
+  toute fiche produite par cette forge. Champ `population_admise` ajouté à la section « 5 ·
+  Exposition » ; rythme vertical du tirage retendu (une ligne de table de plus suffisait à faire
+  déborder sur une 2e page — mesuré et corrigé localement, `tests/oracles/fiche-securite.test.mjs`
+  « TF-0700 — bout en bout », toujours 1 page).
+
+- **TF-1020 (diagnostic, NON CLOS)** — `tools/verifier.mjs` mesure désormais, dans les deux sens,
+  quelles polices de la pile `--font-body` du tenant de référence sont réellement présentes sur le
+  poste qui rejoue la recette (`policesPresentes`, fichier standard par plateforme, jamais deviné).
+  Fait qui motive cette mesure : le job `oracles (ubuntu-latest)` refuse la fiche sécurité sur P3
+  (2 pages pour 1 maximum, run 34581219111 du 11/09) alors que `oracles (windows-latest)` la rend
+  `ok` — la pile `system-ui, Segoe UI, Roboto, Arial` n'a AUCUNE police nommée installée sur ce
+  runner Linux, le navigateur y retombe sur DejaVu Sans (plus large) et le tirage déborde. Mesuré
+  ICI (poste Windows) : Segoe UI et Arial présentes, **Roboto absente même sur ce poste** — la
+  cause n'est donc pas hypothétique. LE CORRECTIF (police embarquée en `@font-face`, ou
+  `fonts-roboto` installée dans `.github/workflows/ci.yml` job `oracles`) N'EST PAS APPLIQUÉ ici :
+  aucun runner Linux disponible sur ce poste pour en prouver l'effet, aucun fichier de police
+  librement licencié disponible localement à embarquer sans deviner — appliquer l'un ou l'autre
+  sans preuve locale serait exactement le défaut que TF-1017 a coûté trois versions à corriger.
+  Fixtures à double sens (présente/absente/non mesurable) dans
+  `tests/oracles/recette-environnement.test.mjs` (+3, 127 → 130 tests, nombre mis à jour dans
+  `.github/workflows/ci.yml`).
+
+### Corrigé
+- **TF-1001** — `tools/verifier-rapport.mjs` : six champs que `rapport-engine.mjs` sait rendre
+  (`projet`, `date`, `indice`, `auditeur`, `syntheses`, `reprise`) pouvaient rester vides sans
+  qu'aucune porte machine ne le dise — le rapport les affichait blancs/« — », le plan de
+  remédiation embarqué portait `date: null`, et le manifeste d'écarts du rapport déclarait déjà
+  deux absences que personne ne lisait. Portés en AVERTISSEMENT nommé (non bloquant : légitimement
+  absents pour certains audits). Ajout d'une règle BLOQUANTE distincte : un `projet`/`titre` qui
+  répète le libellé de document que le moteur ajoute déjà (« Rapport d'audit ») dédouble le titre
+  rendu (mesuré : `Digit-AI - Rapport d'audit - Rapport d'audit - Produit-61`) — refusé. Fixture
+  rouge dédiée `tests/fixtures/rapport-data-titre-duplique.json`, câblée dans le job `batterie`
+  aux côtés des fixtures valide/invalide existantes ; `STR` exporté de `rapport-engine.mjs` pour
+  partager les libellés FR/EN entre moteur et vérificateur (source unique, pas de chaîne dupliquée).
+
+- **TF-1000** — `tools/build-theme.mjs` : la typographie d'un DESIGN.md (reliquat de scaffold,
+  potentiellement la charte d'exemple fictive livrée avec la forge) écrasait silencieusement une
+  `branding.typography` pourtant déclarée EXPLICITEMENT dans `tenant.yaml` — un rapport client a
+  été rendu dans la police d'un tenant fictif. Priorité inversée pour la typographie (le tenant
+  déclaré l'emporte, DESIGN.md ne comble que ce qui manque) ; auto-test à double sens
+  `node tools/build-theme.mjs --self-test`, câblé dans `.github/workflows/ci.yml` (job `batterie`).
+  Mesuré sur le tenant `exemple` : `--font-body` passe de `system-ui, Segoe UI, Roboto, Arial,
+  sans-serif` (DESIGN.md fictif) à `system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif`
+  (déclaration réelle du tenant).
+
 ## [1.18.0] — 2026-09-11
 
 > **MINEUR** au sens de PADR-0005 : cette version apporte de NOUVEAUX contrôles — portes machine de

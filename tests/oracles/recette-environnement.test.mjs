@@ -27,7 +27,10 @@ import { fileURLToPath } from 'node:url';
 import {
   etapes, blocEnv, nonRejouables, familleRunner, rejouer, shellPosix,
   verdictJournal, PLAFOND_ENREGISTREMENTS_SANS_JOURNAL, CHEMINS_JOURNALISES, JOURNAL,
+  policesPresentes,
 } from '../../tools/verifier.mjs';
+import { famillesEmbarquees } from '../../tools/build-theme.mjs';
+import { loadYaml } from '../../tools/lib.mjs';
 import { verdictEol, verdictNavigateur } from '../verdicts.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -194,6 +197,124 @@ test('VERT (aucun écart évitable) : ni plateforme, ni action, ni version de No
   // d'impression PRÉSENT ici est tout aussi non reproductible qu'un moteur absent.
   assert.equal(lignes.filter((l) => /moteur d'impression présent ici/.test(l)).length, 1);
   assert.equal(lignes.filter((l) => /accès réseau aux registres/.test(l)).length, 1);
+});
+
+// ───────────── 3. Polices du thème, mesurées (TF-1020) ─────────────
+//
+// FAIT mesuré le 11/09/2026 (run 34581219111) : le job `oracles (ubuntu-latest)` refuse la fiche
+// sécurité sur P3 (2 pages pour 1 maximum) alors que `oracles (windows-latest)` la rend `ok`. La
+// pile `--font-body` du thème (system-ui, Segoe UI, Roboto, Arial) n'a aucune de ses polices
+// nommées installée sur le runner Linux — le navigateur retombe sur DejaVu Sans, plus large, et le
+// tirage déborde. Ni le workflow (aucune installation de police) ni la recette (avant TF-1020)
+// n'en disaient rien : le poste de travail (Windows, Segoe UI présent) ne pouvait pas voir ce
+// défaut, il ne se voit que côté runner — exactement la classe de TF-1017 sur une DEUXIÈME
+// dimension de l'environnement (les polices), pas seulement le moteur d'impression.
+
+test('policesPresentes : ROUGE — une police cherchée mais absente du poste est dite, jamais tue', () => {
+  const table = { roboto: '/fonts/Roboto-Regular.ttf', 'segoe ui': '/fonts/segoeui.ttf', arial: '/fonts/arial.ttf' };
+  const existe = (p) => p === '/fonts/segoeui.ttf'; // seule Segoe UI « existe » dans cette fixture
+  const r = policesPresentes('system-ui, Segoe UI, Roboto, Arial, sans-serif', {
+    plateforme: 'linux', existe, table,
+  });
+  assert.deepEqual(r.cherchees, ['Segoe UI', 'Roboto', 'Arial']); // generiques system-ui/sans-serif exclus
+  assert.deepEqual(r.presentes, ['Segoe UI']);
+  assert.deepEqual(r.absentes, ['Roboto', 'Arial']);
+});
+
+test('policesPresentes : mesure réelle par plateforme, dans les DEUX sens (présente/absente/non mesurable)', () => {
+  // VERT — présente : le chemin connu existe.
+  let r = policesPresentes('Roboto, Arial, sans-serif', { plateforme: 'linux', existe: () => true });
+  assert.deepEqual(r.presentes, ['Roboto', 'Arial']);
+  assert.deepEqual(r.absentes, []);
+  // ROUGE — absente : le chemin connu n'existe pas (le cas réel du run ubuntu du 11/09).
+  r = policesPresentes('Roboto, Arial, sans-serif', { plateforme: 'linux', existe: () => false });
+  assert.deepEqual(r.absentes, ['Roboto', 'Arial']);
+  assert.deepEqual(r.presentes, []);
+  // NON MESURABLE — une famille sans chemin connu dans la table de cette plateforme n'est ni
+  // présente ni absente : deviner serait le même défaut que se taire.
+  r = policesPresentes('Comic Sans MS, sans-serif', { plateforme: 'linux', existe: () => true });
+  assert.deepEqual(r.nonMesurables, ['Comic Sans MS']);
+  assert.deepEqual(r.presentes, []);
+  assert.deepEqual(r.absentes, []);
+  // Les mots-clés génériques (system-ui, -apple-system, sans-serif…) ne sont jamais des polices à
+  // mesurer : ils résolvent à ce que l'OS choisit, pas à un fichier nommé.
+  r = policesPresentes('system-ui, -apple-system, sans-serif', { plateforme: 'linux', existe: () => true });
+  assert.deepEqual(r.cherchees, []);
+});
+
+// ── LA CORRECTION (TF-1020, 17/09/2026) : la face EMBARQUÉE sort du classement du poste.
+// Une famille incorporée au thème (`@font-face` base64, tools/build-theme.mjs) n'est ni présente
+// ni absente de cette machine — la question ne se pose plus, elle voyage DANS le livrable. La
+// ranger parmi les « présentes » dirait « ce poste l'a », vrai ici et faux sur le runner : c'est
+// exactement le raisonnement qui a laissé passer neuf publications rouges.
+test('policesPresentes : une famille EMBARQUÉE ne se classe ni présente ni absente (TF-1020)', () => {
+  const table = { 'segoe ui': '/fonts/segoeui.ttf' };
+  // VERT — la face incorporée sort à part, même si aucun fichier n'existe sur ce poste.
+  let r = policesPresentes('AuditCore Sans, system-ui, sans-serif', {
+    plateforme: 'linux', existe: () => false, table, embarquees: ['AuditCore Sans'],
+  });
+  assert.deepEqual(r.embarquees, ['AuditCore Sans']);
+  assert.deepEqual(r.absentes, []);
+  assert.deepEqual(r.presentes, []);
+  assert.deepEqual(r.nonMesurables, []);
+  // ROUGE — la MÊME pile sans que rien ne soit embarqué : la famille redevient une inconnue du
+  // poste, et le tirage redevient dépendant de la machine. C'est l'état d'avant la correction.
+  r = policesPresentes('AuditCore Sans, system-ui, sans-serif', {
+    plateforme: 'linux', existe: () => false, table, embarquees: [],
+  });
+  assert.deepEqual(r.embarquees, []);
+  assert.deepEqual(r.nonMesurables, ['AuditCore Sans']);
+  // ROUGE — une pile qui ne nomme que des polices du poste ne gagne rien à ce que le thème
+  // embarque par ailleurs : elle reste jugée sur ce que la machine possède.
+  r = policesPresentes('Segoe UI, sans-serif', {
+    plateforme: 'linux', existe: () => false, table, embarquees: ['AuditCore Sans'],
+  });
+  assert.deepEqual(r.embarquees, []);
+  assert.deepEqual(r.absentes, ['Segoe UI']);
+});
+
+test('la pile du tenant de référence est EFFECTIVEMENT couverte par la face embarquée (TF-1020)', () => {
+  // Le contrôle qui compte : pas « une face existe quelque part » mais « la pile qui IMPRIME la
+  // fiche sécurité ne nomme plus aucune police du poste ». Mesuré sur les fichiers du dépôt.
+  const pile = loadYaml(path.join(RACINE, 'config', 'tenants', 'exemple', 'tenant.yaml'))
+    .branding?.typography?.body ?? '';
+  const r = policesPresentes(pile);
+  assert.deepEqual(r.embarquees, famillesEmbarquees(),
+    `la pile « ${pile} » ne commence pas par la ou les familles embarquées ${famillesEmbarquees().join(', ')}`);
+  assert.deepEqual([...r.presentes, ...r.absentes, ...r.nonMesurables], [],
+    `la pile du tenant de référence nomme encore des polices DU POSTE : ${[...r.presentes, ...r.absentes, ...r.nonMesurables].join(', ')} `
+    + '— le nombre de pages de son tirage redevient dépendant de la machine qui imprime');
+});
+
+test('nonRejouables dit les polices du thème dans les DEUX sens, jamais en silence', () => {
+  const rouge = nonRejouables(WF_SANS_ECART, {
+    plateforme: 'linux', navigateur: '/usr/bin/chromium', navigateursCherches: ['/usr/bin/chromium'],
+    polices: { cherchees: ['Segoe UI', 'Roboto', 'Arial'], presentes: [], absentes: ['Segoe UI', 'Roboto', 'Arial'], nonMesurables: [] },
+  });
+  assert.equal(rouge.filter((l) => /police\(s\) du thème ABSENTE\(S\) ici : Segoe UI, Roboto, Arial/.test(l)).length, 1);
+  assert.equal(rouge.filter((l) => /police\(s\) du thème présente/.test(l)).length, 0);
+
+  const vert = nonRejouables(WF_SANS_ECART, {
+    plateforme: 'windows', navigateur: '/usr/bin/chromium', navigateursCherches: ['/usr/bin/chromium'],
+    polices: { cherchees: ['Segoe UI', 'Arial'], presentes: ['Segoe UI', 'Arial'], absentes: [], nonMesurables: [] },
+  });
+  assert.equal(vert.filter((l) => /police\(s\) du thème présente\(s\) ici : Segoe UI, Arial/.test(l)).length, 1);
+  assert.equal(vert.filter((l) => /police\(s\) du thème ABSENTE/.test(l)).length, 0);
+
+  // Sans info de police injectée (compat. arrière : aucun appelant existant ne casse), rien n'est dit.
+  const silencieux = nonRejouables(WF_SANS_ECART, { plateforme: 'linux', navigateur: '/usr/bin/chromium', navigateursCherches: [] });
+  assert.equal(silencieux.filter((l) => /police\(s\) du thème/.test(l)).length, 0);
+
+  // TF-1020 — la face EMBARQUÉE se dit elle aussi, et elle se dit comme ce qu'elle est : la seule
+  // condition de cette liste qui soit redevenue rejouable. Le taire laisserait croire que la
+  // recette n'a rien à dire des polices, alors qu'elle a justement cessé d'avoir à s'en inquiéter.
+  const embarquee = nonRejouables(WF_SANS_ECART, {
+    plateforme: 'linux', navigateur: '/usr/bin/chromium', navigateursCherches: ['/usr/bin/chromium'],
+    polices: { cherchees: ['AuditCore Sans'], presentes: [], absentes: [], nonMesurables: [], embarquees: ['AuditCore Sans'] },
+  });
+  assert.equal(embarquee.filter((l) => /police\(s\) du thème EMBARQUÉE\(S\) dans le livrable : AuditCore Sans/.test(l)).length, 1);
+  assert.equal(embarquee.filter((l) => /NE DÉPEND PLUS des polices du poste/.test(l)).length, 1);
+  assert.equal(embarquee.filter((l) => /police\(s\) du thème (ABSENTE|présente|NON MESURABLE)/.test(l)).length, 0);
 });
 
 test('familleRunner : la plateforme Node se lit en famille de runner', () => {

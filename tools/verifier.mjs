@@ -56,6 +56,8 @@ import path, { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { NAVIGATEURS, trouverNavigateur } from './fiche-en-pdf.mjs';
+import { famillesEmbarquees } from './build-theme.mjs';
+import { loadYaml } from './lib.mjs';
 
 export const ICI = join(import.meta.dirname, '..');
 const WORKFLOWS = join(ICI, '.github', 'workflows');
@@ -180,6 +182,49 @@ export function etapes(brut) {
 export const familleRunner = (plateforme) =>
   ({ win32: 'windows', darwin: 'macos', linux: 'ubuntu' })[plateforme] ?? String(plateforme);
 
+// TF-1020 — le fichier standard d'une police connue, par plateforme. Une police tirée par un
+// navigateur pour l'impression (ex. la fiche sécurité) n'est identique d'un poste à l'autre QUE si
+// cette table sait la trouver ; une famille absente de la table n'est pas dite « absente », elle
+// est dite « non mesurable ici » — deviner un manque qu'on n'a pas les moyens de voir serait le
+// même défaut que ne rien dire (TF-1017).
+export const FICHIERS_POLICES = {
+  win32: { 'segoe ui': 'C:/Windows/Fonts/segoeui.ttf', arial: 'C:/Windows/Fonts/arial.ttf',
+    roboto: 'C:/Windows/Fonts/Roboto-Regular.ttf', 'dejavu sans': 'C:/Windows/Fonts/DejaVuSans.ttf' },
+  linux: { 'dejavu sans': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+    roboto: '/usr/share/fonts/truetype/roboto/Roboto-Regular.ttf',
+    arial: '/usr/share/fonts/truetype/msttcorefonts/Arial.ttf', 'segoe ui': '/usr/share/fonts/truetype/segoe/segoeui.ttf' },
+  darwin: { arial: '/Library/Fonts/Arial.ttf', roboto: '/Library/Fonts/Roboto-Regular.ttf',
+    'segoe ui': '/Library/Fonts/Segoe UI.ttf', 'dejavu sans': '/Library/Fonts/DejaVuSans.ttf' },
+};
+const GENERIQUES = /^(system-ui|-apple-system|ui-sans-serif|sans-serif|serif|monospace|blinkmacsystemfont)$/i;
+
+/**
+ * Les familles de police d'une pile CSS réellement PRÉSENTES sur ce poste — MESURÉE (fichier
+ * standard trouvé sur disque), jamais devinée. Fonction PURE (le chemin de police et le
+ * détecteur `existe` sont injectés) pour qu'une fixture la joue dans les deux sens sans poser de
+ * fichier réel — TF-1020, proposition (b).
+ *
+ * Une famille EMBARQUÉE au thème (`@font-face` en base64, TF-1020 proposition (a)) sort à part :
+ * elle n'est ni « présente » ni « absente » du poste, la question ne se pose plus — elle voyage
+ * DANS le livrable. La ranger parmi les présentes dirait « ce poste l'a », ce qui est vrai ici et
+ * faux ailleurs ; c'est justement le raisonnement qui a laissé passer neuf publications rouges.
+ */
+export function policesPresentes(pileFontFamily, { plateforme = process.platform,
+  existe = (p) => { try { return existsSync(p); } catch { return false; } },
+  table = FICHIERS_POLICES[plateforme] ?? {}, embarquees = famillesEmbarquees() } = {}) {
+  const cherchees = (pileFontFamily || '').split(',').map((f) => f.trim().replace(/^["']|["']$/g, ''))
+    .filter((f) => f && !GENERIQUES.test(f));
+  const incorporees = new Set((embarquees ?? []).map((f) => f.toLowerCase()));
+  const presentes = [], absentes = [], nonMesurables = [], embarquee = [];
+  for (const f of cherchees) {
+    if (incorporees.has(f.toLowerCase())) { embarquee.push(f); continue; }
+    const chemin = table[f.toLowerCase()];
+    if (!chemin) { nonMesurables.push(f); continue; }
+    (existe(chemin) ? presentes : absentes).push(f);
+  }
+  return { cherchees, presentes, absentes, nonMesurables, embarquees: embarquee };
+}
+
 /**
  * TOUT ce que ce poste ne reproduit pas du runner, une ligne par condition. Fonction PURE : elle
  * prend le texte du workflow et l'état observé du poste, pour qu'une fixture puisse la mettre dans
@@ -187,7 +232,7 @@ export const familleRunner = (plateforme) =>
  * écart qui a coûté huit exécutions rouges avant d'être vu.
  */
 export function nonRejouables(brut, { plateforme = process.platform, nodeVersion = process.version,
-  navigateur = null, navigateursCherches = [] } = {}) {
+  navigateur = null, navigateursCherches = [], polices = null } = {}) {
   const lignes = [];
   const famille = familleRunner(plateforme);
 
@@ -238,6 +283,31 @@ export function nonRejouables(brut, { plateforme = process.platform, nodeVersion
     + `reproductible : ce qui répond depuis ce poste peut ne pas répondre depuis un runner, et `
     + `l'inverse. Les contrôles concernés doivent rendre le MÊME verdict des deux côtés : un `
     + `registre injoignable est un SKIP motivé, jamais un échec d'un côté et un silence de l'autre.`);
+
+  // 7. Polices du thème (TF-1020) : un rendu jugé sur un NOMBRE DE PAGES (la fiche sécurité, par
+  //    exemple) dépend de la police effectivement substituée par le moteur d'impression. Dite dans
+  //    les DEUX sens — présente ou absente, jamais une des deux en silence — et « non mesurable »
+  //    quand ce poste n'a pas de chemin connu pour la vérifier (une lacune de la table, pas de la
+  //    police).
+  if (polices && polices.cherchees.length) {
+    if (polices.embarquees?.length)
+      lignes.push(`police(s) du thème EMBARQUÉE(S) dans le livrable : ${polices.embarquees.join(', ')} `
+        + `— incorporée(s) en @font-face base64, sans téléchargement au rendu : sur cette/ces `
+        + `famille(s) le tirage NE DÉPEND PLUS des polices du poste, ici comme sur le runner. `
+        + `C'est une condition redevenue rejouable, la seule de cette liste.`);
+    if (polices.absentes.length)
+      lignes.push(`police(s) du thème ABSENTE(S) ici : ${polices.absentes.join(', ')} — un tirage `
+        + `jugé sur son nombre de pages peut déborder sur une page de plus selon la police de repli `
+        + `réellement substituée ; non embarquée (@font-face), elle ne voyage pas avec le livrable.`);
+    if (polices.presentes.length)
+      lignes.push(`police(s) du thème présente(s) ici : ${polices.presentes.join(', ')} — un poste `
+        + `qui ne les a pas rendrait un tirage différent (marges, débordement, nombre de pages) ; `
+        + `non embarquée (@font-face), elle ne voyage pas avec le livrable.`);
+    if (polices.nonMesurables.length)
+      lignes.push(`police(s) du thème NON MESURABLE(S) ici : ${polices.nonMesurables.join(', ')} — `
+        + `aucun chemin connu pour cette famille sur « ${famille} » (table à compléter) : ni présente `
+        + `ni absente, non vérifiée.`);
+  }
 
   return lignes;
 }
@@ -325,7 +395,13 @@ function principal(args) {
   }
 
   const navigateur = trouverNavigateur();
-  const ecarts = bruts.flatMap((b) => nonRejouables(b, { navigateur, navigateursCherches: NAVIGATEURS }));
+  // TF-1020 : la pile déclarée par le tenant de référence — celle qui imprime la fiche sécurité
+  // jugée sur son nombre de pages (oracles/verifier-fiche-securite.mjs, tools/fiche-en-pdf.mjs).
+  const TENANT_EXEMPLE = join(ICI, 'config', 'tenants', 'exemple', 'tenant.yaml');
+  const pileFontBody = existsSync(TENANT_EXEMPLE)
+    ? loadYaml(TENANT_EXEMPLE).branding?.typography?.body ?? '' : '';
+  const polices = policesPresentes(pileFontBody);
+  const ecarts = bruts.flatMap((b) => nonRejouables(b, { navigateur, navigateursCherches: NAVIGATEURS, polices }));
 
   if (listeSeule) {
     for (const e of toutes) {

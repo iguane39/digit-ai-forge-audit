@@ -53,11 +53,24 @@ jobs:
           if node tools/verifier-rapport.mjs tests/fixtures/rapport-data-invalid.json > /dev/null 2>&1; then
             echo "REGRESSION: rapport invalide accepté"; exit 1
           fi
+          # TF-1001 : un titre qui répète le libellé de document ajouté par le moteur
+          # (« Digit-AI — Rapport d'audit — Rapport d'audit - Produit-61 », mesuré le 09/09) doit
+          # être REFUSÉ — même quand les autres champs de rapport-data.json sont par ailleurs valides.
+          if node tools/verifier-rapport.mjs tests/fixtures/rapport-data-titre-duplique.json > /dev/null 2>&1; then
+            echo "REGRESSION: titre dédoublé accepté"; exit 1
+          fi
 
       - name: Kits marque-blanche (2 tenants fictifs)
         run: |
           node tools/build-kit.mjs config/tenants/exemple/tenant.yaml --kind both
           node tools/build-kit.mjs tests/fixtures/tenant-valid-min.yaml --kind both
+
+      # TF-1000 : un rapport client rendu dans la police d'une charte FICTIVE — DESIGN.md
+      # (reliquat de scaffold) écrasait silencieusement une typographie pourtant déclarée
+      # explicitement dans tenant.yaml. Auto-test à double sens : la déclaration explicite
+      # gagne (rouge rejoué) ET le repli sur DESIGN.md reste intact sans elle (vert).
+      - name: Thème — priorité de la typographie explicite du tenant (TF-1000)
+        run: node tools/build-theme.mjs --self-test
 
       - name: Rendu rapport + catalogue (moteurs M5/M7)
         run: |
@@ -111,7 +124,7 @@ jobs:
       - name: Dépendances outillage
         run: npm ci || npm install
 
-      - name: Batterie des oracles (127 tests — projet, rendu du rapport, porte de clôture)
+      - name: Batterie des oracles (135 tests — projet, rendu du rapport, porte de clôture)
         # TF-0553 (24/08) : les DEUX ensembles etaient disjoints DANS LES DEUX SENS. La CI jouait
         # sept fichiers d'oracles, le `npm test` local en jouait deux AUTRES — build-fiche-destination
         # et verifier-pdf n'etaient donc joues par AUCUNE chaine automatique. Ils entrent ici, et le

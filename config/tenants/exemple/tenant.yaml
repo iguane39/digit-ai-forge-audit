@@ -17,7 +17,13 @@ branding:
     standard: "#136e34"
     favicon: "#3B5BDB"
     brand-bg: "#1A1A2E"
-  typography: { body: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif", mono: "JetBrains Mono, Consolas, monospace" }
+  # TF-1020 : « AuditCore Sans » d'abord — la police INCORPORÉE au thème (assets/polices/, Roboto
+  # sous SIL OFL 1.1), sous un nom qu'aucun poste ne peut posséder. La pile précédente commençait
+  # par `system-ui`, qui résout partout et résout DIFFÉREMMENT partout : la fiche sécurité tenait
+  # sur une page sous Windows (Segoe UI) et sortait sur DEUX sur le runner Linux (repli DejaVu
+  # Sans, plus large), où son propre juge la refusait. Le reste de la pile n'est qu'un filet si le
+  # thème était amputé de ses faces.
+  typography: { body: "AuditCore Sans, system-ui, sans-serif", mono: "JetBrains Mono, Consolas, monospace" }
 domains:
   - { code: "00", key: meta,          label: "Méta & Gouvernance ADR",     color: "#6e7b8a" }
   - { code: "01", key: org-gov,       label: "Organisation & Gouvernance", color: "#3B5BDB" }

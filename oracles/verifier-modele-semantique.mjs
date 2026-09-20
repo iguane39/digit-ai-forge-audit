@@ -28,10 +28,12 @@
 //   MS6  au moins un rôle de sécurité (`role`) est défini — sinon MAJEUR (sécurité au niveau
 //        ligne absente : à justifier dans le dossier de mise en production).
 //
-// Ce que ce contrôle ne juge PAS (déclaré, jamais tu) : le statut de certification et le
-// propriétaire dans le portail (CTL-D05-01/15 : métadonnées de service, hors fichiers) ; la
-// justesse des expressions DAX ; la performance ; l'accessibilité des rapports (D11) ; la
-// contiguïté RÉELLE des dates (elle se mesure sur la donnée, pas sur la définition).
+// Ce que ce contrôle ne juge PAS (déclaré, jamais tu) : LE RENDU DU RAPPORT DANS L'OUTIL — un OK
+// ici ne vaut PAS « livrable vérifié », et la ligne de verdict le dit avec le geste qui manque
+// (TF-1175) ; le statut de certification et le propriétaire dans le portail (CTL-D05-01/15 :
+// métadonnées de service, hors fichiers) ; la justesse des expressions DAX ; la performance ;
+// l'accessibilité des rapports (D11) ; la contiguïté RÉELLE des dates (elle se mesure sur la
+// donnée, pas sur la définition).
 //
 // Exit 0 = aucun constat bloquant ni majeur · 1 = au moins un constat bloquant ou majeur · 2 = usage.
 // =============================================================================
@@ -45,7 +47,52 @@ const outArg = opt('--out');
 if (!modeleArg) { console.error('usage: node verifier-modele-semantique.mjs --modele <dossier definition/> [--out rapport.json]'); process.exit(2); }
 if (!fs.existsSync(modeleArg) || !fs.statSync(modeleArg).isDirectory()) { console.error(`dossier introuvable : ${modeleArg}`); process.exit(2); }
 
+// ── TF-1175 (17/09/2026) : UN PASS D'AUDIT N'EST PAS « LIVRABLE VÉRIFIÉ » ─────────────────────
+// Le fait : un projet Power BI généré passe 22 contrôles de recette et 7 contrôles d'audit, est
+// publié sur GO humain le 16/09 — et ne rend AUCUN visuel. La requête de chaque visuel était
+// invalide (`SourceRef: {Entity, Name}` au lieu de `SourceRef: {Source: alias}`), le service
+// acceptait le fichier, le rapport restait en « Chargement… » et l'export PDF rendait des pages
+// vides après 560 s. 29 contrôles PASS sur un livrable invisible, deux jours de mandat et deux
+// diagnostics faux. Aucun de ces défauts n'est visible d'un contrôle qui LIT le fichier.
+// Cet oracle-ci lit des fichiers TMDL. Il ne peut donc pas juger le rendu, et ce n'est pas un
+// reproche — c'est un périmètre. Ce qui était un défaut, c'est que son OK se lisait « livrable
+// vérifié » alors qu'il ne dit rien de ce que le lecteur voit. Il le DIT désormais, et il NOMME
+// le geste qui manque, au rapport JSON comme à la ligne de verdict.
+const GESTE_RENDU = 'publier le rapport, lancer un export PDF par l\'API du service (ExportTo), '
+  + 'TÉLÉCHARGER le fichier produit et le rendre en image, puis juger sur la durée, le poids en '
+  + 'octets, le texte extrait non vide page par page, et l\'absence des libellés d\'erreur du '
+  + 'service (« Query has exceeded the available resources », « Something\'s wrong with one or '
+  + 'more fields », « Couldn\'t load the data ») — un « Succeeded » d\'export ne prouve rien, '
+  + 'c\'est lui qui a été cru pendant deux jours.';
+
+/**
+ * Les rapports (`*.Report`) qui accompagnent ce modèle dans le même projet PBIP. Nommés quand ils
+ * existent, jamais inventés quand ils n'existent pas : une déclaration générique s'oublie, une
+ * déclaration qui NOMME le rapport non jugé se remarque.
+ */
+function rapportsVoisins(dossierModele) {
+  let d = path.resolve(dossierModele);
+  if (/^definition$/i.test(path.basename(d))) d = path.dirname(d);
+  if (!/\.SemanticModel$/i.test(path.basename(d))) return [];
+  const projet = path.dirname(d);
+  try {
+    return fs.readdirSync(projet, { withFileTypes: true })
+      .filter((e) => e.isDirectory() && /\.Report$/i.test(e.name)).map((e) => e.name).sort();
+  } catch { return []; }
+}
+
+const RAPPORTS = rapportsVoisins(modeleArg);
 const NON_JUGE = [
+  // TF-1175 en tête : c'est ce qui manque le plus au lecteur d'un PASS.
+  `LE RENDU DU RAPPORT DANS L'OUTIL — ce contrôle lit des FICHIERS de modèle et ne juge RIEN de ce `
+  + `que le lecteur voit : ni que les visuels rendent, ni que les requêtes visuelles sont valides `
+  + `(forme des références de source PBIR), ni que l'export du rapport produit autre chose qu'une `
+  + `page vide. Un verdict OK ici ne vaut PAS « livrable vérifié ». Geste de vérification manquant, `
+  + `à exécuter avant toute remise : ${GESTE_RENDU}`,
+  ...(RAPPORTS.length
+    ? [`rapport(s) PRÉSENT(S) dans ce projet et NON JUGÉ(S) ici : ${RAPPORTS.join(', ')} — leur `
+      + `définition (PBIR) n'est pas lue par cet oracle et leur rendu encore moins`]
+    : []),
   'statut de certification et propriétaire du modèle (CTL-D05-01 / CTL-D05-15) : métadonnées du portail, hors fichiers',
   'justesse des expressions DAX — seule leur unicité et leur format sont jugés',
   'performance du modèle et contiguïté RÉELLE de la table de dates (mesure sur la donnée, pas sur la définition)',
@@ -184,5 +231,12 @@ const rapport = {
 const txt = JSON.stringify(rapport, null, 2);
 if (outArg) fs.writeFileSync(outArg, txt + '\n');
 console.log(txt);
-console.log(durs.length ? `\nverdict : ${verdict} — ${durs.length} constat(s) bloquant(s) ou majeur(s)` : '\nverdict : OK — Aucun constat bloquant ni majeur (MS1-MS6)');
+console.log(durs.length ? `\nverdict : ${verdict} — ${durs.length} constat(s) bloquant(s) ou majeur(s)` : '\nverdict : OK — Aucun constat bloquant ni majeur (MS1-MS6) SUR LE MODÈLE');
+// TF-1175 — la réserve accompagne le verdict LÀ OÙ IL SE LIT, pas seulement dans un tableau JSON
+// que personne n'ouvre. C'est la ligne qui manquait quand 29 contrôles PASS ont valu remise d'un
+// rapport qui ne rendait aucun visuel.
+console.log(`non jugé : LE RENDU DU RAPPORT DANS L'OUTIL. ${verdict === 'OK' ? 'Ce OK' : 'Ce verdict'} porte sur des `
+  + `FICHIERS de modèle et ne vaut PAS « livrable vérifié »`
+  + (RAPPORTS.length ? ` — le projet porte ${RAPPORTS.length} rapport(s) non jugé(s) ici : ${RAPPORTS.join(', ')}` : '')
+  + `.\ngeste manquant : ${GESTE_RENDU}`);
 process.exit(durs.length ? 1 : 0);

@@ -1,0 +1,25 @@
+{
+  "_commentaire": "FIXTURE TF-1175 — le defaut reel du 17/09/2026, recopie : la reference de source d un visuel PBIR porte {Entity, Name} au lieu de {Source: alias}. Le service ACCEPTE le fichier, le rapport reste en « Chargement de votre rapport... » et l export PDF rend des pages vides apres 560 s. Ce fichier n est PAS lu par verifier-modele-semantique.mjs, et c est precisement ce que la fixture prouve : le modele a cote est irreprochable, l oracle rend OK, et ce OK ne vaut pas « livrable verifie ».",
+  "name": "tableau-ventes",
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": { "SourceRef": { "Entity": "Ventes", "Name": "v" } },
+                  "Property": "Montant HT"
+                }
+              },
+              "queryRef": "Ventes.Montant HT",
+              "nativeQueryRef": "Montant HT"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

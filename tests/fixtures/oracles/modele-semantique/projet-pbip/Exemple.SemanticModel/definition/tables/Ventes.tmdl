@@ -1,0 +1,34 @@
+table Ventes
+	lineageTag: 0d2f1c00-0000-4000-8000-000000000001
+
+	measure 'Montant HT' = SUM(Ventes[montant_ht])
+		formatString: #,0.00
+		lineageTag: 0d2f1c00-0000-4000-8000-000000000002
+
+	measure Commandes = DISTINCTCOUNT(Ventes[id_commande])
+		formatString: #,0
+
+	column id_commande
+		dataType: int64
+		isHidden
+		summarizeBy: none
+
+	column date_sk
+		dataType: int64
+		isHidden
+
+	column client_sk
+		dataType: int64
+		isHidden
+
+	column montant_ht
+		dataType: decimal
+		summarizeBy: sum
+
+	partition Ventes = m
+		mode: import
+		source =
+				let
+				    Source = Databricks.Catalogs("adb-0000000000000000.0.azuredatabricks.net", "/sql/1.0/warehouses/exemple", [])
+				in
+				    Source
