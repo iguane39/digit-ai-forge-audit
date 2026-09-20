@@ -7,6 +7,16 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-0940** (part forge-audit, décision humaine D-4 (b) du 20/09/2026 — **étape 0**) — **le chemin
+  ERD du moteur de rapport entre sous contrôle automatique.** Mesuré avant : `rapport-data-valid.json`,
+  la fixture jouée par la CI, ne porte AUCUN `db_schema` ; `rapport-data-riche.json`, la seule qui en
+  porte un, n'était consommée par personne (zéro occurrence dans tout le dépôt). Le schéma de base de
+  données et son dictionnaire se rendaient donc sans juge — et le contrôle de cohérence
+  ERD/dictionnaire de `verifier-rapport-html.mjs` ne s'exerçait sur rien. La fixture riche est bâtie
+  et **jugée par le gate de rendu** au même titre que l'autre, avec deux assertions neutres au moteur
+  (la vue « Architecture & BDD » existe, le marquage PII est présent) : elles survivent à la bascule
+  de moteur qui suit, et c'est le « avant » qu'aucune bascule n'avait.
+
 - **TF-1183** (part forge-audit, reste déclaré de TF-1175 / RF-21 (2), 20/09/2026) — **la forme
   native des expressions PBIR est jugée**, par `oracles/verifier-rapport-pbir.mjs`. C'était le
   reste : le 17/09, 29 contrôles PASS sur un rapport Power BI qui ne rendait AUCUN visuel, parce

@@ -72,11 +72,21 @@ jobs:
       - name: Thème — priorité de la typographie explicite du tenant (TF-1000)
         run: node tools/build-theme.mjs --self-test
 
+      # TF-0940 (étape 0, 20/09/2026) : le CHEMIN ERD du moteur n'était rendu par AUCUN contrôle
+      # automatique. `rapport-data-valid.json` ne porte pas de `db_schema`, et `rapport-data-riche.json`
+      # — la seule fixture qui en porte un — n'était consommée par personne (mesuré : zéro occurrence
+      # dans tout le dépôt). Le schéma de base de données et son dictionnaire se rendaient donc sans
+      # juge, et une bascule de moteur n'aurait eu aucun « avant » à ne pas régresser. Cette fixture
+      # entre ici, et sa sortie passe le gate de rendu comme l'autre.
       - name: Rendu rapport + catalogue (moteurs M5/M7)
         run: |
           node tools/build-rapport.mjs tests/fixtures/rapport-data-valid.json --tenant config/tenants/exemple/tenant.yaml --out /tmp/rapport.html
+          node tools/build-rapport.mjs tests/fixtures/rapport-data-riche.json --tenant config/tenants/exemple/tenant.yaml --out /tmp/rapport-riche.html
           node tools/build-catalogue.mjs config/tenants/exemple/tenant.yaml --out /tmp/catalogue.html
           grep -q 'id="v-regles"' /tmp/rapport.html && grep -q "Catalogue ADR" /tmp/catalogue.html
+          # La vue « Architecture & BDD » EXISTE dans le rendu riche (assertion neutre au moteur :
+          # elle survit à la bascule de TF-0940) et son dictionnaire porte le marquage PII.
+          grep -q 'id="v-schemas"' /tmp/rapport-riche.html && grep -q 'PII 🔒' /tmp/rapport-riche.html
 
       # Le rendu produit passe son PROPRE gate : contrat de restitution (vues appariées au
       # sommaire, KPI complets, manifeste d'écarts, tableaux longs filtrables) ET moteur JS
@@ -97,7 +107,11 @@ jobs:
           node tools/fiche-en-pdf.mjs --self-test
 
       - name: Gate de rendu du rapport (restitution + moteur exécuté)
-        run: node tools/verifier-rapport-html.mjs /tmp/rapport.html
+        run: |
+          node tools/verifier-rapport-html.mjs /tmp/rapport.html
+          # TF-0940 (étape 0) : le rendu QUI PORTE UN SCHÉMA DE BASE passe le même gate — c'est là
+          # que vit le contrôle de cohérence ERD/dictionnaire, qui ne s'exerçait sur rien.
+          node tools/verifier-rapport-html.mjs /tmp/rapport-riche.html
 
   # ── Oracles PROJET (ECR-01/03) : contrôles exécutés contre le système audité.
   # Matrice {ubuntu, windows} exigée : `runCmd` porte des gardes spécifiques Windows
