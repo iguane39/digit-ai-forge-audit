@@ -10,7 +10,16 @@ Loi commune : *un ✓ sans oracle exécuté n'est pas un ✓*. Le format conform
 **ne prouvent pas** que l'application fonctionne — seule l'exécution du parcours contre
 l'environnement déployé le prouve.
 
-## Les sept oracles
+## Les oracles
+
+<!-- LE COMPTE NE S'ÉCRIT PAS DANS LE TITRE (TF-1246, constat annexe de la campagne du 20/09/2026,
+     corrigé le 22/09/2026). Ce titre annonçait « sept oracles » au-dessus d'un tableau qui en
+     comptait NEUF : `verifier-modele-semantique.mjs` (TF-0862) et `verifier-rapport-pbir.mjs`
+     (TF-1183) sont entrés sans que le nombre bouge. Le remède n'est pas de réécrire « neuf » —
+     un compte affirmé au lieu d'être dérivé mentira au prochain ajout, exactement comme le
+     « 11/11 » de `bootstrap.test.mjs` a menti dans le pilot le 23/08. Le titre ne porte donc plus
+     de nombre : le tableau ci-dessous EST le compte. -->
+
 
 | Script | Ce qu'il prouve | Sortie non nulle |
 |---|---|---|
