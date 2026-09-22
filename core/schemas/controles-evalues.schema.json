@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "auditcore/controles-evalues.schema.json",
+  "title": "AuditCore <rapport>.controles-evalues.json — CONTRAT D'INTERFACE 1.0.0",
+  "$comment": "TF-1235 (22/09/2026). Compagnon de remediation-actions.yaml : la liste des contrôles EFFECTIVEMENT évalués par un audit, et leur verdict. Le plan d'actions dit ce qui échoue ; ce fichier dit ce qui a été joué. Un tiers qui joint un plan d'amélioration à l'audit s'en sert pour tracer la frontière : un constat rattachable à un contrôle évalué est une remédiation, citée par son identifiant, jamais recopiée. Produit par tools/build-rapport.mjs depuis la même donnée que le rapport, avec la même audit_ref que le YAML.",
+  "x-contrat": {
+    "version": "1.0.0",
+    "cles_de_jonction": {
+      "audit_ref": "identique à celle de remediation-actions.yaml du même audit — c'est ce qui prouve que les deux fichiers parlent du même audit",
+      "controles[].id": "identifiant du contrôle (CTL-Dxx-nn), à rapprocher de control_ref des actions"
+    },
+    "evolution": "ajout d'un champ facultatif = version mineure ; retrait, renommage ou resserrement = version majeure, annoncée au CHANGELOG avant publication"
+  },
+  "type": "object",
+  "required": ["contrat", "audit_ref", "core_version", "total", "compte", "controles"],
+  "properties": {
+    "contrat": { "type": "string", "pattern": "^controles-evalues@[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "audit_ref": { "type": "string", "minLength": 1 },
+    "core_version": { "type": "string" },
+    "total": { "type": "integer", "minimum": 0 },
+    "compte": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "controles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "verdict"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "dimension": { "type": ["string", "null"], "pattern": "^D[0-9]{2}$" },
+          "verdict": { "type": "string", "enum": ["conforme", "partiel", "non_conforme", "sans_objet", "a_evaluer"], "$comment": "vocabulaire fermé de la forge, repris de VERDICTS dans tools/build-kit.mjs — un terme ajouté là s'ajoute ici" }
+        }
+      }
+    }
+  }
+}

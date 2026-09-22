@@ -7,7 +7,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import * as yaml from 'js-yaml';
 import { rel, loadTenant, loadJson, loadYaml } from './lib.mjs';
-import { renderRapport, buildPlan, planToActions } from './rapport-engine.mjs';
+import { renderRapport, buildPlan, planToActions, controlesEvalues } from './rapport-engine.mjs';
 
 const file = process.argv[2];
 const tIdx = process.argv.indexOf('--tenant');
@@ -56,9 +56,15 @@ const plan = buildPlan(data);
 const { doc: actionsDoc, nonProjetees } = planToActions(plan, data, cfg.core_version);
 const yamlOut = out.replace(/\.html?$/i, '') + '.remediation-actions.yaml';
 fs.writeFileSync(yamlOut, yaml.dump(actionsDoc, { lineWidth: 100, noRefs: true }), 'utf-8');
+// TF-1235 — le COMPAGNON du plan : ce qui a été évalué, pas seulement ce qui échoue. Même
+// référence d'audit que le YAML, pour qu'un tiers prouve qu'ils parlent du même audit.
+const evalues = controlesEvalues(data, cfg.core_version);
+const evalOut = out.replace(/\.html?$/i, '') + '.controles-evalues.json';
+fs.writeFileSync(evalOut, JSON.stringify(evalues, null, 2) + '\n', 'utf-8');
 
 console.log(`✔ rapport rendu: ${(html.length / 1024).toFixed(0)} Ko → ${out}`);
 console.log(`✔ plan de remédiation: ${plan.length} actions — embarqué dans le HTML ET écrit en ${path.basename(yamlOut)}`);
+console.log(`✔ contrôles évalués: ${evalues.total} (${Object.entries(evalues.compte).map(([k, n]) => `${k} ${n}`).join(', ')}) → ${path.basename(evalOut)}`);
 // Pas de troncature muette : ce qui ne passe pas le contrat forge se dit.
 if (nonProjetees.length)
   console.log(`⚠ ${nonProjetees.length} action(s) hors YAML (dimension non rattachée, visibles au plan HTML) : ${nonProjetees.map(a => a.source).join(', ')}`);

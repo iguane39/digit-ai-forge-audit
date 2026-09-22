@@ -7,6 +7,19 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1235** (mandat humain du 22/09/2026 sur les verdicts d'opportunité favorables, rang 1) —
+  **le schéma des actions de remédiation devient un CONTRAT D'INTERFACE versionné (1.1.0), et le
+  rapport exporte son COMPAGNON : la liste des contrôles évalués.** Le schéma
+  `core/schemas/remediation-actions.schema.json` n'était déclaré nulle part comme consommable par un
+  tiers ; il porte désormais `x-contrat` — version, clés de jonction (`control_ref`, `finding_ref`),
+  règle d'évolution, consommateurs. Et `tools/build-rapport.mjs` écrit, à côté du YAML,
+  `<rapport>.controles-evalues.json` (schéma `core/schemas/controles-evalues.schema.json`) : chaque
+  règle de la donnée avec sa dimension et son verdict, même `audit_ref` que le YAML. *Le plan dit ce
+  qui échoue ; rien ne disait ce qui a été joué* — un écart absent du plan était indiscernable d'un
+  contrôle jamais évalué, et c'est pourtant cette liste qui trace la frontière entre une remédiation
+  (écart à une norme, citée par son identifiant) et une amélioration (écart à une ambition). Une règle
+  sans verdict sort en `a_evaluer`, terme du vocabulaire fermé de `build-kit.mjs`, jamais omise.
+
 - **TF-0940** (part forge-audit, décision humaine D-4 (b) du 20/09/2026 — **étape 0**) — **le chemin
   ERD du moteur de rapport entre sous contrôle automatique.** Mesuré avant : `rapport-data-valid.json`,
   la fixture jouée par la CI, ne porte AUCUN `db_schema` ; `rapport-data-riche.json`, la seule qui en
@@ -16,6 +29,23 @@ sources mis à jour.
   et **jugée par le gate de rendu** au même titre que l'autre, avec deux assertions neutres au moteur
   (la vue « Architecture & BDD » existe, le marquage PII est présent) : elles survivent à la bascule
   de moteur qui suit, et c'est le « avant » qu'aucune bascule n'avait.
+
+### Corrigé
+- **TF-1207 / TF-1235** (22/09/2026) — **la dimension D17 n'était rattachée nulle part.** Quatre
+  expressions de `tools/rapport-engine.mjs` et le motif d'identifiant du schéma bornaient les
+  dimensions à `D(0\d|1[0-6])`, soit D00 à D16, quand le référentiel en porte dix-huit et que la
+  donnée d'audit les déclare toutes. Mesuré sur le moteur d'avant : une action de la dimension D17
+  recevait `REM-NR-D17`, sortait du YAML par `non_projete` et comptait parmi les actions « non
+  rattachées » du rapport — pour une dimension parfaitement valide. La validité se lit désormais
+  dans `data.dimensions` (`dimensionsConnues`, `estIdActionRattache`) et le motif du schéma admet
+  toute dimension `Dnn` : *une borne numérique écrite dans un motif est un second domicile du
+  référentiel, et elle dérive à la première dimension ajoutée*. Élargissement compatible : tout
+  identifiant valide en 1.0.0 le reste. N'est PAS modifié, et à dessein : le texte de
+  `tools/importer-doctrine.mjs` qui cite `D00`–`D16` décrit la RÉFÉRENCE importée, qui s'arrête bien
+  à D16 — D17 est un ajout local « sans source dans la référence » (`doctrine-ecarts.md`).
+  Recette : quatre cas neufs dans `tests/oracles/remediation.test.mjs`, chacun avec son jumeau
+  rouge (D17 projetée / dimension non déclarée rejetée ; schéma admet D17 / refuse `REM-D1-001` ;
+  export conforme / verdict hors vocabulaire refusé) — 20/20.
 
 ### Changé
 - **TF-0940** (part forge-audit, décision humaine D-4 (b) du 20/09/2026 — **bascule**) — **le rapport

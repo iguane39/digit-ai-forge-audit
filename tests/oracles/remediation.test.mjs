@@ -217,3 +217,56 @@ test('TF-0625 — le contrôle est CÂBLÉ à l auto-test dont la porte hérite 
   assert.match(moteur, /coherencePlan\(p\)\.forEach/,
     'un contrôle que l auto-test n appelle pas est un contrôle que la porte ne verra jamais');
 });
+
+// ── TF-1207 / TF-1235 (22/09/2026) — LA DIMENSION D17 ET LE COMPAGNON DES CONTRÔLES ÉVALUÉS ──────
+// Le référentiel porte D00 à D17 ; le moteur et le schéma bornaient à D16. Une action de la
+// dimension D17 recevait « REM-NR-… », sortait du YAML et comptait parmi les non rattachées.
+// Chaque cas ci-dessous a son JUMEAU qui doit échouer : sans lui, un moteur qui accepterait
+// n'importe quoi passerait la moitié verte et serait vert.
+const moteurMod = async () => import((await import('node:url')).pathToFileURL(path.join(ROOT, 'tools', 'rapport-engine.mjs')).href);
+const dixHuit = Array.from({ length: 18 }, (_, i) => ({ id: `D${String(i).padStart(2, '0')}` }));
+
+test('TF-1207 vert — une action de la dimension D17 est RATTACHÉE et PROJETÉE dans le YAML', async () => {
+  const { buildPlan, planToActions } = await moteurMod();
+  const data = { titre: 't', dimensions: dixHuit, actions: [{ dimension: 'D17', titre: 'Gouverner les usages d IA', verification: 'registre des usages tenu', activation: { mode: 'manual', reason: 'arbitrage humain', owner_role: 'RSSI' } }] };
+  const plan = buildPlan(data);
+  assert.equal(plan[0].id, 'REM-D17-001', `identifiant rendu : ${plan[0].id}`);
+  const { doc, nonProjetees } = planToActions(plan, data, '1.0.0');
+  assert.equal(nonProjetees.length, 0, 'aucune action ne doit sortir du YAML');
+  assert.equal(doc.actions.length, 1);
+});
+
+test('TF-1207 rouge — une dimension que la donnée ne DÉCLARE pas n est pas rattachée', async () => {
+  const { buildPlan, planToActions } = await moteurMod();
+  const data = { titre: 't', dimensions: dixHuit, actions: [{ dimension: 'D42', titre: 'hors référentiel', verification: 'x' }] };
+  const plan = buildPlan(data);
+  assert.match(plan[0].id, /^REM-NR-/, `une dimension inconnue doit rester visible et non rattachée, rendu : ${plan[0].id}`);
+  assert.equal(planToActions(plan, data, '1.0.0').nonProjetees.length, 1);
+});
+
+test('TF-1235 — le schéma 1.1.0 admet REM-D17-001 et refuse un identifiant mal formé', async () => {
+  const { default: Ajv } = await import('ajv');
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'core', 'schemas', 'remediation-actions.schema.json'), 'utf8'));
+  assert.equal(schema['x-contrat']?.version, '1.1.0', 'le schéma se déclare contrat d interface versionné');
+  const doc = (id) => ({ audit_ref: 'a', core_version: '1', project: { repo: 'r' }, actions: [{ id, title: 't', control_ref: 'CTL-D17-01', severity: 'Majeur', priority: 'norm', activation: { mode: 'forge-assisted', reason: 'motif suffisant' }, verification: { evidence_expected: 'preuve' } }] });
+  assert.ok(ajv.validate(schema, doc('REM-D17-001')), 'D17 doit passer : ' + JSON.stringify(ajv.errors));
+  assert.ok(!ajv.validate(schema, doc('REM-D1-001')), 'une dimension à un seul chiffre doit être refusée');
+});
+
+test('TF-1235 — les contrôles évalués sont écrits avec le rapport, même audit_ref que le YAML, conformes à leur schéma', async () => {
+  const { default: Ajv } = await import('ajv');
+  const { loadYaml } = await import((await import('node:url')).pathToFileURL(path.join(ROOT, 'tools', 'lib.mjs')).href);
+  const EVAL = HTML.replace(/\.html$/, '') + '.controles-evalues.json';
+  assert.ok(fs.existsSync(EVAL), 'le compagnon doit être écrit à côté du YAML');
+  const ev = JSON.parse(fs.readFileSync(EVAL, 'utf8'));
+  const actions = loadYaml(YAML);
+  assert.equal(ev.audit_ref, actions.audit_ref, 'les deux fichiers doivent désigner le MÊME audit');
+  const donnee = JSON.parse(fs.readFileSync(path.join(ROOT, 'tests', 'fixtures', 'rapport-data-valid.json'), 'utf8'));
+  assert.equal(ev.total, (donnee.regles ?? []).length, 'chaque règle de la donnée doit être exportée, aucune omise');
+  const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'core', 'schemas', 'controles-evalues.schema.json'), 'utf8'));
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  assert.ok(ajv.validate(schema, ev), 'export conforme à son schéma : ' + JSON.stringify(ajv.errors));
+  const faux = { ...ev, controles: [{ id: 'CTL-D01-01', verdict: 'peut-etre' }] };
+  assert.ok(!ajv.validate(schema, faux), 'un verdict hors du vocabulaire fermé doit être refusé');
+});

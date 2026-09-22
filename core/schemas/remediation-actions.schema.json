@@ -1,7 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "auditcore/remediation-actions.schema.json",
-  "title": "AuditCore remediation-actions.yaml (contrat forge — PLAN/06 §2)",
+  "title": "AuditCore remediation-actions.yaml (contrat forge — PLAN/06 §2) — CONTRAT D'INTERFACE 1.1.0",
+  "$comment": "CONTRAT D'INTERFACE VERSIONNÉ (TF-1235, 22/09/2026). Ce schéma n'était déclaré nulle part comme consommable par un tiers ; il l'est désormais, avec sa version, ses clés de jonction et sa règle d'évolution (x-contrat). Version 1.1.0 : le motif d'identifiant d'action admet toute dimension Dnn — il bornait à D16 alors que le référentiel porte D00-D17 (TF-1207). Élargissement compatible : tout identifiant valide en 1.0.0 le reste. L'EXISTENCE de la dimension ne se juge pas ici mais contre la donnée de l'audit (tools/rapport-engine.mjs, dimensionsConnues) : une borne numérique écrite dans un motif est un second domicile du référentiel.",
+  "x-contrat": {
+    "version": "1.1.0",
+    "cles_de_jonction": {
+      "control_ref": "identifiant du contrôle du référentiel violé par l'écart (CTL-Dxx-nn) — la clé par laquelle un tiers CITE une remédiation sans la recopier",
+      "finding_ref": "identifiant du constat de l'audit qui a fait naître l'action"
+    },
+    "evolution": "ajout d'un champ facultatif ou élargissement d'un motif = version mineure ; retrait, renommage ou resserrement d'un champ requis = version majeure, annoncée au CHANGELOG avant publication",
+    "compagnon": "controles-evalues.json, exporté avec le rapport (schéma core/schemas/controles-evalues.schema.json) : la liste des contrôles EFFECTIVEMENT évalués et leur verdict. Sans lui, un tiers ne sait pas si un écart absent du plan est conforme ou simplement non évalué.",
+    "consommateurs": ["tools/forge-adapter.mjs (forge de construction)", "skill plan-d-amelioration de digit-ai-forge-agents, verbe « joindre » (TF-1234, à naître)"]
+  },
   "type": "object",
   "required": ["audit_ref", "core_version", "project", "actions"],
   "properties": {
@@ -21,7 +32,7 @@
         "type": "object",
         "required": ["id", "title", "control_ref", "severity", "priority", "activation", "verification"],
         "properties": {
-          "id": { "type": "string", "pattern": "^REM-D(0[0-9]|1[0-6])-[0-9]{3}$" },
+          "id": { "type": "string", "pattern": "^REM-D[0-9]{2}-[0-9]{3}$" },
           "title": { "type": "string" },
           "finding_ref": { "type": "string" },
           "control_ref": { "type": "string" },

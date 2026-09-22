@@ -378,19 +378,46 @@ const PRIO_OF_SEV = { critique: 'urgent', Fatal: 'urgent', majeur: 'prio', Bloqu
 const SEV_OF_VERDICT = { non_conforme: 'Bloquant', partiel: 'Majeur' };
 const CRITERE_ABSENT = '{{CRITERE_DE_CLOTURE}}';
 
+// ── UNE DIMENSION VALIDE EST UNE DIMENSION DÉCLARÉE, JAMAIS UNE BORNE ÉCRITE DANS UN MOTIF ──────
+// TF-1207 et TF-1235 (22/09/2026). Quatre expressions de ce fichier et le motif d'identifiant du
+// schéma d'actions bornaient les dimensions à `D(0\d|1[0-6])`, soit D00 à D16. Le référentiel en
+// porte DIX-HUIT, D00 à D17, et la donnée de l'audit les déclare toutes (fixture de référence :
+// 18 dimensions). Conséquence mesurée sur le code : une règle ou une action de la dimension D17
+// ne recevait AUCUNE dimension, son identifiant tombait en « REM-NR-… », elle sortait du YAML
+// par `non_projete` et comptait parmi les actions « non rattachées » du rapport — pour une
+// dimension parfaitement valide. *Une borne numérique recopiée dans un motif est un second domicile
+// du référentiel : elle dérive à la première dimension ajoutée, en silence.* La validité se lit
+// donc dans `data.dimensions` ; faute de référentiel dans la donnée, tout identifiant de la forme
+// `Dnn` est admis, et c'est le gate de rendu qui juge le reste.
+const MOTIF_DIM = /^D\d{2}$/;
+/** L'ensemble des dimensions déclarées par la donnée de l'audit, ou `null` si elle n'en déclare aucune. */
+export function dimensionsConnues(data) {
+  const ids = (data?.dimensions ?? []).map(d => d?.id).filter(id => MOTIF_DIM.test(id ?? ''));
+  return ids.length ? new Set(ids) : null;
+}
+const estDimension = (d, connues) => MOTIF_DIM.test(d ?? '') && (!connues || connues.has(d));
+/** Un identifiant d'action au format du contrat forge, rattaché à une dimension déclarée. */
+export function estIdActionRattache(id, connues) {
+  const m = /^REM-(D\d{2})-\d{3}$/.exec(id ?? '');
+  return Boolean(m) && estDimension(m[1], connues);
+}
+
 /** Dimension d'une règle : métadonnée bakée par la fusion, sinon déduite de l'identifiant. */
-const dimOfRule = (r, index = {}) => {
+const dimOfRule = (r, index = {}, connues = null) => {
   const d = (index[r.id]?.dimension_audit ?? r.dimension_audit ?? '').split(' ')[0];
-  return /^D(0\d|1[0-6])$/.test(d) ? d : (r.id.match(/\bD(0\d|1[0-6])\b/)?.[0] ?? null);
+  if (estDimension(d, connues)) return d;
+  const deduite = r.id.match(/\bD\d{2}\b/)?.[0] ?? null;
+  return estDimension(deduite, connues) ? deduite : null;
 };
 
 export function buildPlan(data) {
   const index = data._constraints_index ?? {};
+  const connues = dimensionsConnues(data);
   const brut = [];
   // 1 · plan d'action des dimensions
   (data.actions ?? []).forEach((a, i) => {
     brut.push({
-      dim: /^D(0\d|1[0-6])$/.test(a.dimension ?? '') ? a.dimension : null,
+      dim: estDimension(a.dimension, connues) ? a.dimension : null,
       id_force: a.id ?? null,
       action: [a.titre, a.desc].filter(Boolean).join(' — '),
       titre: a.titre ?? `Action ${i + 1}`,
@@ -429,7 +456,7 @@ export function buildPlan(data) {
     const couvre = couvertesPar.get(r.id) ?? [];
     brut.push({
       couvre,
-      dim: dimOfRule(r, index),
+      dim: dimOfRule(r, index, connues),
       id_force: null,
       action: r.possible ?? r.remediation ?? `Mettre en conformité ${r.id}`,
       titre: r.possible ?? r.remediation ?? `Conformité ${r.id}`,
@@ -465,10 +492,11 @@ export function planToActions(plan, data, coreVersion) {
   // Le contrat forge impose un identifiant rattaché à une dimension. Une action non rattachée
   // n'est pas silencieusement supprimée : elle est exclue du YAML et RENDUE dans `non_projete`,
   // pour que l'écart se voie au lieu de se perdre (garde-fou « pas de troncature muette »).
-  const projetables = plan.filter(a => /^REM-D(0\d|1[0-6])-\d{3}$/.test(a.id));
+  const connues = dimensionsConnues(data);
+  const projetables = plan.filter(a => estIdActionRattache(a.id, connues));
   const nonProjetees = plan.filter(a => !projetables.includes(a));
   const doc = {
-    audit_ref: `${data.projet?.nom ?? data.titre ?? 'audit'} — ${data.date ?? ''}${data.indice ?? ''}`.trim(),
+    audit_ref: auditRef(data),
     core_version: String(coreVersion || '0.0.0'),
     project: { repo: data.projet?.repo ?? 'non renseigné', stack_profile: data.projet?.stack_profile ?? 'none' },
     actions: projetables.map(a => ({
@@ -501,6 +529,51 @@ export function planToActions(plan, data, coreVersion) {
   return { doc, nonProjetees };
 }
 
+/**
+ * La référence d'un audit. Elle est COMMUNE au plan d'actions et à la liste des contrôles évalués,
+ * et c'est ce qui les joint : un tiers qui lit les deux fichiers doit pouvoir prouver qu'ils
+ * parlent du même audit sans comparer des chemins de fichiers.
+ */
+export function auditRef(data) {
+  return `${data.projet?.nom ?? data.titre ?? 'audit'} — ${data.date ?? ''}${data.indice ?? ''}`.trim();
+}
+
+/**
+ * TF-1235 (22/09/2026) — LA LISTE DES CONTRÔLES ÉVALUÉS, exportée avec le rapport.
+ *
+ * LE MANQUE QU'ELLE FERME. Le plan d'actions dit ce qui ÉCHOUE ; rien ne disait ce qui a été
+ * JOUÉ. Or la frontière entre une remédiation et une amélioration ne se vérifie que par cette
+ * liste : un constat rattachable à un contrôle ÉVALUÉ est une remédiation, que le plan
+ * d'amélioration cite par son identifiant sans la recopier ; un constat qui ne touche aucun
+ * contrôle évalué peut être une amélioration. Sans la liste, un écart absent du plan d'actions
+ * est indiscernable d'un contrôle jamais évalué — et un tiers qui joint deux plans paie deux fois
+ * le même travail, ou en oublie un.
+ *
+ * CE QU'ELLE REND : chaque règle de la donnée de l'audit, avec sa dimension (même dérivation que
+ * le plan, donc la même borne) et son verdict. Une règle SANS verdict sort en `a_evaluer` — le
+ * terme du vocabulaire fermé de la forge (`VERDICTS` de tools/build-kit.mjs), pas un synonyme
+ * inventé —, dite et comptée : jamais omise, jamais présumée conforme.
+ */
+export function controlesEvalues(data, coreVersion) {
+  const connues = dimensionsConnues(data);
+  const index = data._constraints_index ?? {};
+  const controles = (data.regles ?? []).map(r => ({
+    id: r.id,
+    dimension: dimOfRule(r, index, connues),
+    verdict: r.verdict ?? 'a_evaluer',
+  }));
+  const compte = {};
+  for (const c of controles) compte[c.verdict] = (compte[c.verdict] ?? 0) + 1;
+  return {
+    contrat: 'controles-evalues@1.0.0',
+    audit_ref: auditRef(data),
+    core_version: String(coreVersion || '0.0.0'),
+    total: controles.length,
+    compte,
+    controles,
+  };
+}
+
 export function renderRapport(data, { tenant, dimensions, families, themeCss = '', coreVersion = '', lang = 'fr' } = {}) {
   const L = STR[lang] ?? STR.fr;
   const T = RES[lang] ?? RES.fr;
@@ -531,7 +604,7 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
   // ── ECR-05 · plan de remédiation consolidé, calculé UNE fois et servi à toutes les vues
   const plan = buildPlan(data);
   const planIncomplet = plan.filter(a => /\{\{/.test(`${a.action} ${a.verification}`));
-  const nonRattachees = plan.filter(a => !/^REM-D(0\d|1[0-6])-\d{3}$/.test(a.id));
+  const nonRattachees = plan.filter(a => !estIdActionRattache(a.id, dimensionsConnues(data)));
   const urgentes = plan.filter(a => a.priorite === 'urgent').length;
   const prioritaires = plan.filter(a => a.priorite === 'prio').length;
 
