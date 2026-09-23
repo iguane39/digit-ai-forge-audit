@@ -36,6 +36,12 @@ l'environnement déployé le prouve.
 Chacun documente son usage complet dans son en-tête. Tous écrivent un JSON structuré
 (`schema: auditcore.<domaine>/vN`) exploitable par le rapport d'audit.
 
+Ce tableau est écrit à la main, et il l'a déjà montré : au relevé du 23/09/2026, trois oracles du
+dossier n'y figurent pas (`verifier-fiche-securite`, `verifier-parite-gabarits`, `verifier-pdf`).
+La liste qui fait foi pour le juge d'enclenchement du pilot est LUE SUR LE DISQUE —
+`node oracles/decouvrir-oracles.mjs` (TF-1319, contrat commun `digit-ai/decouverte-oracles@1`) :
+tout script `.mjs` du premier niveau de ce dossier, sans exception à tenir.
+
 ## Invariant d'acquisition à 3 issues
 
 Toute acquisition de donnée — commande locale **ou** requête réseau — a **exactement trois**

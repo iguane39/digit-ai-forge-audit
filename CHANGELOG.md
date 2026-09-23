@@ -7,6 +7,16 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1319** (décision humaine D-13 (a) du 23/09/2026, temps 2 du verdict O3 de l'étude du pilot
+  du 19/08 sur le méta-oracle d'enclenchement) — **`oracles/decouvrir-oracles.mjs` : la liste des
+  oracles de la forge, lue sur le disque, au contrat commun du parc `digit-ai/decouverte-oracles@1`.**
+  Le juge d'enclenchement du pilot l'appelle pour confronter ce que la forge porte aux verdicts
+  consignés au ledger d'un run. Mesuré avant : `oracles/` porte 12 scripts, le tableau de son README
+  en décrit 9, la CI en nomme 2 — trois listes écrites à la main, aucune complète. La règle est le
+  DOSSIER (premier niveau d'`oracles/`), pas un préfixe de nom ; les `verifier-*` de `tools/`, qui
+  jugent les livrables, sont laissés dehors et nommés au `non_juge`. Recette à double sens :
+  `tests/oracles/decouvrir-oracles.test.mjs`, ajoutée à la batterie de la CI.
+
 - **TF-1235** (mandat humain du 22/09/2026 sur les verdicts d'opportunité favorables, rang 1) —
   **le schéma des actions de remédiation devient un CONTRAT D'INTERFACE versionné (1.1.0), et le
   rapport exporte son COMPAGNON : la liste des contrôles évalués.** Le schéma
