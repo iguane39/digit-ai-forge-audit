@@ -69,9 +69,18 @@ audité** ; timeout par tentative ; journaliser la voie retenue.
 
 ## Preuve
 
-`tests/oracles/*.test.mjs` — **41 tests**, exécutés par la CI produit sur **matrice
-{ubuntu, windows}**. La matrice n'est pas décorative : les gardes d'exécution de `runCmd` sont
-spécifiques à Windows et une régression y est invisible sur un seul OS.
+<!-- LE COMPTE NE S'ÉCRIT PAS ICI (TF-1332, 26/09/2026). Ce paragraphe affichait « 41 tests »
+     pendant que la batterie en comptait 162 (mesuré le 26/09/2026 : `node --test
+     tests/oracles/*.test.mjs`, résumé imprimé par Node en fin de run) — la même dérive que celle
+     déjà réglée sur le titre du tableau ci-dessus (TF-1246) : un compte écrit à la main ne bouge
+     pas au prochain fichier de test ajouté sous `tests/oracles/`, et personne ne le voit. Le
+     remède est le même : ne plus écrire le nombre, renvoyer à ce qui le calcule. -->
+
+`tests/oracles/*.test.mjs`, exécutés par la CI produit sur **matrice {ubuntu, windows}**. Le
+compte de tests ne s'écrit pas ici : il se lit dans le résumé que Node imprime lui-même en fin de
+run (`tests` / `pass` / `fail` / `skipped`) — `node --test tests/oracles/*.test.mjs`. La matrice
+n'est pas décorative : les gardes d'exécution de `runCmd` sont spécifiques à Windows et une
+régression y est invisible sur un seul OS.
 
 Règle de contribution : voir [CONTRIBUTING.md](CONTRIBUTING.md). Aide à l'écriture des tests
 fonctionnels côté projet audité : [aide-tests-fonctionnels.md](aide-tests-fonctionnels.md).

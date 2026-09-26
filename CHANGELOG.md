@@ -41,6 +41,17 @@ sources mis à jour.
   de moteur qui suit, et c'est le « avant » qu'aucune bascule n'avait.
 
 ### Corrigé
+- **TF-1332** (part forge-audit, décision humaine D-19 (a) du 26/09/2026) — **`oracles/README.md`
+  n'affirme plus de compte de tests écrit à la main.** Mesuré avant : la section « Preuve »
+  affichait « 41 tests » alors que la batterie en comptait 162 (mesuré le 26/09/2026 : `node
+  --test tests/oracles/*.test.mjs` → 162 tests, 161 pass, 1 skip motivé par l'absence de moteur
+  d'impression, 0 fail, exit 0) — la même dérive que celle déjà réglée sur le titre du tableau
+  (TF-1246) : un compte écrit à la main ne bouge pas au prochain fichier de test ajouté. Le
+  paragraphe renvoie désormais à la commande dont le résumé fait foi, sans nombre à tenir à jour.
+  Hors périmètre de cet item, laissé en l'état et porté au rapport de campagne : le libellé de
+  l'étape `oracles` dans `.github/workflows/ci.yml` nomme lui aussi « 162 tests » en dur — un
+  second compte écrit à la main, du même genre, mais hors du README d'oracles/.
+
 - **TF-1207 / TF-1235** (22/09/2026) — **la dimension D17 n'était rattachée nulle part.** Quatre
   expressions de `tools/rapport-engine.mjs` et le motif d'identifiant du schéma bornaient les
   dimensions à `D(0\d|1[0-6])`, soit D00 à D16, quand le référentiel en porte dix-huit et que la
