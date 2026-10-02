@@ -33,37 +33,44 @@ Vérifier la complétude contre la **checklist « prêt à onboarder »** de [ON
 Produire la table de réception : entrant → présent/absent → champ cible. **Gate : 100 % des
 obligatoires présents**, sinon STOP (rapport des manquants au client).
 
-## 2 · Créer l'espace tenant
+## 2 · Créer l'espace tenant — CHEZ LE PRODUIT, jamais dans ce dépôt
+
+Le garde-fou « aucune écriture dans un dépôt de forge » interdit de créer l'espace tenant ici :
+il vit dans le **dépôt d'engagement du client**, qui consomme AuditCore en submodule pinné (cf.
+catalogue de services en tête de ce README, ligne « Engagement d'audit par tenant »). Aucun
+outil de ce manuel n'exige que `tenant.yaml` vive sous `config/tenants/` DE CE DÉPÔT : c'est un
+simple chemin, résolu par `loadTenant()` relativement à son propre dossier.
 
 ```bash
-export SLUG=<slug-entreprise>            # minuscules, [a-z0-9-]
-mkdir -p config/tenants/$SLUG/packs
-cp config/tenants/exemple/tenant.yaml config/tenants/$SLUG/tenant.yaml # base de travail
+export SLUG=<slug-entreprise>                         # minuscules, [a-z0-9-]
+export TENANT_DIR=$ENGAGEMENT/config/tenants/$SLUG     # $ENGAGEMENT = dépôt d'engagement du client
+mkdir -p "$TENANT_DIR/packs"
+cp config/tenants/exemple/tenant.yaml "$TENANT_DIR/tenant.yaml" # seule LECTURE faite dans ce dépôt
 ```
-Éditer `tenant.yaml` : **remplacer TOUTES les valeurs tenant** (name, short_code, parent_org,
+Éditer `$TENANT_DIR/tenant.yaml` : **remplacer TOUTES les valeurs tenant** (name, short_code, parent_org,
 language, domains labels/couleurs, roles, environments, sources, enforcement.binding_authorities
 = `["<Nom exact de l'entreprise>"]`). Vérifier que `adr.aliases` reste vide (sauf remap legacy propre au client). Ne PAS toucher :
 `schema_version`, `dimensions.pack`, la liste des 9 codes de domaines.
 
 ## 3 · Charte graphique → DESIGN.md
 
-Créer `config/tenants/$SLUG/DESIGN.md` au format frontmatter (modèle :
+Créer `$TENANT_DIR/DESIGN.md` au format frontmatter (modèle :
 `config/tenants/exemple/DESIGN.md`) depuis les couleurs/typographies fournies.
 **Gate intégré à l'étape 5** (règle 5 du validateur : primary présent, contraste ≥ 3, refs valides).
 
 ## 4 · Packs tenant (si fournis)
 
-- Contraintes internes → `packs/<slug>-constraints.json` (schéma 18 champs,
+- Contraintes internes → `$TENANT_DIR/packs/<slug>-constraints.json` (schéma 18 champs,
   `core/schemas/control.schema.json` ; champ `authority` = nom de l'entreprise pour les règles
   opposables). Référencer dans `constraint_packs` APRÈS le pack core.
-- Principes data (si D15 personnalisée) → `packs/principles-<slug>.yaml`
+- Principes data (si D15 personnalisée) → `$TENANT_DIR/packs/principles-<slug>.yaml`
   (modèle : `principles-data-by-design.yaml`).
 - Documents normatifs internes → entrées `sources[]` (id, titre, version).
 
 ## 5 · GATE 1 — Validation de configuration
 
 ```bash
-node tools/validate-config.mjs config/tenants/$SLUG/tenant.yaml
+node tools/validate-config.mjs "$TENANT_DIR/tenant.yaml"
 ```
 **Exit 0 exigé.** Sinon : corriger CHAQUE erreur listée (schéma, 9 domaines, invariants,
 enforcement, packs dupliqués, DESIGN.md) et relancer. **3 échecs successifs sur la même
@@ -72,7 +79,7 @@ erreur → STOP** et rapport (ne pas contourner le validateur).
 ## 6 · GATE 2 — Fusion et chiffres attendus
 
 ```bash
-node tools/merge-packs.mjs config/tenants/$SLUG/tenant.yaml --out config/tenants/$SLUG/merged.json
+node tools/merge-packs.mjs "$TENANT_DIR/tenant.yaml" --out "$TENANT_DIR/merged.json"
 ```
 Vérifier les comptages affichés : total = 150 (core) + N (packs tenant) ; opposables = règles
 dont l'`authority` ∈ `binding_authorities` — **comparer au nombre annoncé par le client** ;
@@ -81,14 +88,16 @@ dont l'`authority` ∈ `binding_authorities` — **comparer au nombre annoncé p
 ## 7 · Génération des artefacts
 
 ```bash
-node tools/build-theme.mjs config/tenants/$SLUG/tenant.yaml     # thème (palette, en-tête)
-node tools/build-banc.mjs  config/tenants/$SLUG/tenant.yaml     # banc de preuves fusionné
+node tools/build-theme.mjs "$TENANT_DIR/tenant.yaml"                              # thème (palette, en-tête) → $TENANT_DIR/theme/
+node tools/build-banc.mjs  "$TENANT_DIR/tenant.yaml" --out "$TENANT_DIR/banc-de-preuves.md" # banc de preuves fusionné
 ```
-Contrôle visuel du thème (`theme/theme.css` : les hex du client, pas ceux du modèle).
+Contrôle visuel du thème (`$TENANT_DIR/theme/theme.css` : les hex du client, pas ceux du modèle).
+**Les deux commandes écrivent CHEZ LE PRODUIT** (`--out`/dossier du tenant) : sans ce réglage,
+`build-banc.mjs` retombe sur `deliverables/generated/` DE CE DÉPÔT, même défaut que l'étape 9.
 
 ## 8 · GATE 3 — HITL CLIENT (obligatoire, bloquant)
 
-Produire le **rapport d'onboarding** (dans `config/tenants/$SLUG/ONBOARDING-RAPPORT.md`) :
+Produire le **rapport d'onboarding** (dans `$TENANT_DIR/ONBOARDING-RAPPORT.md`) :
 table entrant→champ→valeur retenue, comptages de fusion, écarts/absents, décisions prises.
 **Soumettre `tenant.yaml` + `DESIGN.md` + le rapport à l'approbation du client.**
 Aucun kit n'est livré sans cette approbation explicite (les enforcement `blocking` engagent
@@ -97,11 +106,12 @@ le client — un humain de l'entreprise valide). STOP jusqu'à approbation.
 ## 9 · Kits
 
 ```bash
-node tools/build-kit.mjs config/tenants/$SLUG/tenant.yaml --kind both
+node tools/build-kit.mjs "$TENANT_DIR/tenant.yaml" --kind both --out "$ENGAGEMENT/deliverables/generated/$SLUG"
 ```
-Vérifier la sortie : 2 zips dans `deliverables/generated/$SLUG/`, indice du jour, LISEZMOI
-avec les bons comptages. Test d'intégrité rapide : ouvrir chaque zip et exécuter
-`node verifier-rapport-standalone.mjs` extrait sur un `rapport-data.json` d'exemple → les
+Sans `--out`, cette commande écrirait dans `deliverables/generated/$SLUG/` DE CE DÉPÔT — le
+même défaut que l'étape 7. Vérifier la sortie : 2 zips dans `$ENGAGEMENT/deliverables/generated/$SLUG/`,
+indice du jour, LISEZMOI avec les bons comptages. Test d'intégrité rapide : ouvrir chaque zip et
+exécuter `node verifier-rapport-standalone.mjs` extrait sur un `rapport-data.json` d'exemple → les
 verdicts ✔/✖ doivent tomber juste.
 
 ## 10 · Clôture
