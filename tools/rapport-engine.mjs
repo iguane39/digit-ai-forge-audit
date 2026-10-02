@@ -1072,7 +1072,13 @@ function recouvrement(a,b){
    bruyant se fait contourner au lieu d'etre corrige. */
 var SEUIL_REDITE=0.45;
 var SEUIL_REDITE_MEME_DOMAINE=0.25;
-function domaineDe(a){ return String(a.domaine||a.source||'').slice(0,3); }
+// TF-1208 : lire la DIMENSION REELLE de l'action (deja deduite par buildPlan, meme pour une
+// action derivee d'une regle, cf. dimOfRule) plutot que les trois premiers caracteres de la
+// source. Pour une action derivee d'une regle, la source est l'identifiant de la regle
+// (« CTL-D05-001 »…) dont les trois premiers caracteres sont une constante commune a TOUT le
+// referentiel : toutes les actions derivees de regle se voyaient donc attribuer le MEME
+// domaine apparent, et le seuil bas de 25 % s'appliquait a tort a l'ensemble du plan.
+function domaineDe(a){ return String(a.dimension||'').slice(0,3); }
 function coherencePlan(p){
  var e=[], i, j, franches=[], memeDomaine=[], texte=function(a){return String(a.action||'')+' '+String(a.titre||'');};
  for(i=0;i<p.length;i++) for(j=i+1;j<p.length;j++){

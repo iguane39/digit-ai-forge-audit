@@ -187,8 +187,8 @@ test('TF-0624 — les DEUX seuils viennent de la mesure, et l écart mince est l
 test('TF-0625 — une redite DANS LE MÊME domaine est dite à part : c est le cas le plus fréquent', () => {
   const { coherencePlan } = logiqueCoherence();
   const e = coherencePlan([
-    { id: 'REM-D05-01', domaine: 'D05', action: 'Nommer un Data Owner pour chaque domaine' },
-    { id: 'REM-ADR0601', domaine: 'D05', action: 'Designer un Data Owner par domaine de donnees' },
+    { id: 'REM-D05-01', dimension: 'D05', action: 'Nommer un Data Owner pour chaque domaine' },
+    { id: 'REM-ADR0601', dimension: 'D05', action: 'Designer un Data Owner par domaine de donnees' },
   ]);
   assert.ok(e.some((m) => /MEME domaine/.test(m)), 'le cas le plus fréquent doit être distingué : ' + e.join(' | '));
   assert.ok(e.some((m) => /CONSTAT de dimension/.test(m)), 'le geste qui répare doit être nommé');
@@ -197,8 +197,8 @@ test('TF-0625 — une redite DANS LE MÊME domaine est dite à part : c est le c
 test('TF-0625 — deux actions du MÊME sujet mais distinctes ne sont PAS rapprochées, même dans un domaine', () => {
   const { coherencePlan } = logiqueCoherence();
   const e = coherencePlan([
-    { id: 'REM-D03-01', domaine: 'D03', action: 'Chiffrer les donnees au repos' },
-    { id: 'REM-D03-02', domaine: 'D03', action: 'Chiffrer les echanges en transit' },
+    { id: 'REM-D03-01', dimension: 'D03', action: 'Chiffrer les donnees au repos' },
+    { id: 'REM-D03-02', dimension: 'D03', action: 'Chiffrer les echanges en transit' },
   ]);
   assert.equal(e.length, 0, 'le piège mesuré ne doit pas être signalé : ' + e.join(' | '));
 });
@@ -206,11 +206,37 @@ test('TF-0625 — deux actions du MÊME sujet mais distinctes ne sont PAS rappro
 test('TF-0625 — un plan SAIN ne produit aucun constat : un contrôle qui crie toujours se fait ignorer', () => {
   const { coherencePlan } = logiqueCoherence();
   const e = coherencePlan([
-    { id: 'REM-1', domaine: 'D01', action: 'Placer le front derriere un pare-feu applicatif' },
-    { id: 'REM-2', domaine: 'D04', action: 'Specifier les durees de conservation des journaux' },
-    { id: 'REM-3', domaine: 'D12', action: 'Alimenter la base de configuration depuis le referentiel' },
+    { id: 'REM-1', dimension: 'D01', action: 'Placer le front derriere un pare-feu applicatif' },
+    { id: 'REM-2', dimension: 'D04', action: 'Specifier les durees de conservation des journaux' },
+    { id: 'REM-3', dimension: 'D12', action: 'Alimenter la base de configuration depuis le referentiel' },
   ]);
   assert.equal(e.length, 0, 'aucun constat attendu sur un plan sain : ' + e.join(' | '));
+});
+
+// ── TF-1208 (02/10/2026) — LE DOMAINE D'UNE ACTION DÉRIVÉE D'UNE RÈGLE SE LIT SUR SA DIMENSION
+// RÉELLE, PAS SUR LE PRÉFIXE COMMUN DE SON IDENTIFIANT DE RÈGLE ─────────────────────────────────
+// Le fait mesuré : pour une action dérivée d'une règle, la source vaut l'identifiant de la règle
+// (« CTL-Dxx-nnn »), dont les trois premiers caractères (« CTL ») sont une constante PARTAGÉE par
+// tout le référentiel — toutes les actions dérivées de règle recevaient donc le MÊME domaine
+// apparent, quelle que soit leur VRAIE dimension, et le seuil bas (25 %) s'appliquait à tort à
+// l'ensemble du plan : 26 paires refusées sur du seul vocabulaire d'audit partagé.
+test('TF-1208 rouge — deux actions dérivées de règles de DIMENSIONS DIFFÉRENTES ne sont pas rapprochées malgré le préfixe commun de leur source', () => {
+  const { coherencePlan } = logiqueCoherence();
+  const e = coherencePlan([
+    { id: 'REM-D05-01', dimension: 'D05', source: 'CTL-D05-001', action: 'Nommer un Data Owner pour chaque domaine' },
+    { id: 'REM-D12-01', dimension: 'D12', source: 'CTL-D12-007', action: 'Designer un Data Owner par domaine de donnees' },
+  ]);
+  assert.equal(e.length, 0,
+    'deux actions de dimensions réellement différentes partagent seulement le préfixe "CTL" de leur source : ' + e.join(' | '));
+});
+
+test('TF-1208 vert — deux actions dérivées de règles de la MÊME dimension restent rapprochées', () => {
+  const { coherencePlan } = logiqueCoherence();
+  const e = coherencePlan([
+    { id: 'REM-D05-01', dimension: 'D05', source: 'CTL-D05-001', action: 'Nommer un Data Owner pour chaque domaine' },
+    { id: 'REM-D05-02', dimension: 'D05', source: 'CTL-D05-002', action: 'Designer un Data Owner par domaine de donnees' },
+  ]);
+  assert.ok(e.some((m) => /MEME domaine/.test(m)), 'la vraie redite intra-dimension doit rester détectée : ' + e.join(' | '));
 });
 
 test('TF-0625 — le contrôle est CÂBLÉ à l auto-test dont la porte hérite du verdict', () => {
