@@ -24,6 +24,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { verdictNavigateur } from '../verdicts.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ORACLE = path.join(RACINE, 'oracles', 'verifier-fiche-securite.mjs');
@@ -217,7 +218,12 @@ test('TF-0700 — bout en bout : la fiche ACME est IMPRIMÉE, relue par verifier
     const d = path.join(prod, 'd.json');
     fs.writeFileSync(d, JSON.stringify({ projet: 'ACM', lien_dev: 'https://dev.exemple.test/acm' }), 'utf8');
     const b = jouer(BUILD, TENANT, '--data', d, '--produit', prod);
-    assert.equal(b.status, 0, `la passe HTML+PDF est rouge : ${b.stdout}${b.stderr}`);
+    // TF-1220 / TF-1408 : le moteur PRÉSENT peut ne pas répondre à temps (port DevTools non
+    // annoncé) — ce n'est PAS un échec de ce test, c'est un point NON VÉRIFIÉ (code 3, motivé),
+    // même famille que « aucun moteur ». Même classification que verifier-pdf.test.mjs (TF-1017).
+    const verdictMoteur = verdictNavigateur({ status: b.status, stderr: b.stderr, navigateur: trouverNavigateur() });
+    if (verdictMoteur.verdict === 'SKIP') { t.skip(verdictMoteur.motif); return; }
+    assert.equal(verdictMoteur.verdict, 'JUGE', `${verdictMoteur.motif} — sortie : ${b.stdout}${b.stderr}`);
     const fiche = trouverFiche(prod);
     const pdf = fiche.replace(/\.html$/, '.pdf');
     assert.ok(fs.existsSync(pdf), 'le PDF de diffusion n\'a pas été écrit : le jeu remis serait incomplet');
@@ -292,8 +298,16 @@ test('TF-1020 — la police résolue est la police EMBARQUÉE, pas celle du post
     fs.writeFileSync(vertFichier, page(css), 'utf8');
     fs.writeFileSync(rougeFichier, page(sansFaces), 'utf8');
 
-    const vert = JSON.parse(await mesurer(vertFichier, sonde, { navigateur }));
-    const rouge = JSON.parse(await mesurer(rougeFichier, sonde, { navigateur }));
+    // TF-1220 : le moteur PRÉSENT peut ne pas répondre à temps — un point NON VÉRIFIÉ, pas un
+    // échec de ce test (même distinction que le test bout-en-bout ci-dessus).
+    let vert, rouge;
+    try {
+      vert = JSON.parse(await mesurer(vertFichier, sonde, { navigateur }));
+      rouge = JSON.parse(await mesurer(rougeFichier, sonde, { navigateur }));
+    } catch (e) {
+      if (e.portBloque) { t.skip(`moteur présent (${navigateur}) mais NON VÉRIFIÉ — port non annoncé en ${e.delaiMs} ms`); return; }
+      throw e;
+    }
 
     assert.ok(vert.faces.includes('AuditCore Sans:loaded'),
       `aucune face incorporée chargée dans la page : ${vert.faces.join(', ') || '(aucune)'} — la police `

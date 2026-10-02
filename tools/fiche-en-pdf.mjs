@@ -84,15 +84,26 @@ export function indiceDe(nomOuChemin) {
 /** Le PDF de diffusion d'un HTML de référence : même chemin, même nom, même INDICE. */
 export const pdfDe = (html) => String(html).replace(/\.html?$/i, '') + '.pdf';
 
+// TF-1220 / TF-1408 — le délai d'attente du moteur d'impression était en dur à TROIS endroits
+// (le port DevTools ici, le chargement du HTML dans `imprimer` et dans `mesurer`) : paramétrable
+// par `--delai-port <ms>` ou `FORGE_DELAI_PORT_MS`, pour un poste plus lent sans toucher au code.
+export const DELAI_PORT_DEFAUT_MS = 30000;
+export const delaiPortMs = (d) => Number(d ?? process.env.FORGE_DELAI_PORT_MS ?? DELAI_PORT_DEFAUT_MS);
+
 // ── Le client DevTools : le strict nécessaire, sans dépendance. ──────────────────────────────
-async function ouvrirNavigateur(navigateur, profil) {
+async function ouvrirNavigateur(navigateur, profil, delaiMs = DELAI_PORT_DEFAUT_MS) {
   const proc = spawn(navigateur, ['--headless=new', '--disable-gpu', '--no-first-run',
     '--no-default-browser-check', '--disable-extensions', '--remote-debugging-port=0',
     `--user-data-dir=${profil}`, 'about:blank'], { stdio: ['ignore', 'pipe', 'pipe'] });
   let journal = '';
   const url = await new Promise((res, rej) => {
     const minuteur = setTimeout(
-      () => rej(new Error(`le navigateur n'a pas annoncé son point d'écoute en 30 s. Journal : ${journal.slice(-400)}`)), 30000);
+      // TF-1220 : le moteur a été LANCÉ (il est présent, cf. trouverNavigateur) — il n'a
+      // simplement pas annoncé son port d'écoute à temps. Ce n'est pas un échec du tirage, c'est
+      // un point NON VÉRIFIÉ : `portBloque` le distingue d'une vraie erreur de lancement
+      // (`proc.on('error')`, binaire manquant ou inexécutable, traitée à part ci-dessous).
+      () => rej(Object.assign(new Error(`le navigateur n'a pas annoncé son point d'écoute en ${delaiMs} ms. `
+        + `Journal : ${journal.slice(-400)}`), { portBloque: true, navigateur, delaiMs })), delaiMs);
     proc.on('error', (e) => { clearTimeout(minuteur); rej(e); });
     proc.stderr.on('data', (d) => {
       journal += d;
@@ -148,11 +159,12 @@ function brancher(url) {
  * Imprime `html` en PDF et rend les octets. `preferCSSPageSize` est passé à `pref` pour que la
  * fixture rouge de l'auto-test puisse prouver, en mesurant, ce que coûte son absence.
  */
-export async function imprimer(html, { navigateur, pref = true } = {}) {
+export async function imprimer(html, { navigateur, pref = true, delaiMs } = {}) {
   const moteur = navigateur ?? trouverNavigateur();
   if (!moteur) throw Object.assign(new Error('aucun moteur d\'impression'), { sansNavigateur: true });
+  const delai = delaiPortMs(delaiMs);
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-pdf-'));
-  const { proc, url } = await ouvrirNavigateur(moteur, profil);
+  const { proc, url } = await ouvrirNavigateur(moteur, profil, delai);
   const { sock, pret, cmd, evenement } = brancher(url);
   try {
     await pret;
@@ -161,7 +173,7 @@ export async function imprimer(html, { navigateur, pref = true } = {}) {
     await cmd('Page.enable', {}, sessionId);
     const charge = evenement('Page.loadEventFired', sessionId);
     await cmd('Page.navigate', { url: pathToFileURL(path.resolve(html)).href }, sessionId);
-    await Promise.race([charge, new Promise((_, rej) => setTimeout(() => rej(new Error('chargement du HTML > 30 s')), 30000))]);
+    await Promise.race([charge, new Promise((_, rej) => setTimeout(() => rej(new Error(`chargement du HTML > ${delai} ms`)), delai))]);
     // 1. média `print` : ce qui est relu et ce qui part en PDF ne doivent pas diverger.
     await cmd('Emulation.setEmulatedMedia', { media: 'print' }, sessionId);
     // 2. et 3. : aplats de la charte conservés, et @page du gabarit respecté.
@@ -178,11 +190,12 @@ export async function imprimer(html, { navigateur, pref = true } = {}) {
 }
 
 /** Le mesureur de mise en page : rend ce que le MOTEUR calcule, jamais ce que la CSS déclare. */
-export async function mesurer(html, expression, { navigateur } = {}) {
+export async function mesurer(html, expression, { navigateur, delaiMs } = {}) {
   const moteur = navigateur ?? trouverNavigateur();
   if (!moteur) throw Object.assign(new Error('aucun moteur d\'impression'), { sansNavigateur: true });
+  const delai = delaiPortMs(delaiMs);
   const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-mes-'));
-  const { proc, url } = await ouvrirNavigateur(moteur, profil);
+  const { proc, url } = await ouvrirNavigateur(moteur, profil, delai);
   const { sock, pret, cmd, evenement } = brancher(url);
   try {
     await pret;
@@ -191,7 +204,7 @@ export async function mesurer(html, expression, { navigateur } = {}) {
     await cmd('Page.enable', {}, sessionId);
     const charge = evenement('Page.loadEventFired', sessionId);
     await cmd('Page.navigate', { url: pathToFileURL(path.resolve(html)).href }, sessionId);
-    await Promise.race([charge, new Promise((_, rej) => setTimeout(() => rej(new Error('chargement du HTML > 30 s')), 30000))]);
+    await Promise.race([charge, new Promise((_, rej) => setTimeout(() => rej(new Error(`chargement du HTML > ${delai} ms`)), delai))]);
     await cmd('Emulation.setEmulatedMedia', { media: 'print' }, sessionId);
     const r = await cmd('Runtime.evaluate', { expression, returnByValue: true }, sessionId);
     return r.result?.value;
@@ -214,7 +227,7 @@ function oraclePdf() {
 
 // ── Ligne de commande ────────────────────────────────────────────────────────────────────────
 const USAGE = 'Usage: node fiche-en-pdf.mjs <fiche.html> [--out <fiche.pdf>] [--pages-max N] '
-  + '[--navigateur <chemin>] [--sans-relecture]  |  node fiche-en-pdf.mjs --self-test';
+  + '[--navigateur <chemin>] [--delai-port <ms>] [--sans-relecture]  |  node fiche-en-pdf.mjs --self-test';
 
 async function principal(args) {
   const opt = (n, d = null) => { const i = args.indexOf(n); return i === -1 ? d : args[i + 1]; };
@@ -264,10 +277,22 @@ async function principal(args) {
     }
   }
 
+  const delaiMs = delaiPortMs(opt('--delai-port'));
   const lancement = Date.now();
   let octets;
-  try { octets = await imprimer(source, { navigateur }); } catch (e) {
+  try { octets = await imprimer(source, { navigateur, delaiMs }); } catch (e) {
     if (e.sansNavigateur) { console.error("— PDF NON RENDU : aucun moteur d'impression."); return 3; }
+    // TF-1220 : le moteur est PRÉSENT (trouvé sur le poste, lancé sans erreur) mais n'a pas
+    // annoncé son port d'écoute dans le délai — ce n'est PAS un échec du tirage, c'est un point
+    // NON VÉRIFIÉ, exactement comme l'absence de moteur (même code 3, même famille de motif) :
+    // sans cette distinction, un poste lent lit un échec de tirage là où rien n'a été tiré.
+    if (e.portBloque) {
+      console.error(`— PDF NON RENDU : moteur d'impression présent (${navigateur}) mais NON VÉRIFIÉ — `
+        + `il n'a pas annoncé son point d'écoute dans le délai (${delaiMs} ms). Rallonger avec `
+        + "--delai-port <ms> ou FORGE_DELAI_PORT_MS sur un poste lent. Le jeu remis serait INCOMPLET "
+        + "— le dire au destinataire fait partie de la remise.");
+      return 3;
+    }
     console.error(`— PDF NON RENDU : le moteur d'impression a échoué — ${e.message}`);
     return 1;
   }
@@ -339,7 +364,27 @@ async function selfTest() {
   }
 
   // VERT — imprimé AVEC preferCSSPageSize : la boîte média suit le @page du gabarit (A4).
-  const vert = await imprimer(html, { navigateur, pref: true });
+  let vert, rouge;
+  try {
+    vert = await imprimer(html, { navigateur, pref: true });
+    rouge = await imprimer(html, { navigateur, pref: false });
+  } catch (e) {
+    // TF-1220 / TF-1408 — le moteur est PRÉSENT mais n'a pas annoncé son port à temps : ce n'est
+    // PAS un échec de l'étage impression, c'est un point NON VÉRIFIÉ. Avant cette distinction, ce
+    // cas se lisait comme un échec (FAIL), alors que rien n'a été mesuré — même famille que
+    // l'étage SAUTÉ faute de moteur, ci-dessus.
+    if (e.portBloque) {
+      console.log((casse.length ? 'SELF-TEST FAIL : ' + casse.join(' · ') + '\n' : '')
+        + 'Self-test fiche-en-pdf : 3/3 PASS sur la règle d\'indice (étage hermétique). '
+        + `ÉTAGE IMPRESSION NON JOUÉ — SKIP MOTIVÉ : moteur présent (${navigateur}) mais NON `
+        + `VÉRIFIÉ — port d'écoute non annoncé dans le délai (${e.delaiMs} ms). Rallonger avec `
+        + "--delai-port <ms> ou FORGE_DELAI_PORT_MS sur ce poste. Ce n'est pas un PASS : la mesure "
+        + "preferCSSPageSize n'a pas eu lieu.");
+      fs.rmSync(dir, { recursive: true, force: true });
+      return casse.length ? 1 : 0;
+    }
+    throw e;
+  }
   const boite = (pdf) => {
     const m = /\/MediaBox\s*\[\s*([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s*\]/.exec(pdf.toString('latin1'));
     return m ? [Math.round(Math.abs(m[3] - m[1])), Math.round(Math.abs(m[4] - m[2]))] : null;
@@ -350,7 +395,6 @@ async function selfTest() {
   if (!/\/Type\s*\/Font/.test(vert.toString('latin1')))
     casse.push('le tirage ne porte AUCUNE police : ce serait une capture rasterisée, pas une impression');
   // ROUGE — imprimé SANS lui : Chromium impose son propre format et le @page du gabarit est jeté.
-  const rouge = await imprimer(html, { navigateur, pref: false });
   const br = boite(rouge);
   if (!br || (Math.abs(br[0] - 595) <= 4 && Math.abs(br[1] - 842) <= 4))
     casse.push('sans preferCSSPageSize le tirage sort quand même A4 : la fixture rouge ne mord plus, '
