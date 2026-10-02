@@ -28,13 +28,13 @@
       "cible": "tools/canevas-modele-donnees.mjs",
       "source_depot": "digit-ai-forge-agents",
       "source_chemin": ".claude/skills/digit-ai-schemas/assets/template-modele-donnees.html",
-      "source_version": "c6200ac (2026-09-20) — « L echelle 4 pt tient aussi dans ce qu on COPIE : references et canevas recales, banc etendu »",
-      "date_copie": "2026-09-20",
+      "source_version": "61d254f (2026-09-23) — « Schemas : Montserrat et Inter embarquees, la charte des presentations comme le socle des pages (TF-1023) »",
+      "date_copie": "2026-10-02",
       "empreinte": {
         "algo": "sha256",
         "normalisation": "fins de ligne ramenées à LF ; bloc délimité par POLICES-EMBARQUEES:DEBUT .. POLICES-EMBARQUEES:FIN remplacé par un marqueur fixe",
-        "octets_normalises": 31634,
-        "valeur": "51638cb9cf3dd9c330af2b2e5386f43f6d4e6f99141b5dff373a4e13798df067"
+        "octets_normalises": 31745,
+        "valeur": "33e808b00cd0fdadf326151446490bf604c7765ad387ddb367eb6ebd879a048a"
       },
       "repris": [
         "renderDbSchema — géométrie, cartes, badges PK/UK/FK/NN, arêtes ancrées colonne à colonne, couloirs et voie de saut de bande",
@@ -50,7 +50,8 @@
       "deltas_declares": [
         "H1 · CSSV lit un jeton de la table JETONS du module au lieu d'appeler getComputedStyle — ce module rend côté Node, il n'y a pas de document à interroger.",
         "H2 · fitSchema vérifie que son hôte expose querySelector avant de l'appeler — le gate tools/verifier-rapport-html.mjs exécute le moteur du rapport dans un DOM minimal qui ne l'expose pas.",
-        "renderDbLegend : les deux <svg> d'exemple de trait reçoivent role=\"img\" et un nom accessible — une image sans nom accessible est un défaut que le contrôle de page du socle relève."
+        "renderDbLegend : les deux <svg> d'exemple de trait reçoivent role=\"img\" et un nom accessible — une image sans nom accessible est un défaut que le contrôle de page du socle relève.",
+        "TF-1374 (02/10/2026) · re-vendorage : diff c6200ac→61d254f relu en entier — hors du bloc de polices (déjà exclu de l'empreinte), seuls les jetons --sans/--head du canevas changent de valeur (Roboto→Montserrat, +Inter devant DM Sans, TF-1023). Le module ne déclare AUCUN font-family (il s'appuie sur le thème de l'hôte) : rien à porter, seule l'empreinte était en retard."
       ]
     }
   ]
