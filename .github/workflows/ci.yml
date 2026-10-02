@@ -157,9 +157,12 @@ jobs:
       - name: Dépendances outillage
         run: npm ci || npm install
 
-      - name: Batterie des oracles (162 tests — projet, rendu du rapport, porte de clôture, découverte des oracles)
+      - name: Batterie des oracles (projet, rendu du rapport, porte de clôture, découverte des oracles — compte issu du résumé node --test)
         # TF-0553 (24/08) : les DEUX ensembles etaient disjoints DANS LES DEUX SENS. La CI jouait
         # sept fichiers d'oracles, le `npm test` local en jouait deux AUTRES — build-fiche-destination
         # et verifier-pdf n'etaient donc joues par AUCUNE chaine automatique. Ils entrent ici, et le
         # `npm test` local rejoue desormais ce workflow au lieu d'en tenir sa propre liste.
+        # TF-1376 (02/10) : ce libelle portait « 162 tests » en dur, meme famille que le « 41 tests »
+        # du README corrige par TF-1332 — il aurait menti des le prochain fichier de test ajoute.
+        # Le compte se lit dans le resume que node --test imprime lui-meme en fin de run, jamais ici.
         run: node --test tests/oracles/audit-runtime.test.mjs tests/oracles/build-fiche-destination.test.mjs tests/oracles/couverture-fonctionnelle.test.mjs tests/oracles/dependances-env.test.mjs tests/oracles/dimension-referentiel.test.mjs tests/oracles/fiche-securite.test.mjs tests/oracles/maj-versions.test.mjs tests/oracles/remediation.test.mjs tests/oracles/roundtrip.test.mjs tests/oracles/verifier-pdf.test.mjs tests/oracles/verifier-rapport-html.test.mjs tests/oracles/modele-semantique.test.mjs tests/oracles/rapport-pbir.test.mjs tests/oracles/canevas-modele-donnees.test.mjs tests/oracles/couverture-plan.test.mjs tests/oracles/recette-environnement.test.mjs tests/oracles/verifier-referentiel.test.mjs tests/oracles/decouvrir-oracles.test.mjs
