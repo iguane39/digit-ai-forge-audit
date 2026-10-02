@@ -50,16 +50,25 @@ function parseModel(p) {
   for (const f of files) {
     const txt = fs.readFileSync(f, 'utf8');
     if (f.toLowerCase().endsWith('.prisma')) {
+      // TF-1344 — les noms de TOUS les modèles du fichier sont d'abord collectés : un champ dont
+      // le TYPE est un autre modèle déclaré est une RELATION (côté « un » comme côté « plusieurs »,
+      // array ou non), jamais une colonne — qu'il porte @relation ou qu'il soit la relation
+      // inverse IMPLICITE (sans aucun attribut, ex. `posts Post[]` ou le côté sans FK d'une 1-1).
+      const modeles = new Set([...txt.matchAll(/model\s+(\w+)\s*\{/g)].map(x => x[1]));
       // Prisma : model X { champs… @@map("table") } — colonne = @map("col") sinon nom du champ.
-      const re = /model\s+\w+\s*\{([\s\S]*?)\}/g; let mm;
+      // Le NOM DU MODÈLE est capturé DIRECTEMENT par le groupe 1 de la regex : plus de recherche
+      // en arrière dans tout le texte précédent, qui faisait retomber chaque modèle SANS @@map
+      // sur le PREMIER `model X {` rencontré dans le fichier (ses colonnes s'empilaient dans le
+      // premier modèle, souvent `User`) au lieu de son propre nom.
+      const re = /model\s+(\w+)\s*\{([\s\S]*?)\}/g; let mm;
       while ((mm = re.exec(txt))) {
-        const body = mm[1];
+        const [, nomModele, body] = mm;
         const map = body.match(/@@map\(\s*["'`]([^"'`]+)["'`]\s*\)/);
-        const table = norm(map ? map[1] : (txt.slice(0, mm.index).match(/model\s+(\w+)\s*\{?$/m) || [])[1] || mm[0].match(/model\s+(\w+)/)[1]);
+        const table = norm(map ? map[1] : nomModele);
         body.split(/\r?\n/).forEach(l => {
           const line = l.trim(); if (!line || line.startsWith('//') || line.startsWith('@@')) return;
-          const fld = line.match(/^([a-zA-Z_]\w*)\s+[A-Za-z]/); if (!fld) return;
-          if (/@relation\b/.test(line) && !/@map\(/.test(line)) return; // champ relation pur (pas une colonne)
+          const fld = line.match(/^([a-zA-Z_]\w*)\s+([A-Za-z_]\w*)/); if (!fld) return;
+          if (modeles.has(fld[2])) return; // relation (explicite @relation OU inverse implicite) : pas une colonne
           const col = line.match(/@map\(\s*["'`]([^"'`]+)["'`]\s*\)/);
           add(table, norm(col ? col[1] : fld[1]));
         });
@@ -93,8 +102,17 @@ function parseSchema(p) {
   const sql = fs.readFileSync(p, 'utf8');
   const db = {};
   const add = (t, c) => { if (!t || !c) return; (db[t] = db[t] || new Set()).add(c); };
+  // TF-1344 — un nom QUALIFIÉ par son schéma, comme pg_dump les émet (`public."User"`,
+  // `"public"."User"`), mélange un segment NU (public) et un segment QUOTÉ ("User") de part et
+  // d'autre d'un point : l'ancien `"?[\w.]+"?` ne pose un guillemet optionnel qu'aux deux
+  // EXTRÉMITÉS de tout le nom qualifié, jamais autour d'un segment pris isolément — sur
+  // `public."User"`, il consommait `public."` (le `.` appartient à la classe `[\w.]`, le `"` est
+  // ensuite avalé par le `"?` final) et la table entière n'était JAMAIS reconnue : elle sortait
+  // « absente de la base » quelle que soit la réalité. Chaque segment, nu OU quoté, est
+  // maintenant reconnu séparément.
+  const NOM_QUALIFIE = '(?:"[^"]+"|[\\w]+)(?:\\.(?:"[^"]+"|[\\w]+))*';
   // CREATE TABLE [IF NOT EXISTS] name ( colonnes… )
-  const ct = /create\s+table\s+(?:if\s+not\s+exists\s+)?("?[\w.]+"?)\s*\(([\s\S]*?)\)\s*;/gi; let m;
+  const ct = new RegExp('create\\s+table\\s+(?:if\\s+not\\s+exists\\s+)?(' + NOM_QUALIFIE + ')\\s*\\(([\\s\\S]*?)\\)\\s*;', 'gi'); let m;
   while ((m = ct.exec(sql))) {
     const table = norm(m[1].split('.').pop());
     // découper au niveau des virgules de premier niveau (ignorer celles entre parenthèses)
@@ -107,8 +125,9 @@ function parseSchema(p) {
       const cm = t.match(/^("?[\w]+"?)/); if (cm) add(table, norm(cm[1]));
     }
   }
-  // ALTER TABLE name ADD [COLUMN] col
-  const at = /alter\s+table\s+(?:if\s+exists\s+)?("?[\w.]+"?)\s+add\s+(?:column\s+)?(?:if\s+not\s+exists\s+)?("?[\w]+"?)/gi;
+  // ALTER TABLE [ONLY] name ADD [COLUMN] col — même nom qualifié, « ONLY » étant celui que
+  // pg_dump préfixe sur ses ALTER TABLE.
+  const at = new RegExp('alter\\s+table\\s+(?:only\\s+)?(?:if\\s+exists\\s+)?(' + NOM_QUALIFIE + ')\\s+add\\s+(?:column\\s+)?(?:if\\s+not\\s+exists\\s+)?("?[\\w]+"?)', 'gi');
   while ((m = at.exec(sql))) add(norm(m[1].split('.').pop()), norm(m[2]));
   return db;
 }
