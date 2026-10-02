@@ -70,6 +70,18 @@ grille de verdict) n'est jugé conforme que si une preuve existe, citée à l'en
 a été vérifiée (**preuve fichier:ligne** : fichier et ligne de code, extrait de configuration,
 rapport de scan ou capture d'écran — jamais une affirmation non sourcée).
 
+**Réglage capturé sur un système VIVANT.** Un réglage de sécurité observé en direct contre un
+environnement déployé (authentification forcée devant une API, droit effectif d'un compte, état
+d'un coffre à secrets…) n'est pas une photo valable pour toute la durée de l'audit : une écriture
+concurrente, par un autre compte, peut le changer entre l'instant de la capture et la remise du
+rapport — fait mesuré le 23/09/2026, une authentification forcée constatée « ok » à 15h11 UTC
+était déjà fausse à 15h16, au milieu de quatre écritures d'un autre compte entre 15h07 et 15h16
+UTC. Pour tout réglage de ce type, l'audit : **(1)** lit le journal d'activité sur TOUTE la
+fenêtre mesurée, pour voir si une écriture concurrente a pu l'affecter ; **(2)** recapture le
+réglage une seconde fois, À LA REMISE — et cite les deux horodatages dans la preuve. Un relevé
+unique, sans journal d'activité ni seconde capture, n'est pas une preuve recevable pour un
+réglage qui peut changer en cours d'audit.
+
 **Les 18 dimensions, en langage métier :**
 
 | ID | Dimension | Ce que ça vous demande, en clair |
