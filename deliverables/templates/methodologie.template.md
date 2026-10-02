@@ -129,7 +129,7 @@ Les règles 13 à 24 portent la **preuve exécutée**. Chacune est adossée à u
 | Livrable | Emplacement | Gate |
 |---|---|---|
 | `rapport-data.json` + rapport rendu | `output/00 - Rapport d'audit/` | vérificateurs (données + rendu) |
-| Fiche sécurité (8 sections, 0 placeholder) | `output/01 - Fiche Sécurité/` | relecture {{roles.security_officer}} |
+| Fiche sécurité (8 sections, 0 placeholder) — `.html` complété **et** `.pdf` imprimé depuis lui par `fiche-en-pdf.mjs` (jamais capturé) | `output/01 - Fiche Sécurité/` | relecture {{roles.security_officer}} · `oracles/verifier-fiche-securite.mjs` |
 | Présentation à {{roles.decision_authority}} | `output/02 - Présentation autorité de décision/` | schéma d'architecture = celui du rapport |
 | Scans & preuves (+ manifeste) | `output/03 - Scans & preuves/` | référencés `fichier:ligne` |
 | `remediation-actions.yaml` | `output/00 - Rapport d'audit/` | schéma validé (backlog forge) |
@@ -137,5 +137,6 @@ Les règles 13 à 24 portent la **preuve exécutée**. Chacune est adossée à u
 ## 5 · Outils du kit
 
 `init-audit-workspace-standalone.mjs` · `verifier-rapport-standalone.mjs` ·
-`build-rapport-standalone.mjs` · `compliance-skill.md` (agent codeur/CI) ·
+`build-rapport-standalone.mjs` · `fiche-en-pdf.mjs` (imprime la fiche sécurité `.html` en `.pdf`,
+jamais une capture) · `compliance-skill.md` (agent codeur/CI) ·
 `banc-de-preuves.md` · `constraints-merged.json` · `catalogue-adr.html` · `dimensions.yaml`.

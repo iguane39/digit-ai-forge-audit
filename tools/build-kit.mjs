@@ -37,7 +37,10 @@ run([rel('tools', 'build-referentiel.mjs'), path.resolve(tenantYaml), '--out', p
 // SQUELETTE de la fiche, pas une fiche diffusable — un tirage PDF d'un document plein de
 // placeholders n'a pas de destinataire, et il coûterait un lancement de navigateur à chaque
 // fabrication de kit. Le kit emporte en revanche l'OUTIL d'impression (`fiche-en-pdf.mjs`) : le
-// PDF se tire chez le projet audité, sur la fiche REMPLIE, au moment où elle part.
+// PDF se tire chez le projet audité, sur la fiche REMPLIE, au moment où elle part. TF-1351 : ce
+// squelette HTML (déjà produit ici pour le Kit Audit) est désormais AUSSI livré au Compliance
+// Pack — sans lui, ce kit ne fournissait que le canevas `.md` et un imprimeur qui n'accepte que
+// du `.html`, sans aucun outil pour passer de l'un à l'autre.
 run([rel('tools', 'build-fiche.mjs'), path.resolve(tenantYaml), '--out', path.join(tmp, 'fiche-securite.html'), '--sans-pdf']);
 const merged = loadJson(path.join(tmp, 'merged.json'));
 
@@ -197,8 +200,9 @@ Au **projet audité** : équipe de développement, agent IA codeur, pipeline CI.
    \`id · statut (PASS|FAIL|N-A|A-REVOIR) · preuve · dimension_audit\`. **Aucun PASS sans preuve.**
 2. Le \`banc-de-preuves.md\` donne, règle par règle : Actions d'audit · Preuve attendue · Grille de verdict
    (avec l'instanciation du profil technologique quand elle existe).
-3. Fiche sécurité : compléter \`fiche-securite.template.md\`. **DEUX sorties** — \`.html\` de
-   référence et \`.pdf\` de diffusion, ce dernier IMPRIMÉ depuis le HTML par
+3. Fiche sécurité : compléter \`fiche-securite.html\` (squelette fourni, mêmes 8 sections que
+   \`fiche-securite.template.md\` — livré à côté comme référence lisible). **DEUX sorties** —
+   le \`.html\` complété et le \`.pdf\` de diffusion, ce dernier IMPRIMÉ depuis le HTML par
    \`node fiche-en-pdf.mjs <fiche.html>\` (jamais capturé) et de MÊME INDICE que lui.
 4. Avant diffusion d'un rapport : \`node verifier-rapport-standalone.mjs <rapport-data.json>\` → exit 0.
 5. Avant diffusion de la fiche sécurité : \`node oracles/verifier-fiche-securite.mjs <fiche.html>\`
@@ -215,6 +219,12 @@ Au **projet audité** : équipe de développement, agent IA codeur, pipeline CI.
     // main, et le 24/07 il a ete CAPTURE en image : 0 caractere extractible, muet pour un lecteur
     // d'ecran, et d'un indice anterieur au HTML depose a cote.
     add('fiche-en-pdf.mjs', F(rel('tools', 'fiche-en-pdf.mjs')));
+    // TF-1351 : l'outil ci-dessus n'accepte QUE du `.html` (`fiche-en-pdf.mjs <fiche.html>`) — le
+    // seul format fourni jusqu'ici etait le `.md` ci-dessus, sans aucun moyen dans le kit de passer
+    // de l'un a l'autre. Le squelette HTML (memes 8 sections, `--sans-pdf`) est deja produit plus
+    // haut pour le Kit Audit (`tmp/fiche-securite.html`) : on le livre aussi ici, directement dans
+    // le format que l'imprimeur accepte, a cote du canevas .md garde comme reference lisible.
+    add('fiche-securite.html', F(path.join(tmp, 'fiche-securite.html')));
     add('theme/theme.css', F(path.join(tmp, 'theme', 'theme.css')));
     add('theme/header.html', F(path.join(tmp, 'theme', 'header.html')));
     addOracles();

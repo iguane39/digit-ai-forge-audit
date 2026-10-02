@@ -49,16 +49,37 @@ function nonRegistrySource(spec) {
   return sc ? sc[1].toLowerCase() : null;
 }
 // Successeur nommé dans un message de dépréciation npm (défaut A) — sinon null.
+// TF-1346 : deux défauts corrigés ici —
+//  1) motif « upgrade to <pkg> vX.Y.Z+ » tenté EN PREMIER (cas réel supertest : « Please upgrade to
+//     supertest v7.1.3+, see release notes at … » devait rendre « 7.1.3+ », pas « release » capté
+//     après « see », mot-clé le plus faible du message) ;
+//  2) mot-clé bordé par \b pour ne plus matcher « use » À L'INTÉRIEUR d'un autre mot (« disuse »,
+//     « unused » → capturait le mot suivant, ex. « of », sans aucun rapport avec un remplaçant).
+const MOTS_GENERIQUES = /^(?:release|notes?|here|more|details?|docs?|documentation|info|information|page|this|it|of|the)$/i;
 function successorFromDeprecation(msg) {
   if (!msg || typeof msg !== 'string') return null;
-  const m = msg.match(/(?:superseded by|use|replaced by|moved to|migrate to|see)\s+["'`]?(@?[a-z0-9._/-]+)["'`]?/i);
-  return m ? m[1].replace(/[.,)]+$/, '') : null;
+  const up = msg.match(/\bupgrade to\s+(?:[a-z0-9._@/-]+\s+)?v?(\d[\w.]*\+?)/i);
+  if (up) return up[1];
+  const m = msg.match(/\b(?:superseded by|replaced by|moved to|migrate to|use|see)\b\s+["'`]?(@?[a-z0-9._/-]+)["'`]?/i);
+  if (!m || MOTS_GENERIQUES.test(m[1])) return null;
+  return m[1].replace(/[.,)]+$/, '');
 }
 function classer(c, d) {
   const target = c.version_actuelle;
   const mk = (statut, driver, reco_flag, priorite, reco, veille = false) => ({ statut, driver, reco_flag, priorite: priorite || '', reco: reco || '', veille });
   if (d.vulns && d.vulns.length) return mk('reco_securite', 'sécurité : ' + d.vulns.slice(0, 4).join(', '), 'Oui', 'urgent', 'Vulnérabilité sur la version utilisée — monter vers ' + target + ' (' + d.vulns.slice(0, 4).join(', ') + ')');
-  if (d.eol === true) return mk('reco_eol', 'majeur EOL / non maintenu', 'Oui', 'prio', 'Majeur utilisé en fin de vie — migrer vers un majeur supporté (cible stable ' + target + ')');
+  if (d.eol === true) {
+    // TF-1346 : un majeur EOL n'implique pas qu'un majeur plus récent existe au registre — ne promettre
+    // une migration de majeur que si la cible connue en est réellement un autre (pg classé reco_eol
+    // avec une cible dans le MÊME majeur : « migrer vers un majeur supporté » devenait contradictoire).
+    const usedMajor = parts(c.version_resolue || c.version_utilisee)[0];
+    const targetMajor = target ? parts(target)[0] : null;
+    const autreMajeur = targetMajor !== null && targetMajor !== usedMajor;
+    const recoEol = autreMajeur
+      ? 'Majeur utilisé en fin de vie — migrer vers un majeur supporté (cible stable ' + target + ')'
+      : 'Majeur utilisé en fin de vie — aucun majeur plus récent connu au registre (dernière stable ' + (target || '?') + ' reste dans le même majeur) — suivre la prochaine publication majeure';
+    return mk('reco_eol', 'majeur EOL / non maintenu', 'Oui', 'prio', recoEol);
+  }
   if (d.deprecated) { // défaut A : porter le successeur, masquer la flèche x→x
     const succ = successorFromDeprecation(typeof d.deprecated === 'string' ? d.deprecated : null);
     const r = mk('reco_deprecie', 'paquet/version déprécié·e ou yanked', 'Oui', 'prio',
@@ -155,6 +176,29 @@ function parseRequirements(text) {
     .map(l => { const m = l.match(/^([A-Za-z0-9._-]+)\s*(?:\[[^\]]*\])?\s*([=<>~!].*)?$/); if (!m) return null; const pin = (m[2] || '').match(/==\s*([\d.]+)/); return { name: m[1].toLowerCase(), used: m[2] || '', resolved: pin ? pin[1] : null }; }).filter(Boolean);
 }
 function parsePackageJson(obj) { const out = []; ['dependencies', 'devDependencies', 'optionalDependencies'].forEach(k => Object.entries((obj && obj[k]) || {}).forEach(([name, r]) => out.push({ name, used: String(r), resolved: null }))); return out; }
+// TF-1345 : résout le champ "workspaces" (tableau npm/yarn classique, ou { packages: [...] } façon
+// Yarn) en dossiers réels contenant un package.json — motifs supportés : chemin exact ("backend") et
+// un seul niveau de joker ("packages/*"). Lancé à la racine, un monorepo n'inventoriait jusqu'ici que
+// le package.json racine (8/49 composants réels) : les manifestes d'espaces de travail en sont ignorés.
+function resolveWorkspaceDirs(dir, rootPkg) {
+  const decl = rootPkg && rootPkg.workspaces;
+  const patterns = Array.isArray(decl) ? decl : (decl && Array.isArray(decl.packages) ? decl.packages : []);
+  const out = [];
+  for (const pat of patterns) {
+    const clean = String(pat).replace(/\/+$/, '');
+    if (clean.includes('*')) {
+      const parent = path.join(dir, clean.slice(0, clean.indexOf('*')).replace(/\/$/, ''));
+      if (!fs.existsSync(parent)) continue;
+      for (const entry of fs.readdirSync(parent, { withFileTypes: true })) {
+        if (entry.isDirectory() && fs.existsSync(path.join(parent, entry.name, 'package.json'))) out.push(path.join(parent, entry.name));
+      }
+    } else {
+      const p = path.join(dir, clean);
+      if (fs.existsSync(path.join(p, 'package.json'))) out.push(p);
+    }
+  }
+  return out;
+}
 /* ---------------- résolution EXACTE (lockfile satisfaisant la plage déclarée) ---------------- */
 function yarnBlocks(text) {
   const blocks = []; let cur = null;
@@ -275,7 +319,27 @@ async function main() {
   for (const f of files.filter(f => /^requirements.*\.txt$/i.test(f))) parseRequirements(read(path.join(dir, f)) || '').forEach(p => comps.push({ eco: 'PyPI', ...p }));
   const pkg = read(path.join(dir, 'package.json'));
   const npmDirect = new Set();
-  if (pkg) { try { const yl = read(path.join(dir, 'yarn.lock')); const lockTop = npmLockTop(dir); parsePackageJson(JSON.parse(pkg)).forEach(p => { npmDirect.add(p.name); comps.push({ eco: 'npm', name: p.name, used: p.used, resolved: resolveNpm(dir, p.name, p.used, yl, lockTop) }); }); } catch {} }
+  let rootPkgObj = null;
+  if (pkg) { try { rootPkgObj = JSON.parse(pkg); const yl = read(path.join(dir, 'yarn.lock')); const lockTop = npmLockTop(dir); parsePackageJson(rootPkgObj).forEach(p => { npmDirect.add(p.name); comps.push({ eco: 'npm', name: p.name, used: p.used, resolved: resolveNpm(dir, p.name, p.used, yl, lockTop) }); }); } catch {} }
+  // Espaces de travail (TF-1345) : un lancement à la racine seule n'inventoriait que son propre
+  // package.json. Les manifestes des espaces déclarés sont lus à leur tour, leurs dépendances
+  // ajoutées en DIRECT (jamais transitif) et résolues via le verrou RACINE (npm/yarn hoistent les
+  // dépendances des espaces de travail au node_modules racine).
+  if (rootPkgObj) {
+    const yl = read(path.join(dir, 'yarn.lock')); const lockTop = npmLockTop(dir);
+    for (const wsDir of resolveWorkspaceDirs(dir, rootPkgObj)) {
+      const wsPkgRaw = read(path.join(wsDir, 'package.json'));
+      if (!wsPkgRaw) continue;
+      try {
+        parsePackageJson(JSON.parse(wsPkgRaw)).forEach(p => {
+          npmDirect.add(p.name);
+          if (!comps.some(c => c.eco === 'npm' && c.name === p.name)) {
+            comps.push({ eco: 'npm', name: p.name, used: p.used, resolved: resolveNpm(wsDir, p.name, p.used, yl, lockTop) });
+          }
+        });
+      } catch {}
+    }
+  }
 
   // DRIVER SÉCURITÉ — ÉCHELLE DE RÉSOLUTION (corepack yarn → yarn → npm → npx yarn → OSV ;
   // pip-audit → python -m pip_audit → OSV). Couvre l'arbre complet (direct + transitif) via l'audit
@@ -339,4 +403,4 @@ async function main() {
 const isMain = process.argv[1] && /maj-versions\.mjs$/.test(process.argv[1].replace(/\\/g, '/'));
 if (isMain) main();
 
-export { isPrerelease, parts, cmpVer, cleanUsed, ecartKind, pickStable, classer, parseRequirements, parsePackageJson, yarnBlocks, yarnResolvedFor, runWithLadder, runCmd, canRun, toolVersion, eolMajor, COVERS, nonRegistrySource, successorFromDeprecation, STATUTS_VERSION_NA };
+export { isPrerelease, parts, cmpVer, cleanUsed, ecartKind, pickStable, classer, parseRequirements, parsePackageJson, yarnBlocks, yarnResolvedFor, runWithLadder, runCmd, canRun, toolVersion, eolMajor, COVERS, nonRegistrySource, successorFromDeprecation, STATUTS_VERSION_NA, resolveWorkspaceDirs };

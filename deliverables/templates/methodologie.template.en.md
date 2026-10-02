@@ -49,7 +49,7 @@ Scaffolding: `node init-audit-workspace-standalone.mjs <dossier>` (idempotent).
 | Deliverable | Location | Gate |
 |---|---|---|
 | `rapport-data.json` + rendered report | `output/00 - Rapport d'audit/` | verifiers (data + rendering) |
-| Security sheet (8 sections, 0 placeholders) | `output/01 - Fiche Sécurité/` | review by {{roles.security_officer}} |
+| Security sheet (8 sections, 0 placeholders) — completed `.html` **and** `.pdf` printed from it by `fiche-en-pdf.mjs` (never a screenshot) | `output/01 - Fiche Sécurité/` | review by {{roles.security_officer}} · `oracles/verifier-fiche-securite.mjs` |
 | Presentation to {{roles.decision_authority}} | `output/02 - Présentation autorité de décision/` | architecture diagram = the one in the report |
 | Scans & evidence (+ manifest) | `output/03 - Scans & preuves/` | referenced as `file:line` |
 | `remediation-actions.yaml` | `output/00 - Rapport d'audit/` | validated schema (forge backlog) |
@@ -57,5 +57,6 @@ Scaffolding: `node init-audit-workspace-standalone.mjs <dossier>` (idempotent).
 ## 5 · Kit tools
 
 `init-audit-workspace-standalone.mjs` · `verifier-rapport-standalone.mjs` ·
-`build-rapport-standalone.mjs` · `compliance-skill.md` (coding agent/CI) ·
+`build-rapport-standalone.mjs` · `fiche-en-pdf.mjs` (prints the `.html` security sheet to `.pdf`,
+never a screenshot) · `compliance-skill.md` (coding agent/CI) ·
 `banc-de-preuves.md` · `constraints-merged.json` · `catalogue-adr.html` · `dimensions.yaml`.

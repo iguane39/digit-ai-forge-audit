@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 import {
   cmpVer, pickStable, ecartKind, isPrerelease, yarnResolvedFor,
   parsePackageJson, runWithLadder, classer, runCmd, canRun, COVERS, eolMajor,
-  nonRegistrySource, successorFromDeprecation,
+  nonRegistrySource, successorFromDeprecation, resolveWorkspaceDirs,
 } from '../../oracles/maj-versions.mjs';
 import { verdictEol } from '../verdicts.mjs';
 
@@ -72,6 +72,18 @@ test('classer : EOL asymétrique — échec d\'acquisition ≠ « pas EOL »', (
   assert.equal(classer({ name: 'x' }, { vulns: ['GHSA-xxxx'], eol: null }).statut, 'reco_securite');
 });
 
+// TF-1346 — pg (node-postgres) classé reco_eol avec une cible du MÊME majeur : le texte « migrer
+// vers un majeur supporté » devenait contradictoire (rien à migrer, la cible stable connue reste
+// dans le majeur déjà EOL). Le driver reste réel (reco_eol, actionnable) ; seul le TEXTE change.
+test('classer : reco_eol ne promet un changement de majeur QUE si la cible connue en est réellement un autre (TF-1346)', () => {
+  const memeMajeur = classer({ name: 'pg', version_resolue: '8.11.0', version_utilisee: '^8.11.0', version_actuelle: '8.16.0' }, { eol: true });
+  assert.equal(memeMajeur.statut, 'reco_eol');
+  assert.equal(memeMajeur.reco_flag, 'Oui');
+  assert.doesNotMatch(memeMajeur.reco, /migrer vers un majeur supporté/);
+  const autreMajeur = classer({ name: 'x', version_resolue: '12.0.0', version_utilisee: '^12.0.0', version_actuelle: '14.2.0' }, { eol: true });
+  assert.match(autreMajeur.reco, /migrer vers un majeur supporté/);
+});
+
 // Qualité de classification (défauts A & B) : exploiter l'info détenue, jamais un faux actionnable.
 test('nonRegistrySource : specs hors-registre détectées, spec de registre → null', () => {
   assert.equal(nonRegistrySource('https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz'), 'cdn.sheetjs.com');
@@ -89,6 +101,27 @@ test('successorFromDeprecation : extrait le remplaçant nommé, sinon null', () 
   assert.equal(successorFromDeprecation('replaced by got'), 'got');
   assert.equal(successorFromDeprecation('no longer maintained'), null);
   assert.equal(successorFromDeprecation(null), null);
+});
+
+// TF-1346 — cas réel (message npm authentique de « supertest ») : le mot-clé le plus proche de la
+// vraie cible était « upgrade to », mais l'ancien code prenait le PREMIER mot-clé rencontré dans le
+// texte (« see »), capturant le mot générique qui le suit (« release », d'un « release notes » sans
+// rapport) au lieu de la version annoncée.
+test('successorFromDeprecation : « upgrade to X vY+ » extrait la version cible, pas un mot générique (TF-1346, cas réel supertest)', () => {
+  const msg = 'Please upgrade to supertest v7.1.3+, see release notes at https://github.com/forwardemail/supertest/releases/tag/v7.1.3 - maintenance is supported by Forward Email @ https://forwardemail.net';
+  assert.equal(successorFromDeprecation(msg), '7.1.3+');
+});
+
+test('successorFromDeprecation : un mot-clé « see »/« use » suivi d\'un mot générique ne nomme jamais un remplaçant (TF-1346)', () => {
+  assert.equal(successorFromDeprecation('No longer needed, see release notes for details'), null);
+  assert.equal(successorFromDeprecation('For more info see here'), null);
+});
+
+// Défaut « sans borne de mot » (TF-1346, re-évaluation du 24/09) : l'ancien motif matchait « use » À
+// L'INTÉRIEUR d'un autre mot (« disuse ») et capturait le mot suivant (« of ») comme s'il nommait un
+// remplaçant.
+test('successorFromDeprecation : pas de faux déclenchement sur un mot-clé imbriqué dans un autre mot (TF-1346)', () => {
+  assert.equal(successorFromDeprecation('This causes disuse of legacy encoding; unused code remains'), null);
 });
 
 test('classer : déprécié porte le successeur, masque la flèche x→x (défaut A)', () => {
@@ -115,6 +148,12 @@ test('classer : garde anti-downgrade — jamais une cible inférieure à l\'inst
   assert.notEqual(r.reco_flag, 'Oui');
   assert.notEqual(r.statut, 'reco_correctif');
   assert.equal(r.anti_downgrade, true);
+});
+
+test('resolveWorkspaceDirs : motif joker un niveau ("packages/*") résolu en dossiers réels (TF-1345)', () => {
+  const dirs = resolveWorkspaceDirs(path.join(FIX, 'monorepo'), { workspaces: ['packages/*'] });
+  const names = dirs.map(d => path.basename(d)).sort();
+  assert.deepEqual(names, ['backend', 'frontend']);
 });
 
 test('parsePackageJson : dépendances directes', () => {
@@ -169,6 +208,21 @@ test('registre injoignable (forcé) → non_verifie, JAMAIS a_jour (défaut 6)',
   const ajour = Object.values(d.composants).filter(c => c.statut === 'a_jour').map(c => c.nom);
   assert.equal(ajour.length, 0, 'aucun composant présenté « à jour » sur registre injoignable : ' + ajour.join(', '));
   assert.match(compByName(d, 'vite').version_actuelle, /non vérifié|inaccessible/i);
+});
+
+// TF-1345 — lancé à la racine, le script n'inventoriait QUE le package.json racine : les dépendances
+// des espaces de travail (backend/, frontend/) disparaissaient purement et simplement de l'inventaire
+// (ni directes, ni transitives — absentes). Réseau/sécurité forcés en échec : test structurel
+// (comptage + classement direct), pas de comparaison de version en jeu.
+test('espaces de travail (workspaces) : inventorie aussi les manifestes des espaces, en DIRECT (TF-1345)', () => {
+  const d = runScript('monorepo', { MAJVER_TEST_FORCE_REGISTRY_FAIL: '1', MAJVER_TEST_FORCE_SEC_FAIL: '1' });
+  assert.equal(d.resume.total, 3, 'racine (chalk) + 2 espaces de travail (lodash, axios) = 3 dépendances npm');
+  const backend = compByName(d, 'lodash');
+  const frontend = compByName(d, 'axios');
+  assert.ok(backend, 'dépendance de l\'espace de travail packages/backend présente dans l\'inventaire');
+  assert.ok(frontend, 'dépendance de l\'espace de travail packages/frontend présente dans l\'inventaire');
+  assert.notEqual(backend.perimetre, '(transitive)', 'une dépendance directe d\'un espace de travail n\'est pas une transitive');
+  assert.notEqual(frontend.perimetre, '(transitive)', 'une dépendance directe d\'un espace de travail n\'est pas une transitive');
 });
 
 test('classification : xlsx (CDN) → hors_registre, jamais reco_correctif ni cible 0.18.5 (défaut B)', () => {

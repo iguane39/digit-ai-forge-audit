@@ -41,6 +41,46 @@ sources mis à jour.
   de moteur qui suit, et c'est le « avant » qu'aucune bascule n'avait.
 
 ### Corrigé
+- **TF-1351** (décision humaine D-51 (a) du 02/10/2026, option (b) de la fiche) — **le Compliance
+  Pack livre désormais la fiche sécurité directement dans le format que son imprimeur accepte.**
+  Le défaut initialement rapporté (« le PDF A4 n'est produit par aucune étape ») était déjà réfuté
+  par une relecture antérieure — `tools/build-fiche.mjs` tire bien un PDF A4 à chaque passe. Mesuré
+  avant, le reste confirmé : le Compliance Pack (part du projet audité) ne livrait la fiche qu'en
+  `fiche-securite.template.md`, aux côtés de `fiche-en-pdf.mjs` — qui n'accepte QUE du `.html`
+  (`node fiche-en-pdf.mjs <fiche.html>`) — sans aucun outil, dans le kit, pour passer du `.md` au
+  `.html` ; et la méthodologie (§4 « Livrables attendus », §5 « Outils du kit », FR et EN) ne
+  nommait nulle part le PDF ni `fiche-en-pdf.mjs`. Le squelette HTML (`--sans-pdf`, déjà produit
+  pour le Kit Audit) est maintenant AUSSI ajouté au Compliance Pack (`tools/build-kit.mjs`), à côté
+  du canevas `.md` gardé comme référence lisible ; le LISEZMOI du pack nomme les deux ; §4/§5 des
+  deux méthodologies nomment désormais `fiche-en-pdf.mjs`. Parité FR/EN vérifiée (clés `{{…}}`
+  inchangées). Recette : `tests/oracles/build-kit-compliance-fiche.test.mjs` (lecteur ZIP minimal,
+  double sens sur la présence du `.html` et la mention documentaire) — 197 tests, 196 pass, 1 skip
+  motivé, exit 0.
+
+- **TF-1345 / TF-1346** (décision humaine D-51 (a) du 02/10/2026, option (a) des deux fiches) —
+  **`oracles/maj-versions.mjs` lit désormais les espaces de travail d'un monorepo, et ne classe plus
+  à tort une dépendance EOL comme « migrable vers un majeur supporté » quand la cible connue reste
+  dans le même majeur.** Mesuré avant (TF-1345) : lancé à la racine, le script ne lisait que son
+  propre `package.json` — un monorepo de 49 composants réels n'en rendait que 8, les dépendances des
+  espaces de travail (`backend/`, `frontend/`) disparaissant purement et simplement de l'inventaire
+  (ni directes, ni transitives). Le champ `workspaces` (tableau, ou `{ packages: [...] }`) est
+  désormais résolu (`resolveWorkspaceDirs`, motifs « chemin exact » et « un niveau de joker ») et
+  chaque manifeste d'espace lu, ses dépendances ajoutées en DIRECT et résolues via le verrou RACINE
+  (npm/yarn hoistent). Mesuré avant (TF-1346), cas réel confirmé sur le message npm authentique de
+  `supertest` (« Please upgrade to supertest v7.1.3+, see release notes at … ») : le remplaçant
+  extrait rendait « release » (mot générique capté après le mot-clé « see », le premier rencontré
+  dans le texte) au lieu de « 7.1.3+ » ; et `successorFromDeprecation` matchait le mot-clé « use » À
+  L'INTÉRIEUR d'un autre mot (« disuse ») faute de borne de mot, captant le mot suivant sans aucun
+  rapport (ex. « of »). Un motif « upgrade to X vY+ » est tenté en premier, les mots-clés sont
+  bordés par `\b`, et une courte liste de mots génériques (release, notes, here, of…) ne peut plus
+  être rendue comme remplaçant. Par ailleurs, `reco_eol` ne promet plus « migrer vers un majeur
+  supporté » quand la cible stable connue reste dans le même majeur que l'installé (pg classé ainsi
+  à tort) — le driver reste réel et actionnable, seul le texte de la recommandation change.
+  Recette : fixture `tests/fixtures/oracles/monorepo/` (racine + deux espaces `packages/*`) et neuf
+  cas neufs dans `tests/oracles/maj-versions.test.mjs` (workspaces, extraction du remplaçant sur le
+  cas réel supertest, mots génériques, mot-clé imbriqué, reco_eol même-majeur) — 195 tests, 194 pass,
+  1 skip motivé, exit 0.
+
 - **TF-1332** (part forge-audit, décision humaine D-19 (a) du 26/09/2026) — **`oracles/README.md`
   n'affirme plus de compte de tests écrit à la main.** Mesuré avant : la section « Preuve »
   affichait « 41 tests » alors que la batterie en comptait 162 (mesuré le 26/09/2026 : `node
