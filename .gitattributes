@@ -1,0 +1,35 @@
+# Fins de ligne — protection contre la récidive CRLF (TF-1276).
+#
+# Le poste de travail est sous Windows avec `core.autocrlf=true` : à chaque `git clone` ou
+# `git checkout`, git réécrit les fichiers texte en CRLF dans la copie de travail. Sans fichier de
+# déclaration des fins de ligne, deux clones aux réglages `core.autocrlf` différents (ce poste vs
+# un runner Linux, par exemple) peuvent finir avec des copies de travail DIFFÉRENTES pour le MÊME
+# contenu versionné — et `git status` reste muet, puisque chacun normalise selon son propre
+# réglage local. C'est exactement le piège payé le même jour (20/09/2026) chez le dépôt frère
+# digit-ai-forge-agents : 8 copies de travail réécrites en CRLF, `git status` muet. HERITAGE.json
+# documente déjà la même leçon : l'empreinte de la copie conforme vendorée se protège par une
+# normalisation DÉCLARÉE (fins de ligne ramenées à LF avant hachage) ; tout autre contrôle qui
+# hacherait un fichier sans cette déclaration reste exposé.
+#
+# On force donc LF des deux côtés (dépôt ET copie de travail) pour les extensions sensibles —
+# scripts exécutés, fixtures comparées octet à octet (SQL de pg_dump, schémas Prisma), contrôles
+# qui lisent une page HTML/CSS ligne à ligne.
+#
+# Les .json ne sont pas listés à dessein, même convention que digit-ai-forge-agents : plusieurs
+# sorties d'outils tiers peuvent les écrire en CRLF, et les normaliser ici créerait une réécriture
+# massive sans rapport avec le défaut corrigé.
+
+*.md     text eol=lf
+*.mjs    text eol=lf
+*.js     text eol=lf
+*.py     text eol=lf
+*.html   text eol=lf
+*.css    text eol=lf
+*.sql    text eol=lf
+*.yaml   text eol=lf
+*.yml    text eol=lf
+*.rego   text eol=lf
+*.sh     text eol=lf
+
+.gitattributes text eol=lf
+.gitignore     text eol=lf

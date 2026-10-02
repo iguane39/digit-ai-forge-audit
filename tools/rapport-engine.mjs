@@ -71,6 +71,21 @@ export const STR = {
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const CRIT_CLASS = { Fatal: 'fatal', Bloquant: 'bloq', Majeur: 'maj', Standard: 'std' };
 
+/**
+ * TF-1276 (02/10/2026) : A2 du socle commun — favicon-lettre en `data:` URI, zéro requête,
+ * initiale du client. Absent, l'onglet porte l'icône générique du navigateur et le rapport se
+ * perd parmi vingt autres. `couleur` reprend `--accent` du thème déjà généré pour ce tenant (une
+ * favicon n'a pas de CSSOM : `var(--accent)` n'y résoudrait rien, la couleur doit être littérale).
+ */
+function faviconDataUri(lettre, couleur) {
+  const L = (String(lettre || '?').trim().charAt(0) || '?').toUpperCase();
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>`
+    + `<rect width='64' height='64' rx='14' fill='${couleur}'/>`
+    + `<text x='32' y='44' font-family='Segoe UI,Roboto,sans-serif' font-size='38' `
+    + `font-weight='700' fill='white' text-anchor='middle'>${L}</text></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Textes de la doctrine « restitution lisible ». Ils ne décrivent JAMAIS une donnée
 // que le rapport n'a pas : les repères de lecture et le manifeste d'écarts sont des
@@ -82,6 +97,8 @@ const RES = {
     apprend: 'Ce que cette vue vous apprend',
     commencer: 'Par où commencer, selon qui vous êtes',
     ecarts_t: "Ce que ce rapport ne dit pas — manifeste d'écarts",
+    ecarts_annonce: 'la liste des absences déclarées : ce que ce rapport ne couvre pas',
+    ecarts_apprend: "Ce chapitre liste les absences déclarées : ce qu'aucune donnée ne couvre dans ce rapport, pour que rien ne se devine en silence.",
     aller_famille: 'Aller directement à une famille de dimensions',
     v: {
       synthese: ['Synthèse', "l'état du périmètre, ce qui bloque, par où commencer"],
@@ -163,7 +180,6 @@ const RES = {
       non_rattachees: (n, ids) => `${n} action(s) sans dimension de rattachement (${ids}) : visibles au plan, elles sortent du contrat YAML de la forge.`,
       reprise: "Aucun élément de reprise applicative déclaré : la passation vers l'exploitation n'est pas instruite par ce rapport.",
       figures: "Une seule figure dans ce rapport : le moteur ne trace que ce dont il a la donnée chiffrée, il ne fabrique pas de graphique d'illustration.",
-      radar: "Le radar par famille superpose par construction ses polygones de graduation : l'oracle visuel du socle les compte comme des chevauchements. Écart connu et assumé — le tracé est volontaire, et chaque valeur est aussi lisible en clair sur les étiquettes du radar.",
     },
     exempt_syntheses: 'synthèse rédigée à deux colonnes, lue en place et non parcourue',
     cherche: 'Rechercher dans ce tableau…',
@@ -175,6 +191,8 @@ const RES = {
     apprend: 'What this view tells you',
     commencer: 'Where to start, depending on who you are',
     ecarts_t: "What this report does not say — gap manifest",
+    ecarts_annonce: 'the list of declared gaps: what this report does not cover',
+    ecarts_apprend: 'This chapter lists the declared gaps: what no data covers in this report, so nothing is left to guess in silence.',
     aller_famille: 'Jump to a family of dimensions',
     v: {
       synthese: ['Summary', 'the state of the scope, what blocks, where to start'],
@@ -256,7 +274,6 @@ const RES = {
       non_rattachees: (n, ids) => `${n} action(s) without an attached dimension (${ids}): visible in the plan, they fall out of the forge YAML contract.`,
       reprise: 'No handover item declared: the transfer to operations is not assessed by this report.',
       figures: 'A single figure in this report: the engine only draws what it has figures for, it does not manufacture illustrative charts.',
-      radar: 'The family radar overlays its grid polygons by construction: the visual oracle of the base counts them as overlaps. A known and accepted gap — the drawing is deliberate, and every value is also readable in plain text on the radar labels.',
     },
     exempt_syntheses: 'written two-column summary, read in place and not browsed',
     cherche: 'Search this table…',
@@ -618,10 +635,20 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
     const a = -Math.PI / 2 + (2 * Math.PI * i) / famAvg.length;
     return `${(CX + Math.cos(a) * R * (v / 5)).toFixed(1)},${(CY + Math.sin(a) * R * (v / 5)).toFixed(1)}`;
   };
+  // TF-1276 (02/10/2026) : V4 du socle commun (render_page.py) refuse un chevauchement entre
+  // ÉLÉMENTS FRÈRES — et un radar est fait de polygones CONCENTRIQUES, qui se recouvrent par
+  // CONSTRUCTION du dessin (pas une erreur de mise en page), plus un label d'axe posé juste à
+  // cheval sur l'anneau extérieur. Le SVG n'est pas « de petite taille » (l'exemption automatique
+  // ne s'applique qu'en dessous de 48×48 px rendus) : chaque forme déclare donc la PAIRE,
+  // `data-overlap-ok="<ids des autres formes du radar>"` (TF-1146 — la paire, jamais l'élément
+  // exempté en bloc). Généré, pas recopié à la main : robuste à tout nombre de familles.
+  const radarIds = [...[1, 2, 3, 4, 5].map(v => `radar-anneau-${v}`), 'radar-donnees',
+    ...famAvg.map((_, i) => `radar-lab-${i}`)];
+  const okAvec = (id) => radarIds.filter(x => x !== id).join(' ');
   const radar = `<svg viewBox="0 0 460 290" class="radar" role="img" aria-label="${esc(L.familles)}">
-    ${[1, 2, 3, 4, 5].map(v => `<polygon points="${famAvg.map((_, i) => pt(i, v)).join(' ')}" fill="none" stroke="var(--line)" stroke-width="${v === 5 ? 1.2 : 0.6}"/>`).join('')}
-    <polygon points="${famAvg.map((f, i) => pt(i, f.avg)).join(' ')}" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)" stroke-width="2"/>
-    ${famAvg.map((f, i) => { const [x, y] = pt(i, 5.65).split(','); return `<text x="${x}" y="${y}" text-anchor="middle" class="rlab">${esc(f.label)} · ${f.avg ? f.avg.toFixed(1) : '—'}</text>`; }).join('')}
+    ${[1, 2, 3, 4, 5].map(v => `<polygon id="radar-anneau-${v}" data-overlap-ok="${okAvec(`radar-anneau-${v}`)}" points="${famAvg.map((_, i) => pt(i, v)).join(' ')}" fill="none" stroke="var(--line)" stroke-width="${v === 5 ? 1.2 : 0.6}"/>`).join('')}
+    <polygon id="radar-donnees" data-overlap-ok="${okAvec('radar-donnees')}" points="${famAvg.map((f, i) => pt(i, f.avg)).join(' ')}" fill="var(--accent)" fill-opacity="0.18" stroke="var(--accent)" stroke-width="2"/>
+    ${famAvg.map((f, i) => { const [x, y] = pt(i, 5.65).split(','); return `<text id="radar-lab-${i}" data-overlap-ok="${okAvec(`radar-lab-${i}`)}" x="${x}" y="${y}" text-anchor="middle" class="rlab">${esc(f.label)} · ${f.avg ? f.avg.toFixed(1) : '—'}</text>`; }).join('')}
   </svg>`;
   // RL-4 : un graphique énonce la question à laquelle il répond, sinon il n'existe pas.
   const figRadar = `<figure class="graphe"><figcaption>${esc(T.q_radar)}</figcaption>${radar}
@@ -740,7 +767,7 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
   // ── VUE « Méthode & lecture » — le contenu GÉNÉRIQUE vit ici une fois, et une seule
   //    (règle RL-7) ; le reste du rapport y renvoie par aria-describedby ou par ancre.
   const vueMethode = `<h3>${esc(L.score)}</h3><p id="leg-score">${esc(T.leg.score)}</p>
-    <h3>${esc(L.gate)}</h3><p id="leg-gate">${esc(T.leg.gate)}</p>
+    <h3><dfn>${esc(L.gate)}</dfn></h3><p id="leg-gate">${esc(T.leg.gate)}</p>
     <h3>${esc(L.verdict)}</h3><p id="leg-verdicts">${esc(T.leg.verdicts)}</p>
     <p id="leg-criticites">${esc(T.leg.criticites)}</p>
     <h3>${esc(L.prio)}</h3><p id="leg-priorites">${esc(T.leg.priorites)}</p>
@@ -784,7 +811,7 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
 
   // La synthèse cite les autres vues : elle se construit après elles, et s'insère en tête.
   const synthese = `<div class="verdict">
-      <p><b>${L.gate} :</b> <span class="gate ${gateClass}" title="${esc(T.t.gate)}">${esc(gate)}</span>
+      <p><b><dfn title="${esc(T.t.gate)}">${esc(L.gate)}</dfn> :</b> <span class="gate ${gateClass}" title="${esc(T.t.gate)}">${esc(gate)}</span>
       — ${bloquants.length} ${esc(L.bloquants.toLowerCase())}, ${nbNC} ${esc(L.regles.toLowerCase())} ${esc(L.nc)}, ${plan.length} ${esc(L.rem.toLowerCase())}.</p>
     </div>
     <div class="kpis">
@@ -807,10 +834,19 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
     </ul>`;
   vues.unshift({ id: 'v-synthese', titre: T.v.synthese[0], annonce: T.v.synthese[1], objectif: T.o.synthese, corps: synthese, exemple: '' });
 
+  // TF-1276 (02/10/2026) : L16 du socle commun exige qu'un role="tab" vise un role="tabpanel"
+  // RÉSOLU (aria-controls → id du panneau) et que chaque role="tabpanel" soit étiqueté PAR SON
+  // ONGLET (aria-labelledby → id de l'onglet, jamais un aria-label libre) — motif ARIA standard
+  // des onglets. L'onglet reçoit donc son propre id (tab-${v.id}, distinct du panneau).
+  // L25 : le manifeste d'écarts (<footer class="ecarts">, plus bas) porte lui aussi un <h2> —
+  // c'est un CHAPITRE comme un autre pour le lecteur, pas un bloc de service du gabarit ; il
+  // reçoit donc sa propre entrée, en simple ancre (pas un onglet : c'est un pied de page commun
+  // à toutes les vues, jamais un panneau que montreVue() bascule).
   const nav = `<nav class="toc vues" aria-label="Sommaire" role="tablist">
     <span class="toc-h">${esc(T.sommaire)}</span>
-    <ol>${vues.map((v, i) => `<li><a href="#${v.id}" data-vue="${v.id}" role="tab" aria-selected="${i === 0}" onclick="return montreVue('${v.id}')"><span class="toc-t">${i + 1} · ${esc(v.titre)}</span><span class="toc-d">${esc(v.annonce)}</span></a></li>`).join('')}</ol></nav>`;
-  const sections = vues.map((v, i) => `<section class="vue${i === 0 ? ' active' : ''}" id="${v.id}" role="tabpanel" aria-label="${esc(v.titre)}">
+    <ol>${vues.map((v, i) => `<li><a id="tab-${v.id}" href="#${v.id}" data-vue="${v.id}" role="tab" aria-selected="${i === 0}" aria-controls="${v.id}" onclick="return montreVue('${v.id}')"><span class="toc-t">${i + 1} · ${esc(v.titre)}</span><span class="toc-d">${esc(v.annonce)}</span></a></li>`).join('')}
+    <li><a href="#v-ecarts"><span class="toc-t">${esc(T.ecarts_t)}</span><span class="toc-d">${esc(T.ecarts_annonce)}</span></a></li></ol></nav>`;
+  const sections = vues.map((v, i) => `<section class="vue${i === 0 ? ' active' : ''}" id="${v.id}" role="tabpanel" aria-labelledby="tab-${v.id}">
     <h2 class="sr">${esc(v.titre)}</h2>
     <p class="objectif ch-apprend">${esc(v.objectif)}</p>
     ${v.id === 'v-dimensions' ? `<nav class="familles" aria-label="${esc(T.aller_famille)}"><ul>${famLiens}</ul></nav>` : ''}
@@ -834,7 +870,10 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
   if (planIncomplet.length) ecarts.push(T.ec.plan_incomplet(planIncomplet.length));
   if (nonRattachees.length) ecarts.push(T.ec.non_rattachees(nonRattachees.length, nonRattachees.map(a => a.source).join(', ')));
   if (!figVerdicts) ecarts.push(T.ec.figures);
-  if (famAvg.length) ecarts.push(T.ec.radar);
+  // TF-1276 (02/10/2026) : le radar n'est plus un écart déclaré — chaque forme qui le compose
+  // porte désormais la PAIRE data-overlap-ok qui la justifie (cf. radarIds plus haut), et le
+  // rendu passe V4 proprement. Le garder ici aurait affirmé un écart refermé, et sa phrase à
+  // elle seule dépassait le plafond de lecture (V18) une fois isolée dans la liste.
   if (!ecarts.length) ecarts.push(T.ec.aucun);
 
   // ── ECR-04/05 · le rapport est AUTO-PORTEUR de sa remédiation : bloc machine embarqué.
@@ -861,8 +900,19 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
     vues: vues.map(v => v.id),
   });
 
+  // TF-1276 (02/10/2026) : A4 du socle commun exige un titre « Marque — Objet · Client — version »
+  // AVEC un indice de version daté — « V1 » ne distingue pas deux révisions du même jour. La
+  // référence existe déjà (data.date / data.indice, ceux-là même qu'utilise auditRef() plus haut) :
+  // le titre la reprend, elle n'est pas inventée pour l'occasion.
+  const refDatee = `${data.date ?? ''}${data.indice ?? ''}`.trim();
+  // A2 : --accent est littéral dans themeCss (seule la PAGE en fait une variable CSS ; la
+  // favicon, elle, n'a pas de CSSOM) — on le relit tel quel, repli sur l'accent par défaut du
+  // thème (build-theme.mjs) si jamais le bloc :root ne le porte pas.
+  const accentFavicon = (/--accent:\s*([^;]+);/.exec(themeCss) || [])[1]?.trim() || '#2563eb';
+  const initialeFavicon = data._short_code || tenant;
   return `<!DOCTYPE html><html lang="${esc(lang)}"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(tenant)} — ${L.rapport} — ${esc(projet)}</title>
+<link rel="icon" type="image/svg+xml" href="${faviconDataUri(initialeFavicon, accentFavicon)}">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(tenant)} — ${L.rapport} — ${esc(projet)}${refDatee ? ` — ${esc(refDatee)}` : ''}</title>
 <style>${themeCss}${CANEVAS_CSS}
 .wrap{max-width:clamp(75vw,1680px,92vw);margin:0 auto;padding:24px}h1{font-size:26px;margin:6px 0}
 h2{font-size:20px;margin:18px 0 8px}h3{margin:22px 0 8px}h4{margin:18px 0 6px}h5{margin:14px 0 6px}
@@ -871,14 +921,14 @@ h2{font-size:20px;margin:18px 0 8px}h3{margin:22px 0 8px}h4{margin:18px 0 6px}h5
 .gate.std{background:var(--std)}.gate.maj{background:var(--maj)}.gate.fatal{background:var(--fatal)}
 .muted{color:var(--muted)}.small{font-size:11.5px}
 /* — Vues (référentiel de restitution) : navigation permanente, une question par vue — */
-nav.vues{margin:18px 0 10px;border-bottom:2px solid var(--line);padding-bottom:10px}
+nav.toc,nav.vues{margin:18px 0 10px;border-bottom:2px solid var(--line);padding-bottom:10px}
 nav.vues .toc-h{display:block;font-weight:700;font-size:12.5px;margin-bottom:8px}
 nav.vues ol{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0}
 nav.vues a{display:flex;flex-direction:column;justify-content:center;min-height:44px;border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:8px;padding:6px 12px;text-decoration:none;max-width:280px}
 nav.vues a[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
 nav.vues .toc-t{font-weight:700;font-size:12.5px}nav.vues .toc-d{font-size:11px;opacity:.85}
 section.vue{display:none}section.vue.active{display:block}
-.objectif{color:var(--muted);font-size:13px;margin:6px 0 18px}
+.objectif,.ch-apprend{color:var(--muted);font-size:13px;margin:6px 0 18px}
 /* Pas de max-width en ch sur ces paragraphes : brider la prose sous 85 % de la largeur
    disponible laisse une marge droite vide aussi large que le texte (contrôle L2 du rendu). */
 .exemple-lecture{margin:6px 0}
@@ -899,11 +949,22 @@ figure.graphe figcaption{font-weight:700;margin-bottom:8px;font-size:13px}
 .g-empile{width:100%;height:14px;border-radius:4px;display:block}
 .g-legende{list-style:none;display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 0;padding:0;font-size:12px}
 .g-puce{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
-.chemins{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;margin:0 0 16px;padding:0}
+/* TF-1276 (02/10/2026) : V18 du socle commun (render_page.py) refuse une ligne de prose
+   au-delà de 135 caractères — au-delà, l'œil perd le début de la ligne suivante. Avec
+   minmax(260px,1fr), une carte s'étirait jusqu'à environ 1 280 px sur un écran ultra-large
+   (3 items, 3840 px) et une phrase y tenait sur une seule ligne de 261 caractères. Un plafond
+   (420px) garde la carte LISIBLE quelle que soit la largeur de l'écran — auto-fit continue
+   d'ajouter des colonnes, il ne les élargit plus au-delà d'une colonne de lecture. */
+.chemins{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,420px));gap:10px;margin:0 0 16px;padding:0}
 .chemin{font-size:12.5px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:8px}
 .chemin b{display:block;margin-bottom:2px}
 footer.ecarts{margin-top:26px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:12.5px}
-footer.ecarts h2{font-size:14px;margin:0 0 8px}footer.ecarts ul{margin:0;padding-left:18px}
+footer.ecarts h2{font-size:14px;margin:0 0 8px}
+/* V18 (render_page.py) : au-delà de 135 caractères par ligne peinte, l'œil perd le début de la
+   ligne suivante. footer.ecarts vit dans .wrap, qui s'élargit sur un écran ultra-large
+   (jusqu'à 2 880 px) ; une phrase d'écart déclaré y filait sur une seule ligne de 179
+   caractères. L'unité ch vise directement un NOMBRE DE CARACTÈRES, pas une largeur devinée en px. */
+footer.ecarts ul{margin:0;padding-left:18px;max-width:70ch}
 .sep{border:none;border-top:1px solid var(--line);margin:24px 0}
 table{border-collapse:collapse;width:100%;margin:8px 0;background:var(--panel)}th,td{border:1px solid var(--line);padding:6px 9px;font-size:12.5px;text-align:left;vertical-align:top}
 th{background:var(--bg);position:relative}
@@ -945,7 +1006,7 @@ tr[data-q-hidden]{display:none!important}
 <h1>${L.rapport} — ${esc(projet)}</h1>
 ${nav}
 <main>${sections}</main>
-<footer class="ecarts"><h2>${esc(T.ecarts_t)}</h2><ul>${ecarts.map(e => `<li>${esc(e)}</li>`).join('')}</ul></footer>
+<footer class="ecarts"><div id="v-ecarts"><h2>${esc(T.ecarts_t)}</h2><p class="ch-apprend">${esc(T.ecarts_apprend)}</p><ul data-colonne-ok>${ecarts.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div></footer>
 <footer class="muted small" style="margin-top:20px;border-top:1px solid var(--line);padding-top:10px">
 ${L.footer.replace('{v}', esc(coreVersion)).replace('{t}', esc(tenant))}</footer>
 </div>
