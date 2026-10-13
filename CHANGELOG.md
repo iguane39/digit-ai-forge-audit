@@ -7,6 +7,30 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1395** (décision humaine du 13/10/2026, option a de la fiche) — **un réglage d'infrastructure
+  se juge sur l'état servi, pas sur le code qui le décrit.** Le 24/09/2026, une règle
+  d'authentification fédérée d'un produit a été jugée « alignée » sur `infra/appservice.tf:35`, alors
+  que l'état servi n'avait pas le réglage `clientSecretSettingName` exigé par la documentation de
+  l'éditeur, que la redirection partait en `response_type=id_token` (flux implicite) et que le
+  justificatif était posé sur l'identité système ; sans relecture de l'état servi, ce modèle aurait
+  été recopié par les autres produits. La méthode (`docs/MANUEL-ENTREPRISE.md`, étape 2) prescrit
+  désormais de relire le réglage servi, de citer dans la preuve le code ET la sortie servie
+  horodatée, et de plafonner le verdict à « partiel » (preuve « état servi non lu ») quand l'état
+  servi n'est pas lisible. Règle de méthode opposable aux missions à venir, sans blocage mécanique :
+  aucun champ de la donnée d'audit ne porte encore « état servi lu ». Recette à double sens :
+  `tests/oracles/methode-etat-servi.test.mjs`, ajoutée à la batterie de la CI.
+
+- **TF-1387** (décision humaine du 13/10/2026, option b de la fiche) — **l'audit déclare qu'il ne
+  chiffre pas l'effort.** Le schéma du plan de remédiation déclarait un champ `effort` que la chaîne
+  ne remplissait jamais : 159 actions sur 159 sans effort sur le plan d'un produit audité en
+  septembre, et une présentation obligée d'ajouter sa propre cotation hors de l'audit, au statut
+  d'hypothèse. Le champ reste facultatif ; la légende du rapport (français et anglais), la méthode
+  (`docs/MANUEL-ENTREPRISE.md`, étape 3) et la description du champ dans
+  `core/schemas/remediation-actions.schema.json` disent désormais que l'effort n'est renseigné que
+  si la mission l'a saisi, et que sa cotation relève du plan d'amélioration. `RES` est exporté de
+  `tools/rapport-engine.mjs` pour que la recette lise la légende. Recette à double sens :
+  `tests/oracles/effort-non-chiffre.test.mjs`, ajoutée à la batterie de la CI.
+
 - **TF-1319** (décision humaine D-13 (a) du 23/09/2026, temps 2 du verdict O3 de l'étude du pilot
   du 19/08 sur le méta-oracle d'enclenchement) — **`oracles/decouvrir-oracles.mjs` : la liste des
   oracles de la forge, lue sur le disque, au contrat commun du parc `digit-ai/decouverte-oracles@1`.**

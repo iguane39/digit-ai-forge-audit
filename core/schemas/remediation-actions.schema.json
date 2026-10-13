@@ -39,7 +39,7 @@
           "adr_ref": { "type": "array", "items": { "type": "string" } },
           "severity": { "enum": ["Fatal", "Bloquant", "Majeur", "Standard"] },
           "priority": { "enum": ["urgent", "prio", "quick", "norm"] },
-          "effort": { "type": "string" },
+          "effort": { "type": "string", "description": "Facultatif. La chaîne AuditCore NE CHIFFRE PAS l'effort (TF-1387, décidé le 13/10/2026) : ce champ n'est présent que si la mission l'a saisi, et absent sinon (jamais une chaîne vide). La cotation d'effort relève du plan d'amélioration en aval." },
           "activation": {
             "type": "object",
             "required": ["mode", "reason"],

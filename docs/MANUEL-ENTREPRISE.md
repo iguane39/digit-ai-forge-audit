@@ -82,6 +82,20 @@ réglage une seconde fois, À LA REMISE — et cite les deux horodatages dans la
 unique, sans journal d'activité ni seconde capture, n'est pas une preuve recevable pour un
 réglage qui peut changer en cours d'audit.
 
+**Un réglage d'infrastructure se juge sur l'état SERVI, pas sur le code qui le décrit.** Pour un
+contrôle qui porte sur un réglage existant à l'exécution (authentification déléguée de la
+plateforme d'hébergement, flux d'authentification, en-têtes, droits effectifs), le fichier
+d'infrastructure dit ce qui devrait être déployé, non ce qui l'est. Fait mesuré le 24/09/2026 : une
+règle d'authentification fédérée jugée alignée sur `infra/appservice.tf:35`, alors que l'état servi
+n'avait pas le réglage `clientSecretSettingName` exigé par la documentation de l'éditeur, que la
+redirection partait en `response_type=id_token` (flux implicite) et que le justificatif était
+posé sur l'identité système. Pour tout contrôle de ce type, l'audit : **(1)** relit le réglage
+servi par la plateforme (commande ou API), à côté de la lecture du code ; **(2)** cite dans la
+preuve la preuve fichier:ligne ET la sortie de l'état servi, horodatée, comparée à la
+documentation de l'éditeur datée ; **(3)** si l'état servi n'est pas lisible (accès absent), le
+verdict ne dépasse pas « partiel » et la preuve écrit « état servi non lu ». Un verdict « conforme »
+ou « aligné » fondé sur la seule lecture du code n'est pas recevable pour un réglage d'exécution.
+
 **Les 18 dimensions, en langage métier :**
 
 | ID | Dimension | Ce que ça vous demande, en clair |
@@ -124,8 +138,10 @@ remédiation estimés).
 ## 4. Étape 3 · Remédiation
 
 **Un plan priorisé.** Toutes les actions correctives sont triées en quatre niveaux : `urgent`,
-`prio` (prioritaire), `quick` (gain rapide) et `norm` (normal), avec un effort estimé et un
-propriétaire nommé pour chacune.
+`prio` (prioritaire), `quick` (gain rapide) et `norm` (normal), avec un propriétaire nommé pour
+chacune. **L'audit ne chiffre pas l'effort** : la colonne Effort du plan n'est renseignée que si la
+mission l'a saisi (sinon « — »), et la cotation d'effort de chaque action relève du plan
+d'amélioration qui suit l'audit.
 
 **Trois modes d'exécution :**
 
