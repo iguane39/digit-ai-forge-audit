@@ -7,6 +7,17 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1387** (décision humaine du 13/10/2026, option b de la fiche) — **l'audit déclare qu'il ne
+  chiffre pas l'effort.** Le schéma du plan de remédiation déclarait un champ `effort` que la chaîne
+  ne remplissait jamais : 159 actions sur 159 sans effort sur le plan d'un produit audité en
+  septembre, et une présentation obligée d'ajouter sa propre cotation hors de l'audit, au statut
+  d'hypothèse. Le champ reste facultatif ; la légende du rapport (français et anglais), la méthode
+  (`docs/MANUEL-ENTREPRISE.md`, étape 3) et la description du champ dans
+  `core/schemas/remediation-actions.schema.json` disent désormais que l'effort n'est renseigné que
+  si la mission l'a saisi, et que sa cotation relève du plan d'amélioration. `RES` est exporté de
+  `tools/rapport-engine.mjs` pour que la recette lise la légende. Recette à double sens :
+  `tests/oracles/effort-non-chiffre.test.mjs`, ajoutée à la batterie de la CI.
+
 - **TF-1319** (décision humaine D-13 (a) du 23/09/2026, temps 2 du verdict O3 de l'étude du pilot
   du 19/08 sur le méta-oracle d'enclenchement) — **`oracles/decouvrir-oracles.mjs` : la liste des
   oracles de la forge, lue sur le disque, au contrat commun du parc `digit-ai/decouverte-oracles@1`.**

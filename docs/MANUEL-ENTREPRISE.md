@@ -124,8 +124,10 @@ remédiation estimés).
 ## 4. Étape 3 · Remédiation
 
 **Un plan priorisé.** Toutes les actions correctives sont triées en quatre niveaux : `urgent`,
-`prio` (prioritaire), `quick` (gain rapide) et `norm` (normal), avec un effort estimé et un
-propriétaire nommé pour chacune.
+`prio` (prioritaire), `quick` (gain rapide) et `norm` (normal), avec un propriétaire nommé pour
+chacune. **L'audit ne chiffre pas l'effort** : la colonne Effort du plan n'est renseignée que si la
+mission l'a saisi (sinon « — »), et la cotation d'effort de chaque action relève du plan
+d'amélioration qui suit l'audit.
 
 **Trois modes d'exécution :**
 

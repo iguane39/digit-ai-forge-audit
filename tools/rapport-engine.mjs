@@ -91,7 +91,7 @@ function faviconDataUri(lettre, couleur) {
 // que le rapport n'a pas : les repères de lecture et le manifeste d'écarts sont des
 // fonctions des chiffres réellement calculés, jamais des phrases figées.
 // ─────────────────────────────────────────────────────────────────────────────
-const RES = {
+export const RES = {
   fr: {
     sommaire: 'Sommaire — une question par vue',
     apprend: 'Ce que cette vue vous apprend',
@@ -158,7 +158,7 @@ const RES = {
       score: 'Score de maturité par dimension, de 0 (rien en place) à 5 (industrialisé et contrôlé). Le score global est la moyenne arithmétique des seules dimensions instruites : une dimension sans objet ne pèse ni en bien ni en mal.',
       gate: "Verdict de porte 1b : GO si aucune dimension bloquante ; GO SOUS RÉSERVE si au moins une dimension est bloquante ou en réserve ; NO-GO si une dimension rend un verdict nogo, ou si cinq dimensions ou plus sont bloquantes.",
       verdicts: "Verdicts d'une règle : conforme (la preuve établit le respect), partiel (respect incomplet, preuve partielle), non conforme (la preuve établit l'écart), sans objet (la règle ne s'applique pas au périmètre, motif obligatoire), à évaluer (non instruite).",
-      priorites: "Priorités du plan : urgent (à traiter avant mise en production), prio (avant la prochaine version), quick (gain rapide à effort faible), norm (fond de file). Elles sont dérivées de la criticité de la source, jamais saisies à la main.",
+      priorites: "Priorités du plan : urgent (à traiter avant mise en production), prio (avant la prochaine version), quick (gain rapide à effort faible), norm (fond de file). Elles sont dérivées de la criticité de la source, jamais saisies à la main. L'audit ne chiffre pas l'effort : la colonne Effort n'est renseignée que si la mission l'a saisi, sinon elle affiche « — » ; la cotation d'effort relève du plan d'amélioration.",
       criticites: 'Criticités du référentiel, du plus grave au moins grave : Fatal, Bloquant, Majeur, Standard. Une règle opposable de criticité Fatal ou Bloquant fait basculer la porte.',
       preuve: "Règle d'or de la méthode : pas de score sans preuve. Chaque score de dimension cite les éléments constatés qui le fondent ; chaque règle non conforme cite la preuve de l'écart et le critère qui clôturera sa remédiation.",
     },
@@ -252,7 +252,7 @@ const RES = {
       score: 'Maturity score per dimension, from 0 (nothing in place) to 5 (industrialised and controlled). The overall score is the arithmetic mean of the assessed dimensions only: a dimension marked not applicable weighs neither way.',
       gate: 'Gate verdict: GO when no dimension blocks; GO WITH RESERVATIONS when at least one dimension blocks or is reserved; NO-GO when a dimension returns a nogo verdict, or when five dimensions or more block.',
       verdicts: 'Verdicts of a rule: compliant (evidence establishes conformity), partial (incomplete conformity, partial evidence), non-compliant (evidence establishes the gap), not applicable (the rule does not apply to the scope, reason mandatory), to assess (not instructed).',
-      priorites: 'Priorities of the plan: urgent (before going to production), prio (before the next release), quick (fast win at low effort), norm (back of the queue). They derive from the criticality of the source, never typed by hand.',
+      priorites: 'Priorities of the plan: urgent (before going to production), prio (before the next release), quick (fast win at low effort), norm (back of the queue). They derive from the criticality of the source, never typed by hand. The audit does not size effort: the Effort column is filled only when the engagement entered it, otherwise it shows "—"; effort sizing belongs to the improvement plan.',
       criticites: 'Criticalities of the baseline, from the most to the least severe: Fatal, Blocking, Major, Standard. A binding rule of Fatal or Blocking criticality flips the gate.',
       preuve: 'Golden rule of the method: no score without evidence. Every dimension score cites the observed items behind it; every non-compliant rule cites the evidence of the gap and the criterion that will close its remediation.',
     },
