@@ -16,6 +16,9 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 import { rel, loadYaml } from './lib.mjs';
+// TF-1737 : le check 10 juge aussi la STABILITÉ de la version actuelle, avec le prédicat même du
+// producteur (une seule source, CONTRIBUTING des oracles) — jamais une regex recopiée.
+import { isPrerelease } from '../oracles/maj-versions.mjs';
 
 const file = process.argv[2];
 if (!file) { console.error('Usage: node tools/verifier-rapport-html.mjs <rapport.html>'); process.exit(2); }
@@ -36,6 +39,11 @@ const txt = (s) => String(s ?? '').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi
 const ph = h.match(/\{\{[^}]+\}\}/g) ?? [];
 if (ph.length) errors.push(`${ph.length} placeholder(s) résiduel(s) — ex: ${[...new Set(ph)].slice(0, 3).join(', ')}`);
 if (!/class="gate (std|maj|fatal)"/.test(h)) errors.push('bandeau de verdict gate absent');
+// TF-1738 : deux règles bloquantes du socle HTML que le modèle du kit client violait (deux <h1>,
+// aucun :root de jetons). Le moteur d'AuditCore les tient ; la porte de rendu les juge.
+const nbH1 = (h.match(/<h1[\s>]/g) ?? []).length;
+if (nbH1 !== 1) errors.push(`${nbH1} titre(s) <h1> — le socle HTML en exige un seul, le titre du document (TF-1738)`);
+if (!/:root\s*\{[^}]*--[a-z]/i.test(h)) errors.push('aucun bloc :root de jetons CSS — le socle HTML exige les couleurs et cotes en jetons (TF-1738)');
 if (!/<svg viewBox="0 0 460(?![0-9])/.test(h)) errors.push('radar par famille absent');   // garde TF-0438
 
 const dims = loadYaml(rel('core', 'dimensions', 'dimensions.yaml')).dimensions.map(d => d.id);
@@ -262,6 +270,8 @@ for (const m of h.matchAll(/<tr>(?:(?!<\/tr>)[\s\S])*?<\/tr>/g)) {
       warnings.push(`composant « ${nom} » déprécié sans successeur nommé`);
   } else if (!actuelle || actuelle === '—') {
     warnings.push(`composant « ${nom} » : statut « ${statut} » exige une version actuelle résolue, absente`);
+  } else if (isPrerelease(actuelle)) {
+    errors.push(`composant « ${nom} » : version actuelle « ${actuelle} » est une pré-version — la politique de fraîcheur interdit une pré-version en version actuelle ou en cible (TF-1737)`);
   }
   if (reco === 'Oui' && actuelle && resolue && cmpVer(actuelle, resolue) < 0)
     errors.push(`composant « ${nom} » : reco actionnable vers une version INFÉRIEURE à l'installée (${actuelle} < ${resolue})`);

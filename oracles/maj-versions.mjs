@@ -18,7 +18,16 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 /* ---------------- sémantique de version ---------------- */
-const isPrerelease = v => /-(?:rc|beta|alpha|next|canary|dev|pre|snapshot)\b|-\d|[abc]\d+$/i.test(String(v || ''));
+// npm (semver) : pré-version marquée par un tiret. PyPI (PEP 440, TF-1737) : `aN`, `bN`, `rcN`,
+// `cN`, `.devN`, collés ou séparés, éventuellement suivis d'un segment local `+…`. `1.0.dev5` était
+// rendu en version_actuelle d'httpx (dernière stable : 0.28.1). Une post-version (`.postN`) est une
+// version FINALE au sens de PEP 440 : elle n'est pas filtrée.
+const PEP440_PRE = /\d[._-]?(?:a|alpha|b|beta|c|rc|pre|preview)[._-]?\d*(?:[._-]?post[._-]?\d*)?(?:[._-]?dev[._-]?\d*)?(?:\+[a-z0-9.]+)?$/i;
+const PEP440_DEV = /\d[._-]?dev[._-]?\d*(?:\+[a-z0-9.]+)?$/i;
+const isPrerelease = v => {
+  const s = String(v || '');
+  return /-(?:rc|beta|alpha|next|canary|dev|pre|snapshot)\b|-\d|[abc]\d+$/i.test(s) || PEP440_PRE.test(s) || PEP440_DEV.test(s);
+};
 const parts = v => { const m = String(v).replace(/^[^\d]*/, '').match(/\d+(?:\.\d+)*/); const p = (m ? m[0] : '').split('.').map(n => parseInt(n, 10) || 0); return [p[0] || 0, p[1] || 0, p[2] || 0]; };
 const cmpVer = (a, b) => { const x = parts(a), y = parts(b); for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] - y[i]; return 0; };
 const cleanUsed = u => String(u).replace(/[\^~>=<!\s*]/g, '').replace(/,.*$/, '').replace(/\.x.*$/i, '');
@@ -35,6 +44,13 @@ function pickStable(versions) {
   const st = (versions || []).filter(v => v && !isPrerelease(v));
   if (!st.length) return null;
   st.sort(cmpVer); return st[st.length - 1];
+}
+// TF-1737 : la dernière stable ET la pré-version plus récente qu'elle a fait écarter. Sans ce second
+// terme, `prerelease_ignorees` restait à 0 alors que le filtre venait d'écarter une pré-version.
+function choisirStable(versions) {
+  const latest = pickStable(versions);
+  const pre = (versions || []).filter(v => v && isPrerelease(v) && (!latest || cmpVer(v, latest) > 0)).sort(cmpVer);
+  return { latest, prerelease_ecartee: pre.length ? pre[pre.length - 1] : null };
 }
 
 /* ---------------- classification (grille §1, ordre de priorité) ---------------- */
@@ -130,13 +146,13 @@ async function pypiInfo(pkg) {
   if (T_REGISTRY_FAIL()) return null; // test : registre injoignable
   const r = await fetchRetry('https://pypi.org/pypi/' + encodeURIComponent(pkg) + '/json');
   if (!r || !r.ok) return null;
-  try { const j = await r.json(); const rels = j.releases || {}; const stable = pickStable(Object.keys(rels).filter(v => !(rels[v] && rels[v].every && rels[v].every(f => f.yanked)))); return { latest: stable, yanked: v => !!(rels[v] && rels[v].length && rels[v].every(f => f.yanked)) }; } catch { return null; }
+  try { const j = await r.json(); const rels = j.releases || {}; const choix = choisirStable(Object.keys(rels).filter(v => !(rels[v] && rels[v].every && rels[v].every(f => f.yanked)))); return { latest: choix.latest, prerelease_ecartee: choix.prerelease_ecartee, yanked: v => !!(rels[v] && rels[v].length && rels[v].every(f => f.yanked)) }; } catch { return null; }
 }
 async function npmInfo(pkg) {
   if (T_REGISTRY_FAIL()) return null; // test : registre injoignable
   const r = await fetchRetry('https://registry.npmjs.org/' + pkg.replace('/', '%2f'));
   if (!r || !r.ok) return null;
-  try { const j = await r.json(); return { latest: pickStable(Object.keys(j.versions || {})), deprecated: v => (j.versions && j.versions[v] && j.versions[v].deprecated) || null }; } catch { return null; } // deprecated = MESSAGE (nomme souvent le successeur), pas un booléen — défaut A
+  try { const j = await r.json(); const choix = choisirStable(Object.keys(j.versions || {})); return { latest: choix.latest, prerelease_ecartee: choix.prerelease_ecartee, deprecated: v => (j.versions && j.versions[v] && j.versions[v].deprecated) || null }; } catch { return null; } // deprecated = MESSAGE (nomme souvent le successeur), pas un booléen — défaut A
 }
 async function osvBatch(queries) {
   const r = await fetchRetry('https://api.osv.dev/v1/querybatch', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ queries: queries.map(q => ({ package: { ecosystem: q.ecosystem, name: q.name }, version: q.version })) }), timeoutMs: 20000 });
@@ -382,9 +398,9 @@ async function main() {
     // EOL indéterminé par ÉCHEC RÉSEAU (≠ non listé) : ne pas laisser lire « à jour/veille » comme un EOL vérifié (défaut 4).
     const eol_verifie = !(eolRes.reason === 'unreachable');
     if (!eol_verifie && ['a_jour', 'veille_majeur', 'couvert_plage'].includes(cls.statut)) { cls.driver += ' · EOL non vérifié (endoflife injoignable)'; eolNV++; }
-    if (cls.reco_flag === 'Oui') recos++; if (cls.veille) veilles++; if (cls.statut === 'ignore_prerelease') pre++; if (c._transitive) transit++;
+    if (cls.reco_flag === 'Oui') recos++; if (cls.veille) veilles++; if (cls.statut === 'ignore_prerelease' || (info && info.prerelease_ecartee)) pre++; /* TF-1737 : une pré-version écartée se compte */ if (c._transitive) transit++;
     const sec = secInfo[c.eco] || {};
-    result[key] = { ecosysteme: c.eco, nom: c.name, version_utilisee: c.version_utilisee || '(non épinglée)', version_resolue: c.version_resolue || '(inconnue)', version_actuelle: c.version_actuelle, ecart: c.ecart, statut: cls.statut, driver: cls.driver, reco_flag: cls.reco_flag, veille: !!cls.veille, priorite: cls.priorite, reco: cls.reco, perimetre: c._transitive ? '(transitive)' : undefined, eol_verifie, securite_transitif_couvert: sec.transitif_couvert !== false ? (sec.transitif_couvert || false) : false, remplacant: cls.remplacant, source_hors_registre: cls.source_hors_registre, anti_downgrade: cls.anti_downgrade };
+    result[key] = { ecosysteme: c.eco, nom: c.name, version_utilisee: c.version_utilisee || '(non épinglée)', version_resolue: c.version_resolue || '(inconnue)', version_actuelle: c.version_actuelle, ecart: c.ecart, statut: cls.statut, driver: cls.driver, reco_flag: cls.reco_flag, veille: !!cls.veille, priorite: cls.priorite, reco: cls.reco, perimetre: c._transitive ? '(transitive)' : undefined, eol_verifie, securite_transitif_couvert: sec.transitif_couvert !== false ? (sec.transitif_couvert || false) : false, remplacant: cls.remplacant, source_hors_registre: cls.source_hors_registre, anti_downgrade: cls.anti_downgrade, prerelease_ecartee: (info && info.prerelease_ecartee) || undefined };
   }
   // Provenance (défaut 7) : environnement + outils détectés + date de référence EOL — indispensable pour interpréter un « transitives:0 » ou un verdict EOL.
   const env = { os: process.platform, node: process.version, eol_reference_date: new Date(refNow).toISOString().slice(0, 10), outils: { corepack: toolVersion('corepack'), yarn: toolVersion('yarn'), npm: toolVersion('npm'), 'pip-audit': toolVersion('pip-audit'), python: toolVersion(canRun('python') ? 'python' : 'python3') } };
@@ -403,4 +419,4 @@ async function main() {
 const isMain = process.argv[1] && /maj-versions\.mjs$/.test(process.argv[1].replace(/\\/g, '/'));
 if (isMain) main();
 
-export { isPrerelease, parts, cmpVer, cleanUsed, ecartKind, pickStable, classer, parseRequirements, parsePackageJson, yarnBlocks, yarnResolvedFor, runWithLadder, runCmd, canRun, toolVersion, eolMajor, COVERS, nonRegistrySource, successorFromDeprecation, STATUTS_VERSION_NA, resolveWorkspaceDirs };
+export { isPrerelease, parts, cmpVer, cleanUsed, ecartKind, pickStable, choisirStable, classer, parseRequirements, parsePackageJson, yarnBlocks, yarnResolvedFor, runWithLadder, runCmd, canRun, toolVersion, eolMajor, COVERS, nonRegistrySource, successorFromDeprecation, STATUTS_VERSION_NA, resolveWorkspaceDirs };

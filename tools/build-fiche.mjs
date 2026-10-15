@@ -46,6 +46,7 @@ const dIdx = process.argv.indexOf('--data');
 const outIdx = process.argv.indexOf('--out');
 const data = dIdx > -1 ? loadJson(path.resolve(process.argv[dIdx + 1])) : {};
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const LEGENDE_PH = 'les champs affichés en <span class="ph">chasse fixe</span> restent à compléter.';
 const V = (k, ph) => data[k] !== undefined ? esc(data[k]) : `<span class="ph">{{${ph ?? k}}}</span>`;
 
 const themePath = path.join(tenantDir, 'theme', 'theme.css');
@@ -83,7 +84,7 @@ const htmlAvec = (jour, indice) => {
   // divergence ne se voit qu'en ouvrant les deux. Elle se dérive maintenant du MÊME couple
   // (jour, indice) que le nom de sortie — il n'y a plus deux sources à tenir d'accord.
   const ref = `${cfg.tenant.short_code}-SEC-DEV-${jour}${indice}`;
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  const page = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="destinataire" content="humain">
 <title>${esc(cfg.tenant.name)} — Fiche sécurité de mise à disposition (DEV)</title><style>${themeCss}
 .wrap{max-width:960px;margin:0 auto;padding:24px}h1{font-size:22px}h2{font-size:15px;margin:22px 0 6px;color:var(--accent)}
@@ -145,7 +146,7 @@ ${S('6 · IA / LLM', [["Brique d'IA présente", 'ia_presente'], ['Modèle(s) et 
 ${S('7 · Contrat de service & observabilité', [['Journalisation & traces', 'observabilite'], ['Alerting', 'alerting'], ['Sauvegardes (RPO/RTO)', 'sauvegardes']])}
 ${S('8 · FinOps', [['Étiquetage / imputation', 'tags'], ['Budget & alertes de coût', 'budget']])}
 <footer class="muted small" style="margin-top:26px;border-top:1px solid var(--line);padding-top:10px">
-Réf. ${ref} — généré par AuditCore build-fiche (M9) pour ${esc(cfg.tenant.name)}. 0 placeholder exigé avant diffusion : les champs affichés en <span class="ph">chasse fixe</span> restent à compléter.
+Réf. ${ref} — généré par AuditCore build-fiche (M9) pour ${esc(cfg.tenant.name)}. 0 placeholder exigé avant diffusion : ${LEGENDE_PH}
 <!-- La phrase ci-dessus ne CITE pas la syntaxe de gabarit : un littéral à doubles accolades dans
      le texte de pied ferait échouer la règle « 0 placeholder résiduel » du vérificateur sur une
      fiche pourtant complète — le document se signalerait lui-même comme un trou à combler.
@@ -153,6 +154,11 @@ Réf. ${ref} — généré par AuditCore build-fiche (M9) pour ${esc(cfg.tenant.
 Porte de diffusion : <code>node oracles/verifier-fiche-securite.mjs &lt;cette fiche&gt;</code> → exit 0. Le PDF de diffusion est IMPRIMÉ depuis ce HTML, jamais capturé.<br>
 Gabarit : ${GABARIT_ID} · version du gabarit ${GABARIT_VERSION} — à reporter tel quel dans tout retour sur ce document.</footer>
 </div></body></html>`;
+  // TF-1751 (lot Produit-76 du 25/09/2026) : le surlignage « à remplir » se décide À LA GÉNÉRATION.
+  // Une valeur écrite ne reçoit jamais `span.ph` (V ci-dessus), et la légende qui l'explique ne
+  // sort que s'il reste un champ à remplir : une fiche complète ne porte aucun surlignage dans son
+  // source, sans dépendre d'un script exécuté au chargement.
+  return /<span class="ph">\{\{/.test(page) ? page : page.replace(LEGENDE_PH, 'tous les champs sont renseignés.');
 };
 
 // La famille `NN-audit` d'`output\` du produit : reutilisee si elle existe (le numero est

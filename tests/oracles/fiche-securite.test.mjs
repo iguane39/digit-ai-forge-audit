@@ -96,6 +96,41 @@ test('TF-0701 — un placeholder résiduel fait sortir 1 : le squelette n\'est p
   } finally { fs.rmSync(prod, { recursive: true, force: true }); }
 });
 
+// ── TF-1751 (lot Produit-76 du 25/09/2026) · LE SURLIGNAGE « À REMPLIR » SE DÉCIDE À LA GÉNÉRATION.
+//    Mesuré chez le produit : 29 et 36 fragments REMPLIS restaient habillés en « à remplir » pour
+//    toute lecture sans JavaScript, parce que le gabarit du kit ne retirait la classe qu'au chargement.
+//    Ici, une fiche complète ne porte AUCUN `span.ph` ni script de dépouillement ; une fiche
+//    partielle n'en porte que sur ses champs manquants, plus la légende qui les explique.
+test('TF-1751 — fiche complète : aucun surlignage « à remplir » dans le source, aucun script pour l\'ôter', () => {
+  const prod = temporaire();
+  try {
+    const donnees = path.join(prod, 'data.json');
+    const cles = ['projet', 'objet', 'equipe', 'hebergement', 'environnements', 'iac', 'classification', 'pii',
+      'juridictions', 'analyses', 'criticite', 'disponibilite', 'impact', 'exposition',
+      'point_controle', 'authentification', 'population_admise', 'restriction', 'invites', 'ia_presente', 'ia_usage', 'ia_gardefous',
+      'observabilite', 'alerting', 'sauvegardes', 'tags', 'budget', 'porteur', 'business_owner', 'lien_dev'];
+    fs.writeFileSync(donnees, JSON.stringify(Object.fromEntries(cles.map((k) => [k, `valeur ${k}`]))), 'utf8');
+    assert.equal(jouer(BUILD, TENANT, '--data', donnees, '--produit', prod, '--sans-pdf').status, 0);
+    const source = fs.readFileSync(trouverFiche(prod), 'utf8');
+    assert.equal((source.match(/class="ph"/g) ?? []).length, 0, 'une fiche complète porte encore un surlignage « à remplir »');
+    assert.doesNotMatch(source, /classList\.remove\(['"](ph|placeholder)['"]\)/, 'un script de dépouillement au chargement');
+  } finally { fs.rmSync(prod, { recursive: true, force: true }); }
+});
+
+test('TF-1751 — fiche partielle : le surlignage ne marque QUE les champs manquants (sens rouge)', () => {
+  const prod = temporaire();
+  try {
+    const donnees = path.join(prod, 'data.json');
+    fs.writeFileSync(donnees, JSON.stringify({ projet: 'Produit-NN', objet: 'objet renseigné' }), 'utf8');
+    assert.equal(jouer(BUILD, TENANT, '--data', donnees, '--produit', prod, '--sans-pdf').status, 0);
+    const source = fs.readFileSync(trouverFiche(prod), 'utf8');
+    const marques = (source.match(/<span class="ph">\{\{/g) ?? []).length;
+    assert.ok(marques > 0, 'les champs manquants ne sont plus signalés');
+    assert.doesNotMatch(source, /<span class="ph">\{\{[^}]*\}\}<\/span>[^<]*Produit-NN|<span class="ph">Produit-NN/, 'une valeur écrite est habillée en « à remplir »');
+    assert.match(source, /<span class="ph">chasse fixe<\/span>/, 'la légende explique le surlignage tant qu\'il reste un champ à remplir');
+  } finally { fs.rmSync(prod, { recursive: true, force: true }); }
+});
+
 // ── TF-0697 · LA MISE EN PAGE. Ce que la forge produit ne réserve plus le tiers de la page à
 //    des intitulés courts, et la largeur déclarée est TENUE (table-layout fixe).
 test('TF-0697 — la colonne d\'intitulés ne mange plus la page, et sa largeur n\'est plus un vœu', () => {

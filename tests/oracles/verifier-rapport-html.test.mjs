@@ -150,3 +150,30 @@ test('tableau long sans filtres → exit 1 (RL-5 : au-delà de 8 lignes, tri et 
   assert.equal(r.status, 1);
   assert.match(r.stderr, /sans data-filterable/);
 });
+
+test('TF-1737 — version actuelle = pré-version (PEP 440 .devN) → exit 1 (le check 10 juge aussi la stabilité)', () => {
+  const r = variante('preversion', (h) => h.replace('<td>2.4.0</td><td>2.6.1</td>', '<td>2.4.0</td><td>3.0.dev5</td>'));
+  assert.equal(r.status, 1, 'une pré-version recommandée doit être refusée : ' + r.stdout);
+  assert.match(r.stderr, /pré-version/);
+});
+
+test('TF-1737 — même composant, version actuelle stable → diffusable (le sens vert du même cas)', () => {
+  const r = variante('stable', (h) => h.replace('<td>2.4.0</td><td>2.6.1</td>', '<td>2.4.0</td><td>3.0.1</td>'));
+  assert.equal(r.status, 0, r.stderr);
+});
+
+// TF-1738 (lot Produit-76 du 25/08/2026, RA-2) : le modèle de rapport du kit client portait deux
+// <h1> et aucun :root de jetons, deux défauts bloquants du socle HTML, que le produit ne pouvait pas
+// corriger (le moteur lui est interdit). Le rapport que génère AuditCore les tient ; sa porte de
+// rendu les juge désormais, pour qu'une régression du moteur ne repasse pas en silence.
+test('TF-1738 — rapport à deux <h1> → exit 1 (un titre de document, socle HTML)', () => {
+  const r = variante('deux-h1', (h) => h.replace('<h1>', '<h1>Bandeau de marque</h1>\n<h1>'));
+  assert.equal(r.status, 1, 'un second <h1> est passé : ' + r.stdout);
+  assert.match(r.stderr, /<h1>/);
+});
+
+test('TF-1738 — rapport sans :root de jetons → exit 1 (socle HTML)', () => {
+  const r = variante('sans-root', (h) => h.replaceAll(':root{', '.racine{'));
+  assert.equal(r.status, 1, 'un rapport sans jetons :root est passé : ' + r.stdout);
+  assert.match(r.stderr, /:root/);
+});

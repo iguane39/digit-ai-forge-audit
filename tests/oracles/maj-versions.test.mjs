@@ -20,7 +20,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  cmpVer, pickStable, ecartKind, isPrerelease, yarnResolvedFor,
+  cmpVer, pickStable, choisirStable, ecartKind, isPrerelease, yarnResolvedFor,
   parsePackageJson, runWithLadder, classer, runCmd, canRun, COVERS, eolMajor,
   nonRegistrySource, successorFromDeprecation, resolveWorkspaceDirs,
 } from '../../oracles/maj-versions.mjs';
@@ -49,6 +49,23 @@ test('cmpVer / pickStable / ecartKind', () => {
   assert.equal(ecartKind('1.2.3', '2.0.0'), 'major');
   assert.equal(ecartKind('1.2.3', '1.3.0'), 'minor');
   assert.ok(isPrerelease('2.0.0-beta.1') && !isPrerelease('2.0.0'));
+});
+
+// TF-1737 (lot Produit-76 du 25/08/2026, RA-1) : `1.0.dev5` rendu en version_actuelle pour httpx,
+// alors que la dernière stable de PyPI était 0.28.1, et le résumé annonçait prerelease_ignorees: 0.
+// Le filtre ne connaissait que les pré-versions npm à tiret ; les formes PEP 440 lui échappaient.
+test('TF-1737 · pré-versions PEP 440 reconnues ; post-versions stables', () => {
+  for (const v of ['1.0.dev5', '1.0.0.dev0', '2.0a1', '1.0.0rc1', '3.0.0b2', '1.0.post1.dev2', '2.0.0.dev0+abc', '1.0rc1+local'])
+    assert.ok(isPrerelease(v), v + ' est une pré-version (PEP 440)');
+  for (const v of ['0.28.1', '1.0.post1', '2.0.0', '24.10.0', '1.0.0+local'])
+    assert.ok(!isPrerelease(v), v + ' est une version finale');
+  assert.equal(pickStable(['0.27.0', '0.28.1', '1.0.dev5']), '0.28.1');
+});
+
+test('TF-1737 · une pré-version plus récente écartée se COMPTE', () => {
+  assert.deepEqual(choisirStable(['0.27.0', '0.28.1', '1.0.dev5']), { latest: '0.28.1', prerelease_ecartee: '1.0.dev5' });
+  assert.deepEqual(choisirStable(['0.28.1', '0.29.0rc1', '0.28.0']), { latest: '0.28.1', prerelease_ecartee: '0.29.0rc1' });
+  assert.deepEqual(choisirStable(['0.27.0b1', '0.28.1']), { latest: '0.28.1', prerelease_ecartee: null });
 });
 
 test('yarnResolvedFor : bloc de la plage déclarée gagne (multi-blocs)', () => {

@@ -65,6 +65,24 @@ sources mis à jour.
   de moteur qui suit, et c'est le « avant » qu'aucune bascule n'avait.
 
 ### Corrigé
+- **TF-1737** (lot Produit-76 du 25/08/2026, mandat du 15/10/2026) — **une pré-version PEP 440 n'est
+  plus rendue en version actuelle.** `oracles/maj-versions.mjs` ne reconnaissait que les pré-versions
+  npm à tiret : rejoué le 15/10/2026 sur `httpx==0.27.0`, il rendait `1.0.dev6` et
+  `prerelease_ignorees: 0` ; il rend `0.28.1`, `prerelease_ignorees: 1` et nomme la pré-version
+  écartée (`prerelease_ecartee`). Les formes `aN`, `bN`, `rcN`, `.devN` et un segment local `+…` sont
+  reconnues ; `.postN` reste une version finale (PEP 440). Le check 10 de
+  `tools/verifier-rapport-html.mjs` refuse une version actuelle qui est une pré-version, avec le
+  prédicat même du producteur. Recettes : `tests/oracles/maj-versions.test.mjs`,
+  `tests/oracles/verifier-rapport-html.test.mjs`.
+- **TF-1738** (lot Produit-76 du 25/08/2026) — **la porte de rendu du rapport juge le titre unique et
+  les jetons `:root` du socle HTML.** Le modèle du kit client en violait deux règles bloquantes ;
+  le rapport généré par AuditCore les tient (`check_html.py` PASS le 15/10/2026), et
+  `tools/verifier-rapport-html.mjs` sort désormais 1 sur deux `<h1>` ou sans `:root` de jetons.
+- **TF-1751** (lot Produit-76 du 25/09/2026) — **le surlignage « à remplir » de la fiche sécurité se
+  décide à la génération.** Une valeur écrite ne reçoit jamais `span.ph`, et la légende qui explique
+  le surlignage ne sort que s'il reste un champ à remplir : une fiche complète ne porte aucun
+  `span.ph` dans son source (1 avant, 0 après), sans script de dépouillement au chargement. Recette :
+  `tests/oracles/fiche-securite.test.mjs`.
 - **TF-1351** (décision humaine D-51 (a) du 02/10/2026, option (b) de la fiche) — **le Compliance
   Pack livre désormais la fiche sécurité directement dans le format que son imprimeur accepte.**
   Le défaut initialement rapporté (« le PDF A4 n'est produit par aucune étape ») était déjà réfuté
