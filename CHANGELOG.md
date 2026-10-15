@@ -7,6 +7,8 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-1820** (décision humaine du 15/10/2026, D-1 a) — **la version d'un gabarit monte quand son contenu change, et la recette le joue.** Depuis TF-1752 les 14 gabarits de livrables rendent leur couple identifiant + version, que les produits reportent dans leurs lots de retours (R-46) ; aucun contrôle ne jouait l'incrément, le couple pouvait mentir. `deliverables/templates/gabarits-versions.json` associe à chaque gabarit sa version et l'empreinte de son contenu hors ligne de version ; `node tools/verifier-gabarits.mjs` échoue en nommant le gabarit si le contenu change sans montée de version, `--maj` enregistre la référence (et refuse un contenu changé sans version supérieure). Ne juge pas le moteur du rapport (`RAPPORT_GABARIT_VERSION`, à incrémenter à la main). Recette à double sens : `tests/oracles/version-gabarit.test.mjs`, ajoutée à la batterie de la CI donc jouée par `npm test`.
+
 - **TF-1395** (décision humaine du 13/10/2026, option a de la fiche) — **un réglage d'infrastructure
   se juge sur l'état servi, pas sur le code qui le décrit.** Le 24/09/2026, une règle
   d'authentification fédérée d'un produit a été jugée « alignée » sur `infra/appservice.tf:35`, alors

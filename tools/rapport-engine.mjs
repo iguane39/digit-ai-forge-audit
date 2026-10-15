@@ -33,7 +33,8 @@ const TAG = { urgent: 0, prio: 1, quick: 2, norm: 3 };
 // forme du marqueur G4 du pilot (`Gabarit : gd-… · version du gabarit x.y.z`), pour que la section
 // R-46 d'un lot de retours se remplisse en lisant le document. Le marqueur reste en français dans un
 // rapport anglais : c'est un repère machine, lu par le même contrôle partout (comme la fiche).
-// Toute évolution de structure du rapport incrémente RAPPORT_GABARIT_VERSION.
+// Toute évolution de structure du rapport incrémente RAPPORT_GABARIT_VERSION À LA MAIN : le contrôle
+// de TF-1820 (tools/verifier-gabarits.mjs) juge les gabarits de deliverables/templates, PAS ce moteur.
 export const RAPPORT_GABARIT_ID = 'gd-rapport-audit-auditcore';
 export const RAPPORT_GABARIT_VERSION = '1.0.0';
 // i18n du moteur (RAF-012) — self-contained : les kits standalone inlinent ce fichier.
