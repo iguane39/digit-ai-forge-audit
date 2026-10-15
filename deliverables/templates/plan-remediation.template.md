@@ -1,6 +1,8 @@
 <!-- AuditCore template v1 -->
 # Plan de remédiation priorisé — {{tenant.name}} — {{projet.nom}}
 
+> Gabarit : gd-plan-remediation-auditcore · version du gabarit 1.0.0
+
 > Vue consolidée et exécutable de toutes les actions REM issues des 18 dimensions — triées
 > priorité × effort. **Entrée directe de la forge** : cette vue est une projection lisible de
 > `remediation-actions.yaml` (voir `remediation-actions.schema.json`) ; l'adaptateur forge

@@ -65,6 +65,16 @@ sources mis à jour.
   de moteur qui suit, et c'est le « avant » qu'aucune bascule n'avait.
 
 ### Corrigé
+- **TF-1752** (lot Produit-76 du 25/09/2026, RA-3) — **chaque document du kit rend son gabarit et sa
+  version.** `grep -io "gd-[a-z0-9-]*"` ne rendait rien sur le rapport d'audit ni sur la fiche
+  sécurité remis, et la règle R-46 du pilot fait reporter ce couple dans les lots de retours. Le
+  rapport généré porte en pied `Gabarit : gd-rapport-audit-auditcore · version du gabarit 1.0.0`
+  (`RAPPORT_GABARIT_ID`, `RAPPORT_GABARIT_VERSION` de `tools/rapport-engine.mjs`), et les 14
+  gabarits de livrables de `deliverables/templates/` le portent sous leur titre, variante anglaise
+  comprise. Forme du marqueur G4 d'`oracle-gabarits-documents.mjs` du pilot. Les prompts et le skill
+  de conformité, consignes adressées à un agent, en sont exclus et le test le déclare. Mesure
+  rejouée : 21 fichiers sur 21 sans le couple avant, 15 sur 15 livrables avec le couple après.
+  Recette : `tests/oracles/identite-gabarit.test.mjs`, ajoutée à la batterie de la CI.
 - **TF-1737** (lot Produit-76 du 25/08/2026, mandat du 15/10/2026) — **une pré-version PEP 440 n'est
   plus rendue en version actuelle.** `oracles/maj-versions.mjs` ne reconnaissait que les pré-versions
   npm à tiret : rejoué le 15/10/2026 sur `httpx==0.27.0`, il rendait `1.0.dev6` et

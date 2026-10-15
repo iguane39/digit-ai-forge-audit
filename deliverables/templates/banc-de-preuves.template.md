@@ -2,6 +2,8 @@
 
 # {{tenant.name}} — Banc de preuves — {{projet.nom}} — {{date}}{{indice}}
 
+> Gabarit : gd-banc-de-preuves-auditcore · version du gabarit 1.0.0
+
 > Format conservé à l'identique : **Règle / Actions d'audit / Preuve attendue / Grille de verdict**,
 > un bloc par contrôle applicable. Généré depuis `controls-core-v1.json` (core, ~150 contrôles)
 > fusionné avec les bindings du/des profil(s) technologique(s) activé(s) par la config tenant et les

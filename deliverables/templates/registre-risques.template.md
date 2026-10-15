@@ -1,6 +1,8 @@
 <!-- AuditCore template v1 -->
 # Registre des risques résiduels — {{tenant.name}} — {{projet.nom}}
 
+> Gabarit : gd-registre-risques-auditcore · version du gabarit 1.0.0
+
 > Trace les non-conformités **sciemment acceptées** (dérogation accordée sur un contrôle
 > `non_conforme`, champ `derogation` de `control.schema.json`). Un `non_conforme` **sans**
 > dérogation n'entre pas ici : il va au plan de remédiation (`plan-remediation.template.md`).

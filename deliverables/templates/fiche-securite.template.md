@@ -12,6 +12,8 @@
 
 # {{tenant.name}} — Fiche sécurité de mise à disposition — {{projet.nom}} — {{date}}{{indice}}
 
+> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0
+
 > Fiche remplie à chaque mise à disposition d'un environnement (dev, sandbox…) du périmètre audité.
 > Champs génériques core ; champs additionnels propres au tenant ajoutés par pack (`packs/*`), jamais
 > retirés de la base ci-dessous (même invariant que le référentiel).

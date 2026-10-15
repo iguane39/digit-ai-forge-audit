@@ -1,6 +1,8 @@
 <!-- AuditCore template v1 — M1 · audit organization methodology (generalizes the reference profile's methodology) -->
 # {{tenant.name}} — Audit Organization Methodology
 
+> Gabarit : gd-methodologie-auditcore · version du gabarit 1.0.0
+
 > Unified document: naming convention, directory structures, mandatory rules. To be read
 > **first** by every auditor (human or AI agent). Complements the conduct prompt
 > (`prompt-conduite-audit`) which, in turn, drives execution.

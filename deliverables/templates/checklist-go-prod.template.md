@@ -2,6 +2,8 @@
 
 # {{tenant.name}} — Checklist go-prod — {{projet.nom}} — {{date}}{{indice}}
 
+> Gabarit : gd-checklist-go-prod-auditcore · version du gabarit 1.0.0
+
 > Liste de préparation à la mise en production : documents génériques core + items ajoutés par pack
 > tenant (jamais retirés). Requis exprimé selon les profils d'audit `light` (sous-ensemble) et
 > `complet` (liste intégrale) — même convention que le champ `profil` des contrôles du référentiel.

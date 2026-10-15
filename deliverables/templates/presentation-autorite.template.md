@@ -2,6 +2,8 @@
 
 # {{tenant.name}} — Présentation à {{roles.decision_authority}} — {{projet.nom}} — {{date}}{{indice}}
 
+> Gabarit : gd-presentation-autorite-auditcore · version du gabarit 1.0.0
+
 > Trame courte (8 diapositives) destinée à {{roles.decision_authority}} pour la décision Gate.
 > Reprend les éléments-clés du rapport d'audit complet — jamais de contenu non tracé dans le rapport.
 

@@ -29,6 +29,13 @@ const SEV = { critique: 0, majeur: 1, mineur: 2 };
 // se trie et se filtre, ou déclare pourquoi il ne le fait pas.
 const SEUIL_FILTRE = 8;
 const TAG = { urgent: 0, prio: 1, quick: 2, norm: 3 };
+// TF-1752 (lot Produit-76 du 25/09/2026, RA-3) : le rapport REND son gabarit et sa version, sous la
+// forme du marqueur G4 du pilot (`Gabarit : gd-… · version du gabarit x.y.z`), pour que la section
+// R-46 d'un lot de retours se remplisse en lisant le document. Le marqueur reste en français dans un
+// rapport anglais : c'est un repère machine, lu par le même contrôle partout (comme la fiche).
+// Toute évolution de structure du rapport incrémente RAPPORT_GABARIT_VERSION.
+export const RAPPORT_GABARIT_ID = 'gd-rapport-audit-auditcore';
+export const RAPPORT_GABARIT_VERSION = '1.0.0';
 // i18n du moteur (RAF-012) — self-contained : les kits standalone inlinent ce fichier.
 export const STR = {
   fr: { rapport: "Rapport d'audit", gate: 'Verdict gate', score: 'Score global', instruites: 'dimensions instruites',
@@ -1008,7 +1015,8 @@ ${nav}
 <main>${sections}</main>
 <footer class="ecarts"><div id="v-ecarts"><h2>${esc(T.ecarts_t)}</h2><p class="ch-apprend">${esc(T.ecarts_apprend)}</p><ul data-colonne-ok>${ecarts.map(e => `<li>${esc(e)}</li>`).join('')}</ul></div></footer>
 <footer class="muted small" style="margin-top:20px;border-top:1px solid var(--line);padding-top:10px">
-${L.footer.replace('{v}', esc(coreVersion)).replace('{t}', esc(tenant))}</footer>
+${L.footer.replace('{v}', esc(coreVersion)).replace('{t}', esc(tenant))}<br>
+Gabarit : ${RAPPORT_GABARIT_ID} · version du gabarit ${RAPPORT_GABARIT_VERSION}</footer>
 </div>
 <script type="application/json" id="remediation-plan-json">${planJson.replace(/</g, '\\u003c')}</script>
 <script type="application/json" id="audit-selftest-data">${selfTestJson.replace(/</g, '\\u003c')}</script>

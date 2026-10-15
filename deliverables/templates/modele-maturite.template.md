@@ -1,6 +1,8 @@
 <!-- AuditCore template v1 -->
 # Modèle de maturité par dimension — {{tenant.name}} — {{projet.nom}}
 
+> Gabarit : gd-modele-maturite-auditcore · version du gabarit 1.0.0
+
 > Formalise le scoring core (1–5, `dimensions.yaml`) en trajectoire de progression : ce que
 > signifie concrètement passer d'un niveau au suivant, par famille. Aucun score n'est affecté
 > sans preuve (invariant core) ; cette grille sert de référentiel de lecture, pas de barème auto-calculé.

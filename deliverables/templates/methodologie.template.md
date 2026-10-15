@@ -1,6 +1,8 @@
 <!-- AuditCore template v1 — M1 · méthodologie d'organisation d'audit (généralise la méthodologie du profil de référence) -->
 # {{tenant.name}} — Méthodologie d'organisation d'un audit
 
+> Gabarit : gd-methodologie-auditcore · version du gabarit 1.0.0
+
 > Document unifié : nomenclature, arborescences, règles impératives. À lire **en premier**
 > par tout auditeur (humain ou agent IA). Complète le prompt de conduite
 > (`prompt-conduite-audit`) qui, lui, pilote l'exécution.

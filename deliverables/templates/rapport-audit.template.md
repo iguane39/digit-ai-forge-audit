@@ -2,6 +2,8 @@
 
 # {{tenant.name}} — Rapport d'audit — {{projet.nom}} — {{date}}{{indice}}
 
+> Gabarit : gd-rapport-audit-auditcore · version du gabarit 1.0.0
+
 > Référentiel core {{core_version}} · 18 dimensions · 6 familles · scoring 1–5.
 > Diffusion : {{roles.decision_authority}} · {{projet.sponsor}} · {{porteur.nom}}.
 

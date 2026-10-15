@@ -1,6 +1,8 @@
 <!-- AuditCore template v1 -->
 # Tableau de bord post-remédiation — {{tenant.name}} — {{projet.nom}} — {{audit.prev}} → {{audit.curr}}
 
+> Gabarit : gd-tableau-bord-post-remediation-auditcore · version du gabarit 1.0.0
+
 > Mesure l'impact réel des remédiations entre deux audits. Ne remplace pas un audit complet :
 > seuls les contrôles liés aux actions soldées sont rejoués (audit incrémental, `06-remediation-forge.md` §4) ;
 > un audit complet reste nécessaire pour re-sceller le rapport (règle « feuille blanche »).

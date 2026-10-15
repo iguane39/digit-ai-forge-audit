@@ -11,6 +11,8 @@
 
 # {{tenant.name}} — Deployment Security Sheet — {{projet.nom}} — {{date}}{{indice}}
 
+> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0
+
 > Sheet completed for every deployment of an environment (dev, sandbox…) within the audited scope.
 > Generic core fields; additional tenant-specific fields added by pack (`packs/*`), never
 > removed from the base set below (same invariant as the reference framework).

@@ -1,6 +1,8 @@
 <!-- AuditCore template v1 -->
 # {{tenant.name}} — Synthèse exécutive — {{projet.nom}} — {{date}}{{indice}}
 
+> Gabarit : gd-synthese-executive-auditcore · version du gabarit 1.0.0
+
 > Une page. Ce que {{roles.decision_authority}} doit lire pour décider — le détail est dans le
 > rapport complet, le registre des risques et le plan de remédiation.
 

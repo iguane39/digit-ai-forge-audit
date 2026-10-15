@@ -2,6 +2,8 @@
 
 # {{tenant.name}} — Matrice de traçabilité — {{projet.nom}} — {{date}}{{indice}}
 
+> Gabarit : gd-matrice-tracabilite-auditcore · version du gabarit 1.0.0
+
 > Moteur core inchangé : reliage **constat ↔ preuve ↔ règle ↔ action**, un jeu de lignes par
 > dimension. Deux modes d'affichage, choisis automatiquement par dimension (jamais mélangés sur une
 > même ligne) :
