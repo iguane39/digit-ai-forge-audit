@@ -1,0 +1,67 @@
+{
+  "profile": "supabase",
+  "version": "1.0.0",
+  "description": "Instanciation des contrôles core sur un produit adossé à Supabase (Postgres managé, API générée, stockage, authentification), jugée sur artefacts exportés : DDL de `supabase db dump`, `supabase/config.toml`, migrations, code client et bundle livré, sorties de commandes archivées par le porteur. Aucune connexion de l'audit à un projet vivant.",
+  "sources": [
+    { "id": "S1", "url": "https://supabase.com/docs/reference/cli/introduction", "lu_le": "2026-10-16", "titre": "Référence CLI (db dump, migrations, branches)" },
+    { "id": "S2", "url": "https://supabase.com/docs/guides/database/postgres/row-level-security", "lu_le": "2026-10-16", "titre": "Row Level Security" },
+    { "id": "S3", "url": "https://supabase.com/docs/guides/api/api-keys", "lu_le": "2026-10-16", "titre": "Clés d'API (publiable, secrète, héritées)" },
+    { "id": "S4", "url": "https://supabase.com/docs/guides/storage/security/access-control", "lu_le": "2026-10-16", "titre": "Contrôle d'accès du stockage" },
+    { "id": "S5", "url": "https://supabase.com/docs/guides/platform/backups", "lu_le": "2026-10-16", "titre": "Sauvegardes et PITR" },
+    { "id": "S6", "url": "https://supabase.com/docs/guides/platform/network-restrictions", "lu_le": "2026-10-16", "titre": "Restrictions réseau" },
+    { "id": "S7", "url": "https://supabase.com/docs/guides/platform/ssl-enforcement", "lu_le": "2026-10-16", "titre": "SSL imposé" },
+    { "id": "S9", "url": "https://supabase.com/docs/guides/local-development/cli/getting-started", "lu_le": "2026-10-16", "titre": "supabase init (dossier versionnable)" },
+    { "id": "S10", "url": "https://github.com/supabase/cli/tree/develop", "lu_le": "2026-10-16", "titre": "Dépôt officiel du CLI : gabarits config.toml et .gitignore, utils/misc.go" }
+  ],
+  "bindings": [
+    {
+      "control": "CTL-D03-05",
+      "instanciation": "L'autorisation d'accès aux données servies par l'API repose sur la sécurité au niveau ligne (RLS) de Postgres. Chaque table d'un schéma exposé (clé `schemas` de la section `[api]` de `supabase/config.toml`, gabarit : `public`, `graphql_public`) a la RLS activée et porte des politiques qui nomment les rôles `anon` (non connecté) et `authenticated` (connecté). Le rôle `service_role` contourne la RLS (attribut bypassrls) et reste côté serveur. La matrice rôles/permissions de l'audit se lit dans ces politiques.",
+      "verification_command": "Sur artefacts exportés, sans connexion : relever `schemas` sous `[api]` dans supabase/config.toml ; puis grep -niE 'create table|enable row level security|create policy' supabase/migrations/*.sql <schema.sql issu de `supabase db dump -f`> — pour chaque `create table <schéma>.<table>` d'un schéma exposé, exiger `alter table <schéma>.<table> enable row level security`.",
+      "evidence": "Liste des schémas exposés lue dans config.toml + tableau table → RLS activée (oui/non) → politiques (rôle, commande) extrait du DDL ou des migrations ; toute table d'un schéma exposé sans `enable row level security` est un écart.",
+      "sources": ["S2", "S10"]
+    },
+    {
+      "control": "CTL-D03-02",
+      "instanciation": "Le dossier `supabase/` créé par `supabase init` est fait pour être versionné ; ni lui ni le reste du dépôt ne portent de clé secrète `sb_secret_…` ni de JWT hérité du rôle `service_role` (JWT commençant par `eyJ`). Le `.gitignore` posé par `init` dans `supabase/` écarte `.branches`, `.temp`, `.env.keys`, `.env.local` et `.env.*.local` ; `supabase/.temp/` porte notamment `project-ref` et `pooler-url` et ne se versionne pas.",
+      "verification_command": "git grep -nE 'sb_secret_' $(git rev-list --all) ; git grep -noE 'eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+' $(git rev-list --all) — décoder la partie centrale de chaque JWT trouvé et relever son `role` ; cat supabase/.gitignore ; git ls-files supabase/.temp supabase/.branches supabase/.env.keys supabase/.env.local",
+      "evidence": "Sorties datées des recherches sur l'historique complet (0 `sb_secret_`, 0 JWT de rôle `service_role`) + contenu de `supabase/.gitignore` + `git ls-files` vide sur `.temp`, `.branches` et les fichiers `.env` locaux de `supabase/`.",
+      "sources": ["S3", "S9", "S10"]
+    },
+    {
+      "control": "CTL-D03-09",
+      "instanciation": "Le code client (navigateur, application livrée) n'embarque que la clé publiable `sb_publishable_…` (ou la clé héritée `anon`). La clé secrète `sb_secret_…` et la clé héritée `service_role` restent côté serveur, et la variable `SUPABASE_SECRET_KEY` ne porte jamais le préfixe public du bundler du produit, qui l'injecterait dans le bundle.",
+      "verification_command": "Sur les sources client et le bundle construit : grep -rnE 'sb_secret_|[A-Z][A-Z0-9]*_SUPABASE_SECRET_KEY' <src-client> <dist> ; grep -rnoE 'eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+' <dist> — décoder la partie centrale de chaque JWT et relever son `role` (seul `anon` admis).",
+      "evidence": "Rapport de recherche daté sur le bundle livré : 0 `sb_secret_`, 0 JWT de rôle `service_role`, 0 `SUPABASE_SECRET_KEY` préfixée ; clé publiable seule relevée côté client.",
+      "sources": ["S3"]
+    },
+    {
+      "control": "CTL-D15-08",
+      "instanciation": "L'accès aux fichiers du stockage s'ouvre par des politiques RLS sur `storage.objects`, filtrées par `bucket_id` et par rôle ; sans politique, aucun envoi n'est accepté. Un bucket public est lisible par tous sans politique : chaque bucket public figure dans la matrice d'habilitations avec la justification de son ouverture au regard de la classification des fichiers qu'il porte.",
+      "verification_command": "Sur artefacts exportés : grep -niE 'on storage\\.objects|storage\\.buckets' supabase/migrations/*.sql <schema.sql> ; liste des buckets lue dans l'export de données du schéma storage fourni par le porteur (`supabase db dump --data-only -s storage -f storage.sql`) — relever pour chaque bucket son indicateur public.",
+      "evidence": "Liste des buckets (nom, public oui/non) + politiques sur `storage.objects` (commande, rôle, condition `bucket_id`) + justification écrite de chaque bucket public rapprochée de la classification de son contenu.",
+      "sources": ["S4", "S1"]
+    },
+    {
+      "control": "CTL-D02-10",
+      "instanciation": "La configuration d'authentification versionnée dans `supabase/config.toml` déclare explicitement `enable_signup` et `minimum_password_length` (section `[auth]`) et `enable_confirmations` (section `[auth.email]`), chacune justifiée au regard du besoin. Le gabarit de `supabase init` pose `enable_signup = true`, `minimum_password_length = 6` et `enable_confirmations = false` : une valeur restée au défaut du gabarit sans justification écrite est un réglage par défaut non éliminé. Le profil ne fixe aucun seuil ; un seuil, s'il est exigé, vient de la baseline de durcissement du tenant.",
+      "verification_command": "grep -nE '^\\[auth(\\.email)?\\]|enable_signup|minimum_password_length|enable_confirmations' supabase/config.toml — comparer chaque valeur au gabarit de `supabase init` et à la baseline de durcissement du tenant.",
+      "evidence": "Extrait daté de `supabase/config.toml` (trois clés et leurs sections) + justification écrite de chaque valeur ; les valeurs égales au gabarit sans justification sont listées en écart.",
+      "sources": ["S10"]
+    },
+    {
+      "control": "CTL-D16-09",
+      "instanciation": "La sauvegarde dépend du plan : aucune sur Free (export `supabase db dump` recommandé, à la charge de l'équipe), quotidienne gardée 7 jours sur Pro, 14 sur Team, jusqu'à 30 sur Enterprise. La restauration à un instant (PITR) est une option des plans Pro, Team et Enterprise (compute Small au moins) et remplace alors les sauvegardes quotidiennes. Aucune commande CLI ne restaure : la restauration passe par le tableau de bord (Database > Backups) ou l'API de gestion (`restore-pitr`), rend le projet inaccessible pendant l'opération et perd tout ce qui suit le point choisi. Le RPO déclaré se rapproche du plan et de l'option PITR constatés.",
+      "verification_command": "Évidence archivée par le porteur : capture datée de Database > Backups (plan, PITR actif ou non, fenêtre de rétention) ; plan Free : tâche versionnée qui joue `supabase db dump --linked -f <fichier>` et dernier fichier produit ; compte rendu du dernier exercice de restauration (date, point choisi, durée d'indisponibilité).",
+      "evidence": "RPO/RTO déclarés + plan et option PITR constatés (ou export `db dump` planifié pour Free) + compte rendu du dernier test de restauration.",
+      "sources": ["S5", "S1"]
+    },
+    {
+      "control": "CTL-D02-14",
+      "instanciation": "L'accès direct à Postgres et au pooler est filtré par les restrictions réseau (`--db-allow-cidr`) ; la paire `0.0.0.0/0` et `::/0` vaut absence de restriction. Ces restrictions ne couvrent pas les API HTTPS (PostgREST, Storage, Auth), dont l'exposition se juge par ailleurs. Le chiffrement en transit vers Postgres et les poolers est imposé par le réglage `ssl-enforcement` ; les API HTTP exigent déjà SSL. Ces deux réglages ne vivent pas dans le dépôt : l'audit juge la sortie archivée des commandes jouées par le porteur.",
+      "verification_command": "À jouer par le porteur, sortie archivée et datée : supabase network-restrictions get --project-ref <ref> --experimental ; supabase ssl-enforcement get --project-ref <ref> --experimental",
+      "evidence": "Sortie datée de `network-restrictions get` (CIDR autorisés, ni `0.0.0.0/0` ni `::/0` sans justification) + sortie datée de `ssl-enforcement get` portant « SSL is being enforced. ».",
+      "sources": ["S6", "S7"]
+    }
+  ]
+}

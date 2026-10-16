@@ -65,4 +65,4 @@ Contrôles dérivés : CTL-D05-09 (sauvegardes exécutées conformément au RPO 
 
 ## More Information
 
-Instanciations par profil : `profil:databricks-lakehouse` → clichés versionnés avec fenêtre d'historique bornée et réplication testée en restauration croisée ; `profil:azure` → sauvegardes gérées avec exercices de restauration programmés, rapport d'exercice conservé comme preuve d'audit.
+Instanciations par profil : `profil:databricks-lakehouse` → clichés versionnés avec fenêtre d'historique bornée et réplication testée en restauration croisée ; `profil:azure` → sauvegardes gérées avec exercices de restauration programmés, rapport d'exercice conservé comme preuve d'audit ; `profil:supabase` → sauvegarde selon le plan (aucune sur Free, export `db dump` à planifier), restauration à un instant en option, restauration hors CLI rendant le projet indisponible.

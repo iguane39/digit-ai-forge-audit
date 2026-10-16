@@ -65,4 +65,4 @@ Derived controls: CTL-D05-09 (backups executed in accordance with the declared R
 
 ## More Information
 
-Instantiations: `profil:databricks-lakehouse` → versioned snapshots with a bounded history window and replication tested through cross-restoration; `profil:azure` → managed backups with scheduled restoration exercises, exercise report retained as audit evidence.
+Instantiations: `profil:databricks-lakehouse` → versioned snapshots with a bounded history window and replication tested through cross-restoration; `profil:azure` → managed backups with scheduled restoration exercises, exercise report retained as audit evidence; `profil:supabase` → backups depend on the plan (none on Free, a scheduled `db dump` export instead), point-in-time recovery as an option, restoration outside the CLI with the project unavailable.

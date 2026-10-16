@@ -1,0 +1,13 @@
+{
+  "profile": "autre-nom",
+  "version": "1.0.0",
+  "description": "Fixture rouge : nom différent du dossier (P1), champ vide (P4), contrôle inconnu (P5), contrôle lié deux fois (P6), README absent (P7), source non citée ou non déclarée (P8).",
+  "sources": [
+    { "id": "S1", "url": "https://exemple.invalid/doc", "lu_le": "2026-10-16" }
+  ],
+  "bindings": [
+    { "control": "CTL-D03-02", "instanciation": "x", "verification_command": "y", "evidence": "", "sources": ["S1"] },
+    { "control": "CTL-D99-01", "instanciation": "x", "verification_command": "y", "evidence": "z", "sources": ["S2"] },
+    { "control": "CTL-D03-02", "instanciation": "x", "verification_command": "y", "evidence": "z" }
+  ]
+}

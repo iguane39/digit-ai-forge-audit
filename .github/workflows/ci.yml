@@ -80,6 +80,15 @@ jobs:
       - name: Thème — priorité de la typographie explicite du tenant (TF-1000)
         run: node tools/build-theme.mjs --self-test
 
+      # Profil supabase (16/10/2026) : cinq profils étaient chargés par build-banc sans qu'aucun
+      # contrôle ne juge leur contenu. Auto-test à double sens (fixture rouge détectée, verte sans
+      # écart), puis jugement des profils du dépôt : contrôles connus du core, sources citées,
+      # profil indexé au README et réellement chargé par build-banc.
+      - name: Profils technologiques — bindings, sources, index et chargement (verifier-profils)
+        run: |
+          node tools/verifier-profils.mjs --self-test
+          node tools/verifier-profils.mjs
+
       # TF-0940 (étape 0, 20/09/2026) : le CHEMIN ERD du moteur n'était rendu par AUCUN contrôle
       # automatique. `rapport-data-valid.json` ne porte pas de `db_schema`, et `rapport-data-riche.json`
       # — la seule fixture qui en porte un — n'était consommée par personne (mesuré : zéro occurrence

@@ -6,7 +6,35 @@ sources mis à jour.
 
 ## [Non publié]
 
+## [1.19.0] — 2026-10-16
+
+> **MINEUR** au sens de PADR-0005 : un profil technologique et un contrôle des profils s'ajoutent,
+> sans rupture de schéma ni retrait de contrôle. La version fige aussi les entrées accumulées dans
+> « [Non publié] » depuis 1.18.0, listées ci-dessous telles qu'elles avaient été écrites.
+
 ### Ajouté
+- **Profil `supabase`** (16/10/2026) — `profiles/supabase/` (README.md + bindings.json, version
+  1.0.0) instancie 7 contrôles core sur un produit adossé à Supabase, jugés sur artefacts exportés
+  (DDL de `supabase db dump`, `supabase/config.toml`, migrations, bundle client) sans connexion à un
+  projet vivant : CTL-D03-05 (RLS sur toute table des schémas exposés), CTL-D03-02 et CTL-D03-09
+  (clé `sb_secret_` et JWT `service_role` absents du dépôt et du client, `SUPABASE_SECRET_KEY`
+  jamais sous préfixe public), CTL-D15-08 (politiques sur `storage.objects`, bucket public
+  justifié), CTL-D02-10 (réglages d'authentification déclarés et justifiés, aucun seuil inventé),
+  CTL-D16-09 (plan, PITR ou export planifié, test de restauration), CTL-D02-14 (sorties archivées
+  de `network-restrictions get` et `ssl-enforcement get`). Chaque binding cite ses sources
+  officielles lues le 2026-10-16 (champ `sources[]`, URL et date déclarées en tête du fichier).
+  Profil câblé comme les autres : arborescence du README, exemple de `profiles[]` de
+  `docs/ONBOARDING-ENTRANTS.md`, instanciation `profil:supabase` de l'ADR0611 (FR et EN), nom
+  ajouté à la liste N1 de `tools/lint-agnostic.mjs`.
+- **`tools/verifier-profils.mjs`** — aucun contrôle ne jugeait les profils que `build-banc.mjs`
+  charge. Il juge chaque `profiles/<clé>/bindings.json` : nom = dossier, version SemVer, quatre
+  champs remplis, contrôle connu du core (`manual[]` compris), contrôle lié une seule fois, README
+  présent, sources déclarées et citées quand le profil en porte, profil nommé au README racine, et
+  profil réellement chargé : `build-banc.mjs`, lancé sur un tenant jetable qui ne déclare que lui,
+  doit rendre autant d'instanciations que le profil a de bindings. Auto-test à double sens sur
+  `tests/fixtures/profils/` (rouge : 7 écarts sur P1, P4 à P8 ; verte : 0), câblé dans
+  `.github/workflows/ci.yml` (job `batterie`), donc joué par `npm test`.
+
 - **TF-1820** (décision humaine du 15/10/2026, D-1 a) — **la version d'un gabarit monte quand son contenu change, et la recette le joue.** Depuis TF-1752 les 14 gabarits de livrables rendent leur couple identifiant + version, que les produits reportent dans leurs lots de retours (R-46) ; aucun contrôle ne jouait l'incrément, le couple pouvait mentir. `deliverables/templates/gabarits-versions.json` associe à chaque gabarit sa version et l'empreinte de son contenu hors ligne de version ; `node tools/verifier-gabarits.mjs` échoue en nommant le gabarit si le contenu change sans montée de version, `--maj` enregistre la référence (et refuse un contenu changé sans version supérieure). Ne juge pas le moteur du rapport (`RAPPORT_GABARIT_VERSION`, à incrémenter à la main). Recette à double sens : `tests/oracles/version-gabarit.test.mjs`, ajoutée à la batterie de la CI donc jouée par `npm test`.
 
 - **TF-1395** (décision humaine du 13/10/2026, option a de la fiche) — **un réglage d'infrastructure
