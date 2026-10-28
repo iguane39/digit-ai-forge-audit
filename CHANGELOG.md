@@ -28,7 +28,21 @@ sources mis à jour.
   messagerie. Câblage comme les autres profils : arborescence du README, exemple de `profiles[]` de
   `docs/ONBOARDING-ENTRANTS.md`, instanciation `profil:cloudflare` de l'ADR0303 (FR et EN), nom
   ajouté à la liste N1 de `tools/lint-agnostic.mjs`.
-
+- **TF-2006 — profil `supabase` 1.1.0** (28/10/2026) — 8 contrôles s'ajoutent aux 7 du 16/10, écartés
+  alors faute de page source et dotés d'une page lue le 2026-10-28 (13 sources S11 à S23, dont la
+  spécification OpenAPI de l'API de gestion) : CTL-D03-01 (MFA, politique RLS restrictive `aal2`),
+  CTL-D02-05 (`jwt_expiry`, rotation des jetons de rafraîchissement, durée de session), CTL-D02-04
+  (limites de débit d'Auth), CTL-D01-12 (`verify_jwt = false` des Edge Functions, registre de
+  dérogations), CTL-D01-04 (`site_url` et URL de redirection par environnement), CTL-D06-02 (SMTP
+  propre, quota d'envoi), CTL-D02-12 (advisors de sécurité et de performance), CTL-D01-14 (retrait des
+  suites TLS 1.2 en mode CBC annoncé pour le 10/11/2026 au plus tôt). Cinq de ces rattachements sont des
+  hypothèses de lecture que le README du profil déclare, le cœur n'ayant pas de contrôle propre.
+- **`tools/verifier-profils.mjs` : règle P11** — le README d'un profil qui déclare `sources[]` doit
+  citer chaque contrôle lié, lister chaque source avec son URL et annoncer le bon nombre de contrôles.
+  Le profil `supabase` étendu à 15 contrôles annonçait encore 7 et ne citait aucun des 8 nouveaux :
+  la règle l'a rendu rouge (22 écarts) avant la mise à jour du README, puis vert. Fixture rouge
+  `tests/fixtures/profils/rouge/readme-perime/` (P11 seul), et le README de la fixture verte `demo`
+  cite désormais son contrôle et sa source ; l'auto-test attend P11 parmi les codes rouges.
 
 ## [1.19.0] — 2026-10-16
 

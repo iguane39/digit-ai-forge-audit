@@ -20,7 +20,11 @@
  *      au moins une, et seulement des ids déclarés ;
  *   P9 (mode dépôt) le profil est nommé dans l'arborescence `profiles/` du README racine ;
  *   P10 (mode dépôt) le profil est APPELÉ : build-banc, lancé sur un tenant qui ne déclare que lui,
- *      rend autant d'instanciations que le profil a de bindings.
+ *      rend autant d'instanciations que le profil a de bindings ;
+ *   P11 si le profil déclare `sources[]`, son README dit la même chose que son bindings.json : chaque
+ *      contrôle lié y est cité, chaque source y est listée avec son URL, et le nombre de contrôles
+ *      qu'il annonce (« N contrôles sont liés ») est le nombre de bindings. Le README est la page que
+ *      lit un auditeur : étendre un profil sans le relire le laisse annoncer l'ancien compte.
  *
  * Ce qu'il ne juge pas : la justesse technique d'une commande de vérification, ni la fidélité
  * d'un binding à sa source (lecture humaine).
@@ -80,6 +84,13 @@ export function verifierProfils(racine, { depot = false } = {}) {
     });
     for (const m of b.manual ?? []) if (!core.has(m.control)) f(nom, 'P5', `manual (${m.control}) : contrôle inconnu du core`);
     if (!fs.existsSync(path.join(dir, 'README.md'))) f(nom, 'P7', 'README.md absent');
+    else if (sources) {
+      const readme = fs.readFileSync(path.join(dir, 'README.md'), 'utf-8');
+      for (const x of liste) if (x?.control && !readme.includes(x.control)) f(nom, 'P11', `README.md ne cite pas le contrôle ${x.control}`);
+      for (const s of sources) if (s?.url && !readme.includes(s.url)) f(nom, 'P11', `README.md ne liste pas la source ${s.id} (${s.url})`);
+      const annonce = /(\d+) contrôles? (?:sont|est) liés?/.exec(readme);
+      if (annonce && Number(annonce[1]) !== liste.length) f(nom, 'P11', `README.md annonce ${annonce[1]} contrôle(s) lié(s), bindings.json en porte ${liste.length}`);
+    }
   }
   if (depot) {
     const readme = fs.readFileSync(rel('README.md'), 'utf-8').split(/\r?\n/);
@@ -121,7 +132,7 @@ function selfTest() {
   const vert = verifierProfils(path.join(base, 'vert'));
   const rouge = verifierProfils(path.join(base, 'rouge'));
   const codes = new Set(rouge.findings.map(x => x.code));
-  const attendus = ['P1', 'P4', 'P5', 'P6', 'P7', 'P8'];
+  const attendus = ['P1', 'P4', 'P5', 'P6', 'P7', 'P8', 'P11'];
   const manquants = attendus.filter(c => !codes.has(c));
   rendre(vert, 'fixture verte');
   rendre(rouge, 'fixture rouge');

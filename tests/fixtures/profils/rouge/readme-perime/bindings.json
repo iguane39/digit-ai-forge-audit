@@ -1,0 +1,25 @@
+{
+  "profile": "readme-perime",
+  "version": "1.0.0",
+  "description": "Fixture rouge de P11 seul : le profil a été étendu à deux contrôles et deux sources, son README est resté à un contrôle et une source. Tout le reste est conforme.",
+  "sources": [
+    { "id": "S1", "url": "https://exemple.invalid/doc/secrets", "lu_le": "2026-10-28" },
+    { "id": "S2", "url": "https://exemple.invalid/doc/sessions", "lu_le": "2026-10-28" }
+  ],
+  "bindings": [
+    {
+      "control": "CTL-D03-02",
+      "instanciation": "Aucun secret fictif dans le dépôt de démonstration.",
+      "verification_command": "git grep -nE 'SECRET_FICTIF' $(git rev-list --all)",
+      "evidence": "Sortie datée de la recherche : 0 occurrence.",
+      "sources": ["S1"]
+    },
+    {
+      "control": "CTL-D02-05",
+      "instanciation": "Durée de session fictive déclarée et justifiée.",
+      "verification_command": "grep -n 'session_fictive' config.fictif",
+      "evidence": "Extrait daté de la configuration fictive.",
+      "sources": ["S2"]
+    }
+  ]
+}
