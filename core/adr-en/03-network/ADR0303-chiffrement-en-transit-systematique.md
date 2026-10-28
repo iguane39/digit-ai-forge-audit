@@ -74,7 +74,8 @@ flows unencrypted; non-compliant = any unencrypted external flow.
 
 Instantiations: termination managed by the hosting platform or by the exposure control
 point (ADR0301); `profil:azure` → managed certificates + minimum version policy enforced
-at the gateway. Reference open specification: TLS (IETF), admissible at the core level.
+at the gateway; `profil:cloudflare` → « Full (strict) » encryption mode up to the origin and
+HSTS on the zone. Reference open specification: TLS (IETF), admissible at the core level.
 
 **ASVS citation — corrected on 2026-08-14 (migration to ASVS 5.0.0).** The original citation
 `OWASP ASVS 5.0 — V13` was **wrong in both versions of the standard**, not merely

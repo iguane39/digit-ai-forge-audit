@@ -19,7 +19,7 @@ const N1 = [
   'Elastic', 'Kibana', 'Sentinel', 'Defender', 'App Service', 'Container Apps', 'Cosmos',
   'SQL Server', 'Oracle', 'PostgreSQL', 'MySQL', 'MongoDB', 'Kafka', 'Kubernetes',
   'AKS', 'EKS', 'GKE', 'Docker', 'Terraform', 'Ansible', 'GitHub', 'GitLab', 'Azure DevOps',
-  'SharePoint', 'Snowflake', 'Purview', 'sops', 'DirectQuery', 'Supabase',
+  'SharePoint', 'Snowflake', 'Purview', 'sops', 'DirectQuery', 'Supabase', 'Cloudflare',
 ];
 // N2 — vocabulaire conceptuellement biaisé (façonné éditeur / présuppose un modèle de livraison)
 const N2 = [

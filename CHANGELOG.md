@@ -6,6 +6,30 @@ sources mis à jour.
 
 ## [Non publié]
 
+## [1.20.0] — 2026-10-28
+
+> **MINEUR** au sens de PADR-0005 : un profil technologique s'ajoute, sans rupture de schéma ni retrait de contrôle.
+
+### Ajouté
+- **TF-1996 (part audit) — profil `cloudflare`** (28/10/2026) — `profiles/cloudflare/` (README.md +
+  bindings.json, version 1.0.0) instancie 7 contrôles core sur un produit dont la zone, la périphérie
+  ou l'hébergement des pages sont chez Cloudflare, jugés sur artefacts exportés (fichier `_headers`,
+  configuration Wrangler, code Terraform, code des formulaires) et sur des lectures d'API en lecture
+  seule jouées par le porteur, sans connexion de l'audit à un compte : CTL-D02-10 (mode SSL/TLS
+  « Full (strict) » constaté par zone), CTL-D02-06 (HSTS et `_headers`, avec la limite des réponses
+  produites par un Worker), CTL-D02-01 (règles personnalisées du WAF, aucune ressource de Firewall
+  Rules, retirées depuis le 2025-06-15), CTL-D02-04 (Turnstile sur les formulaires publics, jeton
+  validé côté serveur par Siteverify), CTL-D03-01 (Access devant la préproduction et les URL de
+  prévisualisation), CTL-D03-06 (jetons d'API à portée minimale, pas de clé globale), CTL-D02-14
+  (statut de proxy conforme au service, messagerie en DNS seul). Chaque binding cite ses pages
+  sources (champ `sources[]`, 22 pages de developers.cloudflare.com lues le 2026-10-28). Le contrôle
+  « aucun enregistrement de messagerie proxifié » du cadrage est reformulé : la documentation dit
+  qu'un MX ou un TXT est toujours en DNS seul, le contrôle porte donc sur les A, AAAA et CNAME de
+  messagerie. Câblage comme les autres profils : arborescence du README, exemple de `profiles[]` de
+  `docs/ONBOARDING-ENTRANTS.md`, instanciation `profil:cloudflare` de l'ADR0303 (FR et EN), nom
+  ajouté à la liste N1 de `tools/lint-agnostic.mjs`.
+
+
 ## [1.19.0] — 2026-10-16
 
 > **MINEUR** au sens de PADR-0005 : un profil technologique et un contrôle des profils s'ajoutent,

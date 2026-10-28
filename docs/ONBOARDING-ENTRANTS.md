@@ -58,7 +58,7 @@ Mapping 1:1 avec les propriétés de `tenant.schema.json`, regroupé par thème 
 
 | Entrant (langage métier) | Champ cible (`tenant.yaml`) | Obligatoire / Optionnel (défaut) | Format attendu | Exemple | Qui le fournit (rôle type : DSI, DirCom, RSSI, Achats…) |
 |---|---|---|---|---|---|
-| Technologies du périmètre (cloud, data, BI…) | `profiles[]` | Optionnel (déf. : aucun profil, contrôles génériques seuls) | Tableau de clés de profils disponibles | exemple : `[azure, databricks-lakehouse, powerbi, elastic, supabase]` | DSI / Architecture / Achats |
+| Technologies du périmètre (cloud, data, BI…) | `profiles[]` | Optionnel (déf. : aucun profil, contrôles génériques seuls) | Tableau de clés de profils disponibles | exemple : `[azure, databricks-lakehouse, powerbi, elastic, supabase, cloudflare]` | DSI / Architecture / Achats |
 
 ### Contraintes & sources internes
 

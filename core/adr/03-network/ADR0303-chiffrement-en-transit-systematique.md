@@ -73,7 +73,8 @@ non conforme = tout flux externe non chiffré.
 
 Instanciations : terminaison gérée par la plateforme d'hébergement ou par le point de
 contrôle d'exposition (ADR0301) ; `profil:azure` → certificats gérés + politique de
-version minimale imposée à la passerelle. Spécification ouverte de référence : TLS (IETF),
+version minimale imposée à la passerelle ; `profil:cloudflare` → mode de chiffrement « Full (strict) »
+jusqu'à l'origine et HSTS sur la zone. Spécification ouverte de référence : TLS (IETF),
 admissible au niveau core.
 
 **Citation ASVS — corrigée le 2026-08-14 (migration vers ASVS 5.0.0).** La citation d'origine

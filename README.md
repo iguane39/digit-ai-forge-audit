@@ -39,7 +39,7 @@ auditcore/
 │   │                        #   + doctrine.yaml : thèmes de périmètre, types de preuve, livrables,
 │   │                        #     barème par dimension (pack adjacent, doctrine-ecarts.md pour le reste)
 │   └── schemas/             # JSON Schemas : tenant, contrôle, doctrine, actions de remédiation
-├── profiles/                # packs technologiques (azure, databricks-lakehouse, powerbi, elastic, supabase,
+├── profiles/                # packs technologiques (azure, databricks-lakehouse, powerbi, elastic, supabase, cloudflare,
 │                             #   policy-as-code — démonstrateur OPA/Rego sur 3 contrôles, TF-0110)
 ├── assets/polices/          # polices INCORPORÉES au thème (@font-face base64, TF-1020) + licence
 │                            #   — un tirage jugé sur son nombre de pages ne dépend plus du poste
