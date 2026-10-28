@@ -1,5 +1,5 @@
 // TF-1344 (02/10/2026) — verifier-schema-modele.mjs : trois faux positifs mesurés sur un retour
-// UIA (RX du 23/09), tous les trois sur un cas réel Prisma ↔ pg_dump :
+// Produit-72 (RX du 23/09), tous les trois sur un cas réel Prisma ↔ pg_dump :
 //
 //   1 · un nom de table QUALIFIÉ par pg_dump (`public."User"`) n'était jamais reconnu — la table
 //       sortait « absente de la base » quelle que soit la réalité ;

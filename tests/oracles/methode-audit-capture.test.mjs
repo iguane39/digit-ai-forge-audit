@@ -1,6 +1,6 @@
 // TF-1397 (02/10/2026) — la méthode d'audit (docs/MANUEL-ENTREPRISE.md, § Étape 2 · Audit)
 // ne disait rien du cas d'un réglage de sécurité capturé pendant des écritures CONCURRENTES.
-// Fait mesuré le 23/09/2026 : une authentification forcée d'UIA, capturée une seule fois vers
+// Fait mesuré le 23/09/2026 : une authentification forcée de Produit-72, capturée une seule fois vers
 // 15h11 UTC, au milieu de quatre écritures d'un autre compte (15h07 à 15h16 UTC) — le rapport
 // affirmait un réglage déjà faux dès 15h16 UTC. La méthode ne lisait pas le journal d'activité
 // sur la fenêtre d'audit et ne recapturait pas à la remise.
