@@ -6,6 +6,36 @@ sources mis à jour.
 
 ## [Non publié]
 
+## [1.21.0] — 2026-10-29
+
+> **MINEUR** au sens de PADR-0005 : un contrôle s'ajoute au core (184 → 185), sans rupture de schéma
+> ni retrait de contrôle.
+
+### Ajouté
+- **TF-2014 — CTL-D09-09, aucune donnée personnelle de production en clair hors production** (29/10/2026,
+  décision R-58, option a) — la règle n'existait qu'en conséquence : ADR0506 (« jeu de données
+  représentatif mais non sensible pour les environnements amont »), une ligne de doctrine, et CTL-D16-04,
+  qui classe les colonnes personnelles sans juger leur présence hors production. Aucun contrôle
+  opposable ne refusait la donnée personnelle de production en clair dans une base de recette. Le
+  contrôle (D09, Fatal, `blocking`, profils `light` et `complet`, source ADR0506, renvoi à CTL-D16-04
+  pour l'identification des colonnes) exige que chaque base hors production (développement,
+  qualification, recette, démonstration) déclare la source de ses données, jeu synthétique ou extrait
+  de production anonymisé et contrôlé, et ne contienne aucune donnée personnelle de production en
+  clair. Une pseudonymisation (hachage, table de correspondance, clé) laisse une donnée personnelle et
+  ne vaut pas anonymisation. Le contrôle ne tranche pas l'admission d'un extrait anonymisé (décision
+  D-91 du porteur, en attente) : il reste valable quelle qu'en soit l'issue, le tenant pouvant durcir.
+  Version anglaise dans `core/controls-en/D09.json`, packs `controls-core-v1(.en).json` régénérés par
+  `tools/assemble-core.mjs`, `derived_controls` d'ADR0506 (FR et EN) réconciliés ; le corps de l'ADR
+  n'est pas modifié.
+- **Profils `azure` 1.2.0 et `supabase` 1.2.0** — CTL-D09-09 y est instancié. Azure : étiquette
+  `source_donnees` par base hors production, et le masquage dynamique d'Azure SQL, qui ne change pas la
+  donnée stockée, n'est pas une preuve d'anonymisation. Supabase : un projet par environnement, registre
+  des environnements, `seed.sql` et exports versionnés ; sources S1 et S10 déjà lues, aucune page ajoutée.
+- **`tests/oracles/controle-donnees-hors-production.test.mjs`** — recette à double sens du contrôle
+  (1 vert, 14 rouges) : schéma, source ADR0506, renvoi à CTL-D16-04, source déclarée, clause de
+  pseudonymisation, neutralité vis-à-vis de D-91, parité FR/EN, packs non périmés, miroirs d'ADR0506,
+  instanciations. Jouée par la CI.
+
 ## [1.20.0] — 2026-10-28
 
 > **MINEUR** au sens de PADR-0005 : un profil technologique s'ajoute, sans rupture de schéma ni retrait de contrôle.

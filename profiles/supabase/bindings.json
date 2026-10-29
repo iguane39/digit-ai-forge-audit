@@ -1,6 +1,6 @@
 {
   "profile": "supabase",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Instanciation des contrôles core sur un produit adossé à Supabase (Postgres managé, API générée, stockage, authentification), jugée sur artefacts exportés : DDL de `supabase db dump`, `supabase/config.toml`, migrations, code client et bundle livré, sorties de commandes archivées par le porteur. Aucune connexion de l'audit à un projet vivant.",
   "sources": [
     { "id": "S1", "url": "https://supabase.com/docs/reference/cli/introduction", "lu_le": "2026-10-16", "titre": "Référence CLI (db dump, migrations, branches)" },
@@ -131,6 +131,13 @@
       "verification_command": "Inventaire par le porteur : lister chaque client des API du projet, versions anciennes d'application comprises, avec son système, son exécutable et sa bibliothèque TLS ; git grep -niE 'cipher|minVersion|TLSv1|ssl_version|CBC' pour repérer toute version ou suite TLS figée dans le code ou la configuration. Test après mise à jour : l'application elle-même, depuis chaque classe de client, contre le domaine du projet.",
       "evidence": "Inventaire daté des clients des API (système, exécutable, bibliothèque TLS, capacité TLS 1.3 ou suite non-CBC partagée) + 0 réglage figeant une suite CBC dans le dépôt + compte rendu du test applicatif de chaque classe de client, ou décision écrite pour un client qui ne peut pas être mis à jour. Échéance de la page lue le 2026-10-28 : à relire avant le 2026-11-10.",
       "sources": ["S19"]
+    },
+    {
+      "control": "CTL-D09-09",
+      "instanciation": "Un projet Supabase correspond à un environnement : chaque projet hors production déclare la source de ses données dans le registre des environnements du dépôt, `supabase/config.toml` n'ayant pas de champ pour elle. Le jeu d'amorçage `supabase/seed.sql` (section `[db.seed]` de `config.toml`, `sql_paths`, gabarit : `./seed.sql`) est joué après les migrations à chaque réinitialisation locale de la base ; il relève du jeu synthétique tant qu'il ne contient aucune donnée copiée de la production. Les données d'un projet s'exportent par `supabase db dump --data-only` : un export de production rechargé dans un projet hors production y recopie les données personnelles en clair. Le profil ne fixe pas si un extrait anonymisé est admis.",
+      "verification_command": "Sur artefacts exportés : registre des environnements du dépôt, un projet hors production par ligne avec sa source de données déclarée ; git ls-files 'supabase/*.sql' pour repérer tout export de données versionné, puis lecture de `supabase/seed.sql` sur les colonnes personnelles identifiées par CTL-D16-04 (adresses de messagerie à domaine réel, noms, numéros de téléphone) ; échantillon du projet hors production par le porteur : `supabase link --project-ref <réf-hors-production>` puis `supabase db dump --linked --data-only -s public -f <fichier>`, relu sur les mêmes colonnes, valeurs non conservées au dossier d'audit.",
+      "evidence": "Registre des environnements avec la source déclarée de chaque projet hors production + relevé daté de `seed.sql` et des fichiers de données versionnés (0 valeur d'une personne réelle) + résultat de l'échantillon des colonnes personnelles par projet hors production, sans les valeurs + pour chaque projet déclaré extrait de production anonymisé, procédure d'anonymisation et rapport de contrôle daté.",
+      "sources": ["S1", "S10"]
     }
   ]
 }

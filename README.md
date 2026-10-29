@@ -34,7 +34,7 @@ auditcore/
 ├── docs/decisions/          # ADRs du produit (PADR — décisions actées)
 ├── core/                    # LA couche générique invariante, versionnée
 │   ├── adr/<domaine>/       # 84 ADR de principe (MADR), 10 domaines (09 UX optionnel) — + miroir EN adr-en/
-│   ├── controls/            # 184 contrôles CTL-Dxx-nn (+ pack EN controls-core-v1.en.json)
+│   ├── controls/            # 185 contrôles CTL-Dxx-nn (+ pack EN controls-core-v1.en.json)
 │   ├── dimensions/          # 18 dimensions D00–D17, 6 familles, applicabilité par type
 │   │                        #   + doctrine.yaml : thèmes de périmètre, types de preuve, livrables,
 │   │                        #     barème par dimension (pack adjacent, doctrine-ecarts.md pour le reste)

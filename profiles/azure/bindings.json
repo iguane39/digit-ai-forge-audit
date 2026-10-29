@@ -1,6 +1,6 @@
 {
   "profile": "azure",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Instanciations Azure des contrôles core (+ Terraform/Azure DevOps)",
   "bindings": [
     {
@@ -638,6 +638,12 @@
       "instanciation": "Le dépôt applique une protection de branche sur main (interdiction de push direct, statuts de vérification requis, revue par les pairs obligatoire) avant toute fusion.",
       "verification_command": "gh api repos/<org>/<repo>/branches/main/protection --jq '{required_reviews: .required_pull_request_reviews.required_approving_review_count, restrictions: .restrictions}'",
       "evidence": "Configuration de la protection de branche (statuts requis + revues minimales) + historique des pull requests montrant l'absence de push direct."
+    },
+    {
+      "control": "CTL-D09-09",
+      "instanciation": "Chaque base hors production (abonnements ou groupes de ressources distincts par environnement, ADR0506) porte une étiquette `source_donnees` qui déclare la source de ses données, par exemple `synthetique` ou `extrait-anonymise` ; une base sans étiquette n'a pas de source déclarée. Le masquage dynamique d'Azure SQL (Dynamic Data Masking) ne transforme pas la donnée stockée, il en masque l'affichage à certains utilisateurs : une base hors production copiée de la production reste une base de données personnelles en clair, et ce masquage ne prouve pas l'anonymisation. Restaurer une sauvegarde de production sur un serveur hors production y recopie les données personnelles en clair.",
+      "verification_command": "az resource list --subscription <id-abonnement-hors-production> --query \"[?type=='Microsoft.Sql/servers/databases' || type=='Microsoft.DBforPostgreSQL/flexibleServers'].{nom:name,groupe:resourceGroup,source:tags.source_donnees}\" -o table && az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT <colonne-personnelle> FROM <table> ORDER BY random() LIMIT 20;\"",
+      "evidence": "Inventaire des bases des abonnements hors production avec leur étiquette `source_donnees` (0 base sans étiquette) + échantillon des colonnes personnelles identifiées par CTL-D16-04, par base, relu par le porteur sans conserver les valeurs (0 valeur d'une personne réelle) + pour chaque base déclarée `extrait-anonymise`, procédure d'anonymisation et rapport de contrôle daté. Le masquage dynamique n'est pas une preuve d'anonymisation."
     },
     {
       "control": "CTL-D10-02",

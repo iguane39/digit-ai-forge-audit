@@ -8,7 +8,7 @@ id: ADR0506
 domain: "05"
 invariant: true
 standards: ["12-Factor — X. Dev/prod parity", "DORA (Accelerate) — capacité de livraison continue (gestion des environnements)", "NIST SSDF — PO.5"]
-derived_controls: [CTL-D09-04]
+derived_controls: [CTL-D09-04, CTL-D09-09]
 profile_bindings: optional
 ---
 

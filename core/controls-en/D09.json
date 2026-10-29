@@ -170,6 +170,27 @@
       "derogation": null,
       "a_completer": true,
       "standards": ["to be completed — the reference source cites no external standard for this decision (see the ADR a_completer flag)"]
+    },
+    {
+      "id": "CTL-D09-09",
+      "adr_source": ["ADR0506"],
+      "dimension_audit": "D09",
+      "regle": "No non-production database (development, qualification, acceptance, demonstration) holds personal data originating from production in the clear, and each one declares the source of its data: a synthetic dataset, or an anonymised and checked extract of production. The personal columns to look for are those identified by CTL-D16-04; pseudonymisation (hashing, a mapping table, a key) leaves personal data and does not amount to anonymisation.",
+      "criticite": "Fatal",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "List the non-production databases from the environment register (ADR0506) and record, for each, the declared source of its data; take the personal columns identified by CTL-D16-04 and sample their values in every non-production database, free-text fields, seed files and restored backups included: a value that designates a real person from production is personal data in the clear. For each declared production extract, read the anonymisation procedure and its dated check; a hash, a mapping table or a key leaves personal data, so the extract is then not anonymised. The control does not rule on whether an anonymised production extract is admitted, which belongs to the tenant (it may tighten it, never loosen it): it requires the declared source and the absence of personal data in the clear.",
+      "preuve_attendue": "Register of non-production databases with the declared source of each + list of personal columns (CTL-D16-04) + result of the value sample per non-production database + for each declared production extract, the anonymisation procedure and a dated check report.",
+      "grille_verdict": "compliant = every non-production database declares its source, no personal data from production is found in the clear and every declared extract carries a dated anonymisation check ; partial = source not declared for some of the databases, or a declared extract without a dated anonymisation check, with no personal data found in the clear ; non-compliant = personal data from production found in the clear in a non-production database, an extract that is only pseudonymised presented as anonymised, or no source declared",
+      "enforcement": "blocking",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Request the environment register and the declared source of the data of each non-production database (synthetic dataset or anonymised production extract); attach the register.",
+        "Sample the personal columns identified by CTL-D16-04 in each non-production database, free text included, and note any value that designates a real person; document the result.",
+        "If gap: replace the data concerned with data matching the source the tenant admits (a synthetic dataset, or an anonymised and checked extract if it admits one), declare the source of each database and attach the dated anonymisation check."
+      ],
+      "derogation": null,
+      "standards": ["RGPD — art. 5.1.c (minimisation des données)", "RGPD — art. 25 (protection des données dès la conception et par défaut)", "RGPD — art. 4, point 5, et considérant 26 (pseudonymisation et anonymisation)", "RGPD — art. 32", "ISO/IEC 27002:2022 — 8.31 (séparation des environnements de développement, de test et de production)", "ISO/IEC 27002:2022 — 8.33 (informations de test)"]
     }
   ]
 }

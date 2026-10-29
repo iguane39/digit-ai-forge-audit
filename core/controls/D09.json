@@ -170,6 +170,27 @@
       "derogation": null,
       "a_completer": true,
       "standards": ["à compléter — la source de référence ne cite aucune norme externe pour cette décision (voir a_completer de l'ADR)"]
+    },
+    {
+      "id": "CTL-D09-09",
+      "adr_source": ["ADR0506"],
+      "dimension_audit": "D09",
+      "regle": "Aucune base de données hors production (développement, qualification, recette, démonstration) ne contient de donnée personnelle issue de la production en clair, et chacune déclare la source de ses données : jeu synthétique, ou extrait de production anonymisé et contrôlé. Les colonnes personnelles à rechercher sont celles que CTL-D16-04 identifie ; une pseudonymisation (hachage, table de correspondance, clé) laisse une donnée personnelle et ne vaut pas anonymisation.",
+      "criticite": "Fatal",
+      "profil": ["light", "complet"],
+      "mode_de_controle": "automatique + revue",
+      "verification": "Dresser l'inventaire des bases hors production d'après le registre des environnements (ADR0506) et relever, pour chacune, la source déclarée de ses données ; reprendre les colonnes personnelles identifiées par CTL-D16-04 et en échantillonner les valeurs dans chaque base hors production, champs de texte libre, fichiers d'amorçage et sauvegardes restaurées compris : une valeur qui désigne une personne réelle de la production est une donnée personnelle en clair. Pour chaque extrait de production déclaré, lire la procédure d'anonymisation et son contrôle daté ; un hachage, une table de correspondance ou une clé laisse une donnée personnelle, l'extrait n'est alors pas anonymisé. Le contrôle ne tranche pas l'admission d'un extrait de production anonymisé, qui relève du tenant (il peut la durcir, jamais l'assouplir) : il exige la source déclarée et l'absence de donnée personnelle en clair.",
+      "preuve_attendue": "Registre des bases hors production avec la source déclarée de chacune + liste des colonnes personnelles (CTL-D16-04) + résultat de l'échantillon de valeurs par base hors production + pour chaque extrait de production déclaré, procédure d'anonymisation et rapport de contrôle daté.",
+      "grille_verdict": "conforme = toutes les bases hors production déclarent leur source, aucune donnée personnelle de production en clair n'est constatée et tout extrait déclaré porte un contrôle d'anonymisation daté ; partiel = source non déclarée pour une partie des bases, ou extrait déclaré sans contrôle d'anonymisation daté, sans donnée personnelle en clair constatée ; non conforme = donnée personnelle de production en clair constatée dans une base hors production, extrait seulement pseudonymisé présenté comme anonymisé, ou aucune source déclarée",
+      "enforcement": "blocking",
+      "applicabilite": { "types": ["web-app", "api", "data", "mobile", "ml"], "defaut": "applicable" },
+      "actions_audit": [
+        "Demander le registre des environnements et la source déclarée des données de chaque base hors production (jeu synthétique ou extrait de production anonymisé) ; joindre le registre.",
+        "Échantillonner les colonnes personnelles identifiées par CTL-D16-04 dans chaque base hors production, texte libre compris, et relever toute valeur qui désigne une personne réelle ; documenter le résultat.",
+        "Si écart : remplacer les données concernées par des données conformes à la source que le tenant admet (jeu synthétique, ou extrait anonymisé et contrôlé s'il l'admet), déclarer la source de chaque base et joindre le contrôle d'anonymisation daté."
+      ],
+      "derogation": null,
+      "standards": ["RGPD — art. 5.1.c (minimisation des données)", "RGPD — art. 25 (protection des données dès la conception et par défaut)", "RGPD — art. 4, point 5, et considérant 26 (pseudonymisation et anonymisation)", "RGPD — art. 32", "ISO/IEC 27002:2022 — 8.31 (séparation des environnements de développement, de test et de production)", "ISO/IEC 27002:2022 — 8.33 (informations de test)"]
     }
   ]
 }

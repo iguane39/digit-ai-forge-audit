@@ -7,7 +7,7 @@ public (D03), les politiques du stockage (D15), les réglages d'authentification
 la sauvegarde et la restauration (D16), le filtrage réseau et le chiffrement en transit (D02), et depuis
 la version 1.1.0 la MFA (D03), la durée des sessions, les limites de débit d'Auth, les Edge Functions
 sans vérification de JWT, les URL de redirection, le SMTP propre, les advisors et le retrait des suites
-TLS en mode CBC.
+TLS en mode CBC, puis depuis la version 1.2.0 la source des données des projets hors production (D09).
 
 L'audit travaille sur des artefacts exportés et ne se connecte à aucun projet vivant : DDL produit
 par `supabase db dump`, `supabase/config.toml`, `supabase/migrations/`, code client et bundle
@@ -17,7 +17,7 @@ PITR) sont jugés sur la sortie archivée et datée de commandes que le porteur 
 pas lu, le verdict d'un contrôle jugé sur ce seul fichier plafonne à « partiel »
 (`docs/MANUEL-ENTREPRISE.md`, étape 2, TF-1395).
 
-15 contrôles sont liés dans bindings.json. Chaque binding cite ses sources par identifiant
+16 contrôles sont liés dans bindings.json. Chaque binding cite ses sources par identifiant
 (`sources[]`), déclarées en tête du fichier avec leur URL et leur date de lecture.
 
 ## Contrôles liés
@@ -39,6 +39,16 @@ pas lu, le verdict d'un contrôle jugé sur ce seul fichier plafonne à « parti
 | CTL-D06-02 | SMTP propre pour les e-mails d'Auth, quota d'envoi connu | S13, S17, S20, S21, S23 |
 | CTL-D02-12 | Advisors de sécurité et de performance, constats traités ou acceptés par écrit | S18, S21 |
 | CTL-D01-14 | Retrait des suites TLS 1.2 en mode CBC annoncé pour le 2026-11-10 au plus tôt | S19 |
+| CTL-D09-09 | Source des données de chaque projet hors production déclarée ; `seed.sql` et exports versionnés sans donnée personnelle en clair | S1, S10 |
+
+## Contrôle ajouté en 1.2.0
+
+CTL-D09-09 (aucune donnée personnelle de production en clair hors production, source des données déclarée)
+se lie directement : un projet Supabase est un environnement, et le contrôle porte sur ce que contient
+sa base. Il s'appuie sur les sources S1 (`db dump --data-only`) et S10 (section `[db.seed]` du gabarit
+`config.toml`), déjà listées ; aucune page n'a été ajoutée. Le profil ne dit pas si un extrait de
+production anonymisé est admis : le contrôle exige la source déclarée et l'absence de donnée personnelle
+en clair, quelle que soit la décision du tenant.
 
 ## Rattachements des contrôles ajoutés en 1.1.0
 
