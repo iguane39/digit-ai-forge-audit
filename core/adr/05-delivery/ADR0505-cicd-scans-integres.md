@@ -71,6 +71,8 @@ partiel = scans actifs non bloquants ; non conforme = absence de scan constatée
 
 ## More Information
 
-Instanciations : `profil:azure` → extensions de scan intégrées au pipeline managé ; autres
+Instanciations : `profil:azure` → extensions de scan intégrées au pipeline managé ;
+`profil:github` → code scanning, secret scanning avec push protection et alertes de dépendances,
+rendus bloquants par les règles de ruleset de la branche par défaut ; autres
 profils → outillage SAST/secrets/SCA équivalent. Le profil fournit les seuils de sévérité
 bloquants par type de projet.

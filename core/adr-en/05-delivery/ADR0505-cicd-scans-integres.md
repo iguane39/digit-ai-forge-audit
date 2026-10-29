@@ -62,4 +62,4 @@ Derived controls: CTL-D09-07 (SAST, secrets, and dependency scans run on every i
 
 ## More Information
 
-Instantiations: `profil:azure` → scanning extensions integrated into the managed pipeline; other profiles → equivalent SAST/secrets/SCA tooling. The profile provides the blocking severity thresholds per project type.
+Instantiations: `profil:azure` → scanning extensions integrated into the managed pipeline; `profil:github` → code scanning, secret scanning with push protection and dependency alerts, made blocking by the ruleset rules of the default branch; other profiles → equivalent SAST/secrets/SCA tooling. The profile provides the blocking severity thresholds per project type.

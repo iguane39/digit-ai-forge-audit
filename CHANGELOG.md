@@ -6,6 +6,31 @@ sources mis à jour.
 
 ## [Non publié]
 
+## [1.22.0] — 2026-10-29
+
+> **MINEUR** au sens de PADR-0005 : un profil technologique s'ajoute, sans rupture de schéma ni retrait de contrôle.
+
+### Ajouté
+- **TF-2004 — profil `github`** (29/10/2026) — `profiles/github/` (README.md + bindings.json, version
+  1.0.0) instancie 7 contrôles core sur un produit dont le code vit dans un dépôt GitHub, jugés en
+  lecture seule sur les fichiers du dépôt et sur des lectures d'API jouées par le porteur, chaque
+  commande écrivant `gh api --method GET` (gh passe en POST dès qu'un paramètre est donné) :
+  CTL-D09-06 (branche par défaut protégée par ruleset ou règle de branche, revue exigée, CODEOWNERS
+  valide, contournements d'administrateur et `bypass_actors` justifiés), CTL-D03-02 (secret scanning
+  et push protection actifs, 0 alerte ouverte, contournements qualifiés, scan de l'historique par la
+  CI maintenu : un secret de partenaire n'apparaît pas dans les alertes du dépôt), CTL-D02-03 (alertes
+  Dependabot, plan daté pour chaque alerte critique ou haute), CTL-D02-12 (correctifs Dependabot actifs
+  et non suspendus, `dependabot.yml`, délai de correction mesuré sur 3 mois), CTL-D02-08 (code
+  scanning ; le DAST reste hors de GitHub et plafonne le verdict à « partiel » sans outil), CTL-D09-03
+  (portes de fusion : règle `code_scanning`, résolution des alertes de secrets, revue des dépendances
+  en statut requis), CTL-D12-10 (`SECURITY.md` et signalement privé de vulnérabilité, entrée de la
+  procédure seulement). 23 sources lues le 2026-10-29 (docs.github.com et le manuel de `gh api`),
+  citées par binding. Le README dit ce qui dépend de la visibilité du dépôt et de l'offre du compte :
+  en dépôt privé, code scanning, secret scanning et push protection exigent GitHub Code Security ou
+  GitHub Secret Protection. Câblage comme les autres profils : arborescence du README, exemple de
+  `profiles[]` de `docs/ONBOARDING-ENTRANTS.md`, instanciation `profil:github` de l'ADR0505 (FR et EN).
+  « GitHub » figurait déjà dans la liste N1 de `tools/lint-agnostic.mjs`.
+
 ## [1.21.0] — 2026-10-29
 
 > **MINEUR** au sens de PADR-0005 : un contrôle s'ajoute au core (184 → 185), sans rupture de schéma
