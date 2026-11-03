@@ -7,6 +7,15 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2089 — `tools/init-audit-workspace.mjs` ne prend plus une option pour le dossier cible**
+  (03/11/2026, récidive de TF-1181) — `node tools/init-audit-workspace.mjs --help` avait créé un dossier
+  nommé « --help » (avec ses `.gitkeep` et son README) dans le dépôt au lieu d'afficher l'usage. Facteur
+  commun `dossierCibleOuUsage` dans `tools/lib.mjs` : `--help` et `-h` disent l'usage (sortie 0), toute
+  autre option est refusée avec son motif (sortie 2), rien n'est créé. La version autonome
+  `init-audit-workspace-standalone.mjs`, écrite dans le kit d'audit par `tools/build-kit.mjs` (autoportante,
+  elle ne peut rien importer), porte la même règle. Ce sont les deux seuls outils de `tools/` à prendre un
+  dossier cible positionnel. Recette : `tests/oracles/outils-dossier-cible.test.mjs` (5 tests, joués dans un
+  dossier vide pour qu'une création sauvage se voie), ajoutée à la batterie du workflow.
 - **TF-2088 — `tools/fiche-en-pdf.mjs` essaie les autres moteurs avant de rendre le code 3**
   (03/11/2026, récidive de TF-1408) — Edge, premier de la liste, pouvait ne jamais annoncer son port
   (30 s, sortie 3) alors que Chrome, présent, aurait imprimé en quelques secondes ; TF-1408 avait classé

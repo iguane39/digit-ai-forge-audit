@@ -85,7 +85,16 @@ const initStandalone = [
   '#!/usr/bin/env node',
   `// Espace de travail d'audit — généré par AuditCore build-kit pour « ${tenant} ».`,
   "import fs from 'node:fs'; import path from 'node:path';",
-  "const target = process.argv[2] ?? '.';",
+  // TF-2089 : un argument qui commence par « - » n'est jamais le dossier cible (--help en a créé un).
+  // Même règle que `dossierCibleOuUsage` (tools/lib.mjs), recopiée ici parce que le kit est autoportant.
+  "const arg = process.argv[2];",
+  "if (arg !== undefined && arg.startsWith('-')) {",
+  "  const aide = arg === '--help' || arg === '-h';",
+  "  if (!aide) console.error(`Argument « ${arg} » refusé comme dossier cible : un argument qui commence par « - » est une option, pas un dossier.`);",
+  "  (aide ? console.log : console.error)('Usage: node init-audit-workspace-standalone.mjs [dossier-cible]');",
+  '  process.exit(aide ? 0 : 2);',
+  '}',
+  "const target = arg ?? '.';",
   `const T = ${JSON.stringify(tenant)};`,
   "const INPUT = ['00 - Cadrage', '01 - Code & dépôt', '02 - Architecture & IaC', '03 - Sécurité & secrets', '04 - Données', '05 - Tests & CI-CD', '06 - Observabilité', '07 - Docs & gouvernance'];",
   "const OUTPUT = [\"00 - Rapport d'audit\", '01 - Fiche Sécurité', '02 - Présentation autorité de décision', '03 - Scans & preuves', '04 - Schémas & annexes', 'Old'];",

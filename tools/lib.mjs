@@ -63,3 +63,22 @@ export function contrastRatio(hex1, hex2) {
 
 export function fail(msg) { console.error(`ERREUR: ${msg}`); process.exitCode = 1; }
 export function ok(msg) { console.log(`OK: ${msg}`); }
+
+/**
+ * TF-2089 (récidive de TF-1181) — le dossier cible POSITIONNEL d'un outil. Un argument qui commence
+ * par « - » est une option, jamais un dossier : `init-audit-workspace.mjs --help` avait créé un dossier
+ * nommé « --help » dans le dépôt. `--help` et `-h` disent l'usage (sortie 0, rien de créé) ; toute autre
+ * option est refusée avec son motif (sortie 2) ; l'absence d'argument dit l'usage en sortie 2.
+ * Rend l'argument quand c'est un dossier ; sinon l'outil s'arrête ici.
+ * `build-kit.mjs` inscrit la même règle dans `init-audit-workspace-standalone.mjs` (autoportant).
+ */
+export function dossierCibleOuUsage(argument, usage) {
+  if (argument !== undefined && !String(argument).startsWith('-')) return argument;
+  const aide = argument === '--help' || argument === '-h';
+  if (argument !== undefined && !aide) {
+    console.error(`Argument « ${argument} » refusé comme dossier cible : un argument qui commence par « - » `
+      + 'est une option, pas un dossier.');
+  }
+  (aide ? console.log : console.error)(usage);
+  process.exit(aide ? 0 : 2);
+}

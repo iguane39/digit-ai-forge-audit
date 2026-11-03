@@ -4,10 +4,11 @@
 // Usage: node tools/init-audit-workspace.mjs <dossier-cible> [--tenant <tenant.yaml>]
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadTenant } from './lib.mjs';
+import { loadTenant, dossierCibleOuUsage } from './lib.mjs';
 
-const target = process.argv[2];
-if (!target) { console.error('Usage: node tools/init-audit-workspace.mjs <dossier-cible> [--tenant <tenant.yaml>]'); process.exit(2); }
+// TF-2089 : un argument qui commence par « - » n'est jamais le dossier cible (--help en a créé un).
+const target = dossierCibleOuUsage(process.argv[2],
+  'Usage: node tools/init-audit-workspace.mjs <dossier-cible> [--tenant <tenant.yaml>]');
 const tIdx = process.argv.indexOf('--tenant');
 const tenantName = tIdx > -1 ? loadTenant(process.argv[tIdx + 1]).cfg.tenant.name : '{{tenant}}';
 
