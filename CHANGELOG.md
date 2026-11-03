@@ -6,6 +6,17 @@ sources mis à jour.
 
 ## [Non publié]
 
+### Corrigé
+- **TF-2086 — `oracles/verifier-fiche-securite.mjs` juge le modèle de fiche à intitulés en `th.k` et
+  `td.k`** (03/11/2026) — sur le modèle d'un produit, une fiche complète rendait FS4 FAIL, FS5 SKIP et
+  FS8, FS10, FS11 FAIL. FS4 prenait la première ligne dont l'intitulé contient « Dev » (« Dev-team / run »,
+  sans URL) au lieu de la ligne qui porte l'URL ; FS5 ne lisait pas `th.<classe>{width:…}` et se taisait
+  en SKIP ; les intitulés en `<td class="k">` étaient invisibles pour FS8, FS10 et FS11. Les lignes
+  « intitulé · valeur » se lisent désormais qu'elles soient en `th` ou en `td.k`, FS4 retient la ligne
+  de l'environnement qui porte une URL, FS5 accepte `th.<classe>` et les listes de sélecteurs. Recette
+  à double sens ajoutée à `tests/oracles/fiche-securite.test.mjs` (4 tests) et 3 cas à l'auto-test de
+  l'oracle (16 → 19).
+
 ## [1.22.0] — 2026-10-29
 
 > **MINEUR** au sens de PADR-0005 : un profil technologique s'ajoute, sans rupture de schéma ni retrait de contrôle.

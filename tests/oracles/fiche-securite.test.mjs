@@ -25,6 +25,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verdictNavigateur } from '../verdicts.mjs';
+import { juger } from '../../oracles/verifier-fiche-securite.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ORACLE = path.join(RACINE, 'oracles', 'verifier-fiche-securite.mjs');
@@ -41,7 +42,7 @@ const temporaire = () => fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-t-'));
 test('verifier-fiche-securite --self-test : le cas vert est accepté, chaque cas rouge est refusé', () => {
   const r = jouer(ORACLE, '--self-test');
   assert.equal(r.status, 0, `auto-test rouge : ${r.stdout}${r.stderr}`);
-  assert.match(r.stdout, /16\/16 PASS/, 'le compte de cas exercés a changé sans que le test le dise');
+  assert.match(r.stdout, /19\/19 PASS/, 'le compte de cas exercés a changé sans que le test le dise');
 });
 
 test('fiche-en-pdf --self-test : la règle d\'indice mord, et preferCSSPageSize est MESURÉ', () => {
@@ -353,6 +354,85 @@ test('TF-1020 — la police résolue est la police EMBARQUÉE, pas celle du post
       + 'le moteur ne résout PAS la police embarquée, il retombe sur une police du poste — le tirage '
       + 'reste dépendant de la machine qui imprime, et le défaut TF-1020 est intact');
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+// ── TF-2086 · LE MODÈLE DE FICHE D'UN PRODUIT (cellules `th.k` / `td.k`). Extrait minimal du
+//    modèle qui a fait rendre FS4 FAIL, FS5 SKIP et FS8/10/11 FAIL sur une fiche pourtant
+//    complète : intitulés en `<th class="k">` (largeur déclarée par `th.k{…}`) ET en
+//    `<td class="k">`, et une première ligne « Dev-team / run » SANS URL avant la ligne qui porte
+//    le lien. Chaque fixture a son sens vert et son sens rouge.
+const SECTIONS_MODELE = (env, { lien, libelleLien, population, restriction, invites, intitule = 'td' }) =>
+  Array.from({ length: 8 }, (_, k) => {
+    const cellule = (libelle, valeur) => (intitule === 'td'
+      ? `<tr><td class="k">${libelle}</td><td>${valeur}</td></tr>`
+      : `<tr><th class="k">${libelle}</th><td>${valeur}</td></tr>`);
+    const entete = k === 0 ? [
+      // Piège de FS4 : une ligne dont l'intitulé contient « Dev » mais qui ne porte AUCUNE URL.
+      `<tr><th class="k">Dev-team / run</th><td>Équipe A, run partagé</td></tr>`,
+      `<tr><th class="k">${libelleLien}</th><td>${lien}</td></tr>`,
+      population === null ? '' : cellule('Population effectivement admise', population),
+      restriction === null ? '' : cellule("Restriction d'accès effective", restriction),
+      invites === null ? '' : cellule('Comptes externes / invités en portée', invites),
+    ].join('') : '';
+    return `<section><h2>${k + 1} · Section ${k + 1}</h2><table><tbody>${entete}`
+      + `${cellule(`Champ ${k + 1}`, 'valeur')}</tbody></table></section>`;
+  }).join('\n');
+
+function ficheModele({ env = 'DEV', ref, jour = '20261030a', largeur = 22, fixe = true, lien, libelleLien,
+  population = 'Collaborateurs du tenant (128)', restriction = 'assignation de rôle requise',
+  invites = '0 (portail invités désactivé)', intitule = 'td' } = {}) {
+  const r = ref ?? `CDC-SEC-${env}-${jour}`;
+  const l = lien === undefined ? `<a href="https://${env.toLowerCase()}.exemple.test/app">https://${env.toLowerCase()}.exemple.test/app</a>` : lien;
+  const lib = libelleLien ?? `Lien environnement ${env}`;
+  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Fiche</title><style>`
+    + `table{${fixe ? 'table-layout:fixed;' : ''}border-collapse:collapse;width:100%}`
+    + `th.k{background:#eee;width:${largeur}%}td.k{font-weight:600}td{overflow-wrap:break-word}</style></head><body>`
+    + `<header>Réf. ${r} · validée par le responsable sécurité</header><h1>Fiche sécurité</h1>\n`
+    + SECTIONS_MODELE(env, { lien: l === null ? 'à venir' : l, libelleLien: lib, population, restriction, invites, intitule })
+    + `\n<footer>Réf. ${r} — Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0.</footer></body></html>`;
+}
+
+function jugerFiche(nom, html, opts = {}) {
+  const dir = temporaire();
+  try {
+    const p = path.join(dir, nom);
+    fs.writeFileSync(p, html, 'utf8');
+    return juger(p, { sansPdf: true, ...opts });
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+}
+const statutDe = (rapport, regle) => rapport.findings.find((f) => f.regle === regle)?.statut;
+
+test('TF-2086 — le modèle à cellules th.k / td.k est jugé : FS4 vise la ligne qui porte l\'URL, FS5 lit th.k, FS8/10/11 lisent td.k', () => {
+  const r = jugerFiche('CDC - Fiche Securite - Dev - 20261030a.html', ficheModele());
+  const echecs = r.findings.filter((f) => f.statut !== 'PASS' && f.regle !== 'FS6' && f.regle !== 'FS7');
+  assert.deepEqual(echecs, [], 'la fiche du modèle, complète, ne doit rien rendre d\'autre que PASS (hors PDF déclaré absent)');
+  assert.equal(r.verdict, 'PASS');
+  assert.match(r.findings.find((f) => f.regle === 'FS4').message, /dev\.exemple\.test/, 'FS4 doit citer l\'URL de la bonne ligne');
+  assert.match(r.findings.find((f) => f.regle === 'FS5').message, /22 %/, 'FS5 doit rapporter la largeur lue sur th.k');
+});
+
+test('TF-2086 — sens rouge : aucune ligne « Dev » ne porte d\'URL → FS4 FAIL, et le message nomme la ligne sans lien', () => {
+  const r = jugerFiche('CDC - Fiche Securite - Dev - 20261030a.html', ficheModele({ lien: null }));
+  assert.equal(statutDe(r, 'FS4'), 'FAIL');
+  assert.equal(r.verdict, 'FAIL');
+});
+
+test('TF-2086 — sens rouge : th.k à 32 % ou sans table-layout fixe → FS5 FAIL (plus un SKIP silencieux)', () => {
+  let r = jugerFiche('CDC - Fiche Securite - Dev - 20261030a.html', ficheModele({ largeur: 32 }));
+  assert.equal(statutDe(r, 'FS5'), 'FAIL', 'th.k à 32 % n\'est pas refusé');
+  r = jugerFiche('CDC - Fiche Securite - Dev - 20261030a.html', ficheModele({ fixe: false }));
+  assert.equal(statutDe(r, 'FS5'), 'FAIL', 'th.k sans table-layout:fixed n\'est pas refusé');
+});
+
+test('TF-2086 — sens rouge : champs td.k absents ou vides → FS8, FS10, FS11 FAIL (et la variante th.k reste lue)', () => {
+  const nom = 'CDC - Fiche Securite - Dev - 20261030a.html';
+  assert.equal(statutDe(jugerFiche(nom, ficheModele({ population: null })), 'FS8'), 'FAIL', 'FS8 : ligne td.k supprimée');
+  assert.equal(statutDe(jugerFiche(nom, ficheModele({ population: '' })), 'FS8'), 'FAIL', 'FS8 : ligne td.k vide');
+  assert.equal(statutDe(jugerFiche(nom, ficheModele({ restriction: null })), 'FS10'), 'FAIL', 'FS10 : ligne td.k supprimée');
+  assert.equal(statutDe(jugerFiche(nom, ficheModele({ invites: null })), 'FS11'), 'FAIL', 'FS11 : ligne td.k supprimée');
+  // La même fiche, intitulés en th.k : toujours lue, toujours PASS.
+  const th = jugerFiche(nom, ficheModele({ intitule: 'th' }));
+  for (const regle of ['FS8', 'FS10', 'FS11']) assert.equal(statutDe(th, regle), 'PASS', `${regle} ne lit pas les intitulés en th.k`);
 });
 
 // ── Utilitaires ──────────────────────────────────────────────────────────────────────────────

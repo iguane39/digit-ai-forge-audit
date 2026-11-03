@@ -21,8 +21,12 @@
  *   FS3 · référence interne `<TRIGRAMME>-SEC-DEV-<AAAAMMJJ><indice>`, bien formée, et IDENTIQUE
  *         en en-tête et en pied. Deux références divergentes dans un même document ne se voient
  *         qu'en ouvrant les deux bouts ; personne ne le fait.
- *   FS4 · le lien de l'environnement DEV est présent, et c'est une vraie URL.
- *   FS5 · mise en page : colonne d'intitulés ≤ 25 % et `table-layout` FIXE (TF-0697). Sans
+ *   FS4 · le lien de l'environnement DEV est présent, et c'est une vraie URL. C'est la ligne qui
+ *         PORTE l'URL qui est jugée, pas la première dont l'intitulé contient « Dev » (TF-2086) ;
+ *         les intitulés sont lus en `th` (avec ou sans classe) comme en `td class="k"`, pour FS4
+ *         comme pour FS8, FS10 et FS11.
+ *   FS5 · mise en page : colonne d'intitulés (`th`, `th.<classe>` ou `td.k`) ≤ 25 % et
+ *         `table-layout` FIXE (TF-0697, TF-2086). Sans
  *         `table-layout:fixed`, une largeur déclarée n'est qu'un vœu — le moteur ré-élargit la
  *         colonne dès qu'un libellé s'allonge, et la déclaration ment.
  *   FS6 · le PDF de diffusion est là, et il porte le MÊME INDICE que le HTML (TF-0700 c).
@@ -68,6 +72,24 @@ export const RE_GABARIT_ID = /gabarit\s*:\s*(gd-[a-z0-9-]+)/i;
 export const RE_VERSION_GABARIT = /version[_ ]du[_ ]gabarit\s*:?\s*\d+\.\d+\.\d+/i;
 /** La référence interne : trigramme, objet, environnement, jour, indice. */
 export const RE_REF = /\b([A-Z0-9]{2,6})-SEC-DEV-(\d{8})([a-z])\b/g;
+const RE_URL = /https?:\/\/[^\s"'<]+/i;
+/** Une cellule d'intitulé en `td` n'est lue que si elle porte la classe `k` (TF-2086). */
+const CLASSE_K = /\bclass\s*=\s*(["'])(?:[^"']*\s)?k(?:\s[^"']*)?\1/i;
+const texteDe = (h) => String(h).replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+
+/**
+ * Les lignes « intitulé · valeur » d'une fiche, QUELLE QUE SOIT la cellule d'intitulé : `th` (avec
+ * ou sans classe) ou `td class="k"` (TF-2086). Un modèle de fiche qui nomme ses intitulés en
+ * `td.k` rendait FS8, FS10 et FS11 aveugles : la ligne existait, l'oracle ne la voyait pas.
+ */
+export function lignesDeChamps(html) {
+  const lignes = [];
+  for (const m of String(html).matchAll(/<tr\b[^>]*>\s*<(th|td)\b([^>]*)>([\s\S]*?)<\/\1>\s*<td\b[^>]*>([\s\S]*?)<\/td>/gi)) {
+    if (m[1].toLowerCase() === 'td' && !CLASSE_K.test(m[2])) continue;
+    lignes.push({ intitule: texteDe(m[3]), valeur: m[4] });
+  }
+  return lignes;
+}
 
 /**
  * Les UNITÉS DE TEXTE réellement montrées par un PDF : opérateurs `Tj`/`TJ`/`'` des flux de
@@ -118,6 +140,7 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
   const F = [];
   const add = (statut, regle, message) => F.push({ statut, regle, message });
   const html = fs.readFileSync(fiche, 'utf8');
+  const lignes = lignesDeChamps(html);
 
   // ── FS1 · zéro placeholder résiduel ──────────────────────────────────────────────────────
   const trous = [...html.matchAll(/\{\{\s*([^}]{0,80}?)\s*\}\}/g)].map((m) => m[1]);
@@ -177,21 +200,29 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
   }
 
   // ── FS4 · le lien de l'environnement DEV ────────────────────────────────────────────────
-  const ligneDev = [...html.matchAll(/<tr>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<td[^>]*>([\s\S]*?)<\/td>/gi)]
-    .find(([, label]) => /\bDEV\b|développement|developpement/i.test(label));
-  if (!ligneDev) {
-    add('FAIL', 'FS4', "aucune ligne ne porte le lien de l'environnement DEV. C'est la seule information "
+  // TF-2086 : on vise la ligne qui PORTE l'URL parmi celles dont l'intitulé désigne
+  // l'environnement. La PREMIÈRE ligne dont l'intitulé contient « Dev » (« Dev-team / run ») n'est
+  // pas forcément celle du lien : la prendre refusait une fiche complète.
+  const lignesDev = lignes.filter((l) => /\bDEV\b|développement|developpement/i.test(l.intitule));
+  const ligneLien = lignesDev.find((l) => RE_URL.test(l.valeur));
+  if (!lignesDev.length) {
+    add('FAIL', 'FS4', `aucune ligne ne porte le lien de l'environnement DEV. C'est la seule information `
       + 'de la fiche qui permet à un tiers de CONSTATER par lui-même ce qui est exposé.');
-  } else if (!/https?:\/\/[^\s"'<]+/i.test(ligneDev[2])) {
-    add('FAIL', 'FS4', `la ligne « ${ligneDev[1].replace(/<[^>]*>/g, '').trim().slice(0, 60)} » ne porte pas d'URL : `
-      + `« ${ligneDev[2].replace(/<[^>]*>/g, '').trim().slice(0, 60)} ». Un lien annoncé et absent vaut moins qu'un lien absent.`);
+  } else if (!ligneLien) {
+    add('FAIL', 'FS4', (lignesDev.length === 1
+      ? `la ligne « ${lignesDev[0].intitule.slice(0, 60)} » ne porte pas d'URL : « ${texteDe(lignesDev[0].valeur).slice(0, 60)} »`
+      : `aucune des ${lignesDev.length} lignes de l'environnement DEV (${lignesDev.map((l) => `« ${l.intitule.slice(0, 40)} »`).join(', ')}) `
+        + 'ne porte d\'URL')
+      + `. Un lien annoncé et absent vaut moins qu'un lien absent.`);
   } else {
-    add('PASS', 'FS4', `lien DEV présent : ${(/https?:\/\/[^\s"'<]+/i.exec(ligneDev[2]) || [])[0].slice(0, 70)}`);
+    add('PASS', 'FS4', `lien DEV présent : ${RE_URL.exec(ligneLien.valeur)[0].slice(0, 70)}`);
   }
 
   // ── FS5 · la mise en page ne réserve pas la page à la colonne des intitulés (TF-0697) ────
-  const largeurTh = Number((/(?:^|[{;\s])th\s*\{[^}]*\bwidth\s*:\s*([\d.]+)%/i.exec(html) || [])[1]
-    ?? (/(?:^|[{;\s])td\.k\s*\{[^}]*\bwidth\s*:\s*([\d.]+)%/i.exec(html) || [])[1]);
+  // TF-2086 : `th` nu, `th.<classe>` (modèle à `th.k{…}`) ou `td.k`, y compris en liste de sélecteurs.
+  const largeurDe = (balise) => (new RegExp(`(?:^|[{};,\\s])${balise}\\s*(?:,[^{}]*)?\\{[^}]*\\bwidth\\s*:\\s*([\\d.]+)%`, 'i')
+    .exec(html) || [])[1];
+  const largeurTh = Number(largeurDe('th(?:\\.[\\w-]+)?') ?? largeurDe('td\\.k'));
   const fixe = /table-layout\s*:\s*fixed/i.test(html);
   if (!Number.isFinite(largeurTh)) {
     add('SKIP', 'FS5', "aucune largeur de colonne d'intitulés déclarée en pourcentage : la mise en page "
@@ -250,15 +281,16 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
   // admis au même titre que les collaborateurs, TF-0563) — aucun n'est optionnel par rapport aux
   // deux autres (TF-1089 n'avait couvert que le premier, FS8 ; TF-1102 clôt les deux restants).
   const champDuBloc = (regle, motifLabel, nomAffiche) => {
-    const re = new RegExp(`<tr>\\s*<th[^>]*>\\s*(?:${motifLabel})\\s*<\\/th>\\s*<td[^>]*>([\\s\\S]*?)<\\/td>`, 'i');
-    const m = re.exec(html);
-    if (!m) {
+    // TF-2086 : l'intitulé est lu en `th` comme en `td.k`, et sans ses balises internes.
+    const re = new RegExp(`^(?:${motifLabel})\\s*:?$`, 'i');
+    const ligne = lignes.find((l) => re.test(l.intitule));
+    if (!ligne) {
       add('FAIL', regle, `aucune ligne « ${nomAffiche} » dans le document. Le champ existe au canevas `
         + "depuis TF-0563 (3 128 comptes invités admis sans que la fiche le dise) : une ligne "
         + "SUPPRIMÉE plutôt que remplie n'est vue par AUCUNE autre règle de cet oracle.");
       return;
     }
-    const valeur = m[1].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    const valeur = texteDe(ligne.valeur);
     if (!valeur) {
       add('FAIL', regle, `le champ « ${nomAffiche} » est présent mais VIDE. « aucune restriction » `
         + 'est une réponse valide à porter au rapport ; une case vide ne l\'est jamais.');
@@ -318,6 +350,22 @@ ${Array.from({ length: 8 }, (_, k) => `<section><h2>${k + 1} · Section ${k + 1}
     + `<tr><th>Champ ${k + 1}</th><td>valeur</td></tr></tbody></table></section>`).join('\n')}
 <footer>Réf. ${ref} — 0 placeholder exigé avant diffusion. Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0.</footer>
 </body></html>`;
+
+/**
+ * TF-2086 · le modèle de fiche à intitulés en `th.k` et `td.k` : une première ligne « Dev-team / run »
+ * SANS URL avant la ligne qui porte le lien.
+ */
+const FICHE_MODELE = (env = 'DEV', { ref = `CDC-SEC-${env}-20261030a`, largeur = 22, lien = `https://${env.toLowerCase()}.exemple.test/app` } = {}) =>
+  `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Fiche</title><style>table{table-layout:fixed;width:100%}`
+  + `th.k{width:${largeur}%}td.k{font-weight:600}</style></head><body><header>Réf. ${ref}</header>\n`
+  + Array.from({ length: 8 }, (_, k) => `<section><h2>${k + 1} · Section ${k + 1}</h2><table><tbody>`
+    + (k === 0 ? '<tr><th class="k">Dev-team / run</th><td>Équipe A, run partagé</td></tr>'
+      + `<tr><th class="k">Lien environnement ${env}</th><td>${lien}</td></tr>`
+      + '<tr><td class="k">Population effectivement admise</td><td>Collaborateurs du tenant (128)</td></tr>'
+      + "<tr><td class=\"k\">Restriction d'accès effective</td><td>assignation de rôle requise</td></tr>"
+      + '<tr><td class="k">Comptes externes / invités en portée</td><td>0 (portail invités désactivé)</td></tr>' : '')
+    + `<tr><td class="k">Champ ${k + 1}</td><td>valeur</td></tr></tbody></table></section>`).join('\n')
+  + `\n<footer>Réf. ${ref} — Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0.</footer></body></html>`;
 
 /** Un PDF minimal VALIDE dont on choisit la quantité de texte montré et le nombre d'images. */
 function pdfFabrique(unites, images = 0) {
@@ -412,10 +460,24 @@ function selfTest() {
     FICHE_VERTE('ACM-SEC-DEV-20260902p').replace('<tr><th>Comptes externes / invités en portée</th><td>0 (portail invités désactivé)</td></tr>', ''),
     'FS11');
 
+  // TF-2086 — le modèle à cellules th.k / td.k, À DOUBLE SENS. Sens vert : le modèle (ligne
+  // « Dev-team / run » sans URL avant celle du lien) est ACCEPTÉ ; sens rouge : th.k à 32 % (FS5,
+  // qui rendait SKIP) et modèle sans URL (FS4).
+  {
+    const p = ecrire('ACM - Fiche Securite - Dev - 20261030a.html', FICHE_MODELE('DEV'));
+    fs.writeFileSync(pdfDe(p), pdfFabrique(1200));
+    const m = juger(p);
+    if (m.verdict !== 'PASS') casse.push('le modèle th.k/td.k est refusé : ' + m.findings.filter((f) => f.statut === 'FAIL').map((f) => f.regle).join(','));
+  }
+  rouge('ACM - Fiche Securite - Dev - 20261030b.html', FICHE_MODELE('DEV', { ref: 'CDC-SEC-DEV-20261030b', largeur: 32 }), 'FS5');
+  rouge('ACM - Fiche Securite - Dev - 20261030c.html', FICHE_MODELE('DEV', { ref: 'CDC-SEC-DEV-20261030c', lien: 'à venir' }), 'FS4');
+
   fs.rmSync(dir, { recursive: true, force: true });
   console.log(casse.length
     ? 'SELF-TEST FAIL : ' + casse.join(' · ')
-    : 'Self-test verifier-fiche-securite : 16/16 PASS — fiche complète acceptée · placeholder résiduel (FS1), '
+    : 'Self-test verifier-fiche-securite : 19/19 PASS — fiche complète acceptée, modèle th.k/td.k '
+      + 'accepté (TF-2086) · th.k à 32 % (FS5) et modèle sans URL (FS4) '
+      + 'refusés · placeholder résiduel (FS1), '
       + 'section perdue (FS2), références divergentes en-tête/pied (FS3), indice du nom ≠ indice imprimé (FS3bis), '
       + 'lien DEV sans URL (FS4), colonne à 32 % sans table-layout fixe (FS5), PDF de diffusion absent (FS6), '
       + 'PDF sans texte à 9 images — la capture du 24/07 (FS7), champ « Population effectivement admise » absent '
