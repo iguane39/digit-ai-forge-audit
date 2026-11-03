@@ -7,6 +7,17 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2088 — `tools/fiche-en-pdf.mjs` essaie les autres moteurs avant de rendre le code 3**
+  (03/11/2026, récidive de TF-1408) — Edge, premier de la liste, pouvait ne jamais annoncer son port
+  (30 s, sortie 3) alors que Chrome, présent, aurait imprimé en quelques secondes ; TF-1408 avait classé
+  le cas en « non vérifié » sans essayer les moteurs suivants. `lancerAvecRepli` essaie les moteurs
+  trouvés (`trouverNavigateurs`) dans l'ordre, un profil jetable chacun, tue celui qui n'a pas répondu
+  et dit chaque abandon sur la sortie d'erreur ; le code 3 n'est rendu qu'après les avoir tous essayés
+  (message listant ceux essayés). `imprimer`, `mesurer`, la ligne de commande et l'auto-test en
+  profitent ; un moteur choisi (`--navigateur`, `FORGE_NAVIGATEUR`) reste le seul essayé. Recette :
+  6 tests dans `fiche-en-pdf-port-bloque.test.mjs` (lanceur simulé : premier moteur muet puis repli,
+  binaire inexécutable, tous muets, aucun lancé, choix explicite), fichier ajouté à la batterie du
+  workflow (il n'y figurait pas).
 - **TF-2087 — `oracles/verifier-fiche-securite.mjs` juge la fiche de l'environnement qu'elle porte,
   pas seulement DEV** (03/11/2026) — la regex de référence n'admettait que `<TRI>-SEC-DEV-…` et FS4 ne
   cherchait que « DEV » : une fiche HPR bien formée (`CDC-SEC-HPR-20261030a`) rendait FS3 et FS4 FAIL.

@@ -47,8 +47,16 @@
  *   node tools/fiche-en-pdf.mjs --self-test
  *
  * Exit : 0 = PDF imprimé et relu · 1 = refusé (indice divergent, tirage absent/faux) ·
- *        2 = usage · 3 = aucun moteur d'impression sur le poste (SKIP MOTIVÉ, jamais un PASS
- *        silencieux : le jeu remis est incomplet et la commande le DIT).
+ *        2 = usage · 3 = aucun moteur d'impression sur le poste, ou aucun de ceux trouvés n'a
+ *        démarré (SKIP MOTIVÉ, jamais un PASS silencieux : le jeu remis est incomplet et la
+ *        commande le DIT).
+ *
+ * ── TF-2088 · UN MOTEUR QUI NE DÉMARRE PAS N'EST PAS LE DERNIER MOT ───────────────────────
+ * Sans `--navigateur` ni `FORGE_NAVIGATEUR`, les moteurs trouvés sont essayés dans l'ordre de
+ * `NAVIGATEURS` (Edge, Chrome, Chromium…) : le suivant prend la main quand le précédent n'annonce
+ * pas son port dans le délai, ou ne se lance pas. Le code 3 n'est rendu qu'après les avoir tous
+ * essayés. Mesuré les 29-30/10/2026 : Edge muet pendant 30 s, exit 3, pendant que Chrome, présent,
+ * aurait imprimé en quelques secondes. Un moteur CHOISI explicitement reste le seul essayé.
  */
 import fs from 'node:fs';
 import os from 'node:os';
@@ -69,8 +77,36 @@ export const NAVIGATEURS = [
   '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/microsoft-edge',
 ].filter(Boolean);
 
-export const trouverNavigateur = () =>
-  NAVIGATEURS.find((n) => { try { return fs.existsSync(n); } catch { return false; } }) ?? null;
+/**
+ * TF-2088 : TOUS les moteurs présents, dans l'ordre de la liste et sans doublon. Le premier est
+ * celui que `trouverNavigateur` rend ; les suivants sont le repli quand il ne démarre pas.
+ */
+export function trouverNavigateurs() {
+  const vus = new Set();
+  const trouves = [];
+  for (const n of NAVIGATEURS) {
+    let present = false;
+    try { present = fs.existsSync(n); } catch { /* chemin illisible : absent */ }
+    const cle = process.platform === 'win32' ? path.normalize(n).toLowerCase() : path.normalize(n);
+    if (present && !vus.has(cle)) { vus.add(cle); trouves.push(n); }
+  }
+  return trouves;
+}
+
+export const trouverNavigateur = () => trouverNavigateurs()[0] ?? null;
+
+/**
+ * Les moteurs à essayer, dans l'ordre (TF-2088). Un moteur CHOISI — `--navigateur`, ou
+ * `FORGE_NAVIGATEUR` quand il existe — est le seul essayé : un choix explicite est une décision,
+ * on ne la contourne pas en silence. Sans choix, tous les moteurs trouvés sont des candidats.
+ */
+export function candidatsMoteurs(navigateur) {
+  if (navigateur) return [navigateur];
+  const choisi = process.env.FORGE_NAVIGATEUR;
+  let existe = false;
+  try { existe = Boolean(choisi) && fs.existsSync(choisi); } catch { /* illisible : pas de choix */ }
+  return existe ? [choisi] : trouverNavigateurs();
+}
 
 /**
  * L'indice d'un nom de livrable daté : `… - 20260902c.html` → `{ jour:'20260902', indice:'c' }`.
@@ -91,27 +127,68 @@ export const DELAI_PORT_DEFAUT_MS = 30000;
 export const delaiPortMs = (d) => Number(d ?? process.env.FORGE_DELAI_PORT_MS ?? DELAI_PORT_DEFAUT_MS);
 
 // ── Le client DevTools : le strict nécessaire, sans dépendance. ──────────────────────────────
-async function ouvrirNavigateur(navigateur, profil, delaiMs = DELAI_PORT_DEFAUT_MS) {
-  const proc = spawn(navigateur, ['--headless=new', '--disable-gpu', '--no-first-run',
+async function ouvrirNavigateur(navigateur, profil, delaiMs = DELAI_PORT_DEFAUT_MS, lanceur = spawn) {
+  const proc = lanceur(navigateur, ['--headless=new', '--disable-gpu', '--no-first-run',
     '--no-default-browser-check', '--disable-extensions', '--remote-debugging-port=0',
     `--user-data-dir=${profil}`, 'about:blank'], { stdio: ['ignore', 'pipe', 'pipe'] });
   let journal = '';
-  const url = await new Promise((res, rej) => {
-    const minuteur = setTimeout(
-      // TF-1220 : le moteur a été LANCÉ (il est présent, cf. trouverNavigateur) — il n'a
-      // simplement pas annoncé son port d'écoute à temps. Ce n'est pas un échec du tirage, c'est
-      // un point NON VÉRIFIÉ : `portBloque` le distingue d'une vraie erreur de lancement
-      // (`proc.on('error')`, binaire manquant ou inexécutable, traitée à part ci-dessous).
-      () => rej(Object.assign(new Error(`le navigateur n'a pas annoncé son point d'écoute en ${delaiMs} ms. `
-        + `Journal : ${journal.slice(-400)}`), { portBloque: true, navigateur, delaiMs })), delaiMs);
-    proc.on('error', (e) => { clearTimeout(minuteur); rej(e); });
-    proc.stderr.on('data', (d) => {
-      journal += d;
-      const m = /ws:\/\/\S+/.exec(journal);
-      if (m) { clearTimeout(minuteur); res(m[0]); }
+  try {
+    const url = await new Promise((res, rej) => {
+      const minuteur = setTimeout(
+        // TF-1220 : le moteur a été LANCÉ (il est présent, cf. trouverNavigateur) — il n'a
+        // simplement pas annoncé son port d'écoute à temps. Ce n'est pas un échec du tirage, c'est
+        // un point NON VÉRIFIÉ : `portBloque` le distingue d'une vraie erreur de lancement
+        // (`proc.on('error')`, binaire manquant ou inexécutable, traitée à part ci-dessous).
+        () => rej(Object.assign(new Error(`le navigateur n'a pas annoncé son point d'écoute en ${delaiMs} ms. `
+          + `Journal : ${journal.slice(-400)}`), { portBloque: true, navigateur, delaiMs })), delaiMs);
+      proc.on('error', (e) => { clearTimeout(minuteur); rej(e); });
+      proc.stderr.on('data', (d) => {
+        journal += d;
+        const m = /ws:\/\/\S+/.exec(journal);
+        if (m) { clearTimeout(minuteur); res(m[0]); }
+      });
     });
-  });
-  return { proc, url };
+    return { proc, url };
+  } catch (e) {
+    // TF-2088 : un moteur qui n'a pas démarré ne reste pas vivant derrière nous (processus et
+    // profil), puisque le suivant va être essayé.
+    try { proc.kill(); } catch { /* déjà sorti */ }
+    throw e;
+  }
+}
+
+/**
+ * TF-2088 (récidive de TF-1408) — essaie les moteurs un par un JUSQU'À CE QU'UN SEUL démarre.
+ * Edge, premier de la liste, pouvait ne jamais annoncer son port (exit 3) pendant que Chrome,
+ * présent, aurait imprimé en quelques secondes : un moteur qui ne démarre pas n'est pas le dernier
+ * mot, c'est le premier. Chaque essai a son propre profil jetable.
+ *
+ * Rend `{ proc, url, profil, navigateur, echecs }` pour le premier moteur qui répond.
+ * Si AUCUN ne répond : `portBloque: true` (et `essayes`) quand au moins un était lancé mais muet —
+ * le point reste NON VÉRIFIÉ, exit 3 — sinon l'erreur de lancement du premier (échec réel).
+ */
+export async function lancerAvecRepli(candidats, { delaiMs = DELAI_PORT_DEFAUT_MS, lanceur = spawn,
+  prefixeProfil = 'fiche-pdf-', surEchec } = {}) {
+  if (!candidats?.length) throw Object.assign(new Error('aucun moteur d\'impression'), { sansNavigateur: true });
+  const echecs = [];
+  for (const [i, navigateur] of candidats.entries()) {
+    const profil = fs.mkdtempSync(path.join(os.tmpdir(), prefixeProfil));
+    try {
+      const { proc, url } = await ouvrirNavigateur(navigateur, profil, delaiMs, lanceur);
+      return { proc, url, profil, navigateur, echecs };
+    } catch (erreur) {
+      const echec = { navigateur, portBloque: erreur.portBloque === true, erreur };
+      echecs.push(echec);
+      try { fs.rmSync(profil, { recursive: true, force: true }); } catch { /* profil temporaire */ }
+      surEchec?.({ ...echec, delaiMs, suivant: candidats[i + 1] ?? null });
+    }
+  }
+  const essayes = echecs.map((e) => e.navigateur);
+  const detail = echecs.map((e) => `${e.navigateur} : ${e.erreur.message}`).join(' | ');
+  if (echecs.some((e) => e.portBloque))
+    throw Object.assign(new Error(`aucun des ${essayes.length} moteur(s) d'impression n'a annoncé son point d'écoute `
+      + `en ${delaiMs} ms. ${detail}`), { portBloque: true, navigateur: essayes[0], essayes, delaiMs, echecs });
+  throw Object.assign(echecs[0].erreur, { essayes, echecs });
 }
 
 /**
@@ -159,12 +236,14 @@ function brancher(url) {
  * Imprime `html` en PDF et rend les octets. `preferCSSPageSize` est passé à `pref` pour que la
  * fixture rouge de l'auto-test puisse prouver, en mesurant, ce que coûte son absence.
  */
-export async function imprimer(html, { navigateur, pref = true, delaiMs } = {}) {
-  const moteur = navigateur ?? trouverNavigateur();
-  if (!moteur) throw Object.assign(new Error('aucun moteur d\'impression'), { sansNavigateur: true });
+export async function imprimer(html, { navigateur, pref = true, delaiMs, surEchec, surMoteur } = {}) {
+  const candidats = candidatsMoteurs(navigateur);
+  if (!candidats.length) throw Object.assign(new Error('aucun moteur d\'impression'), { sansNavigateur: true });
   const delai = delaiPortMs(delaiMs);
-  const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-pdf-'));
-  const { proc, url } = await ouvrirNavigateur(moteur, profil, delai);
+  // TF-2088 : un moteur qui ne démarre pas cède la place au suivant ; `surMoteur` dit lequel a servi.
+  const { proc, url, profil, navigateur: retenu } = await lancerAvecRepli(candidats,
+    { delaiMs: delai, prefixeProfil: 'fiche-pdf-', surEchec });
+  surMoteur?.(retenu);
   const { sock, pret, cmd, evenement } = brancher(url);
   try {
     await pret;
@@ -190,12 +269,13 @@ export async function imprimer(html, { navigateur, pref = true, delaiMs } = {}) 
 }
 
 /** Le mesureur de mise en page : rend ce que le MOTEUR calcule, jamais ce que la CSS déclare. */
-export async function mesurer(html, expression, { navigateur, delaiMs } = {}) {
-  const moteur = navigateur ?? trouverNavigateur();
-  if (!moteur) throw Object.assign(new Error('aucun moteur d\'impression'), { sansNavigateur: true });
+export async function mesurer(html, expression, { navigateur, delaiMs, surEchec, surMoteur } = {}) {
+  const candidats = candidatsMoteurs(navigateur);
+  if (!candidats.length) throw Object.assign(new Error('aucun moteur d\'impression'), { sansNavigateur: true });
   const delai = delaiPortMs(delaiMs);
-  const profil = fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-mes-'));
-  const { proc, url } = await ouvrirNavigateur(moteur, profil, delai);
+  const { proc, url, profil, navigateur: retenu } = await lancerAvecRepli(candidats,
+    { delaiMs: delai, prefixeProfil: 'fiche-mes-', surEchec });
+  surMoteur?.(retenu);
   const { sock, pret, cmd, evenement } = brancher(url);
   try {
     await pret;
@@ -259,7 +339,8 @@ async function principal(args) {
       + '`node --experimental-websocket`. Le jeu remis serait INCOMPLET — le dire fait partie de la remise.');
     return 3;
   }
-  const navigateur = opt('--navigateur') ?? trouverNavigateur();
+  const choisi = opt('--navigateur');
+  const navigateur = choisi ?? trouverNavigateur();
   if (!navigateur) {
     console.error("— PDF NON RENDU : aucun moteur d'impression trouvé. Cherchés : " + NAVIGATEURS.join(', ')
       + ". Poser FORGE_NAVIGATEUR sur le chemin d'un navigateur Chromium. Le jeu remis serait INCOMPLET "
@@ -280,15 +361,23 @@ async function principal(args) {
   const delaiMs = delaiPortMs(opt('--delai-port'));
   const lancement = Date.now();
   let octets;
-  try { octets = await imprimer(source, { navigateur, delaiMs }); } catch (e) {
+  // TF-2088 : sans moteur choisi, un moteur qui ne démarre pas cède la place au suivant ; chaque
+  // abandon est DIT, pour qu'un repli ne soit jamais un silence.
+  const surEchec = (x) => console.error(`— moteur d'impression ${x.navigateur} sans réponse `
+    + `(${x.portBloque ? `port non annoncé en ${x.delaiMs} ms` : x.erreur.message})`
+    + (x.suivant ? ` — repli sur ${x.suivant}` : ''));
+  try { octets = await imprimer(source, { navigateur: choisi, delaiMs, surEchec }); } catch (e) {
     if (e.sansNavigateur) { console.error("— PDF NON RENDU : aucun moteur d'impression."); return 3; }
     // TF-1220 : le moteur est PRÉSENT (trouvé sur le poste, lancé sans erreur) mais n'a pas
     // annoncé son port d'écoute dans le délai — ce n'est PAS un échec du tirage, c'est un point
     // NON VÉRIFIÉ, exactement comme l'absence de moteur (même code 3, même famille de motif) :
     // sans cette distinction, un poste lent lit un échec de tirage là où rien n'a été tiré.
     if (e.portBloque) {
-      console.error(`— PDF NON RENDU : moteur d'impression présent (${navigateur}) mais NON VÉRIFIÉ — `
-        + `il n'a pas annoncé son point d'écoute dans le délai (${delaiMs} ms). Rallonger avec `
+      const essayes = e.essayes?.length ? e.essayes : [navigateur];
+      console.error(`— PDF NON RENDU : ${essayes.length > 1
+        ? `les ${essayes.length} moteurs d'impression présents (${essayes.join(', ')}) sont NON VÉRIFIÉS — aucun n'a`
+        : `moteur d'impression présent (${essayes[0]}) mais NON VÉRIFIÉ — il n'a pas`} annoncé `
+        + `son point d'écoute dans le délai (${delaiMs} ms). Rallonger avec `
         + "--delai-port <ms> ou FORGE_DELAI_PORT_MS sur un poste lent. Le jeu remis serait INCOMPLET "
         + "— le dire au destinataire fait partie de la remise.");
       return 3;
@@ -366,8 +455,11 @@ async function selfTest() {
   // VERT — imprimé AVEC preferCSSPageSize : la boîte média suit le @page du gabarit (A4).
   let vert, rouge;
   try {
-    vert = await imprimer(html, { navigateur, pref: true });
-    rouge = await imprimer(html, { navigateur, pref: false });
+    // TF-2088 : le premier tirage choisit le moteur (repli compris) ; le second le réutilise au lieu
+    // de reperdre le délai sur un moteur déjà reconnu muet.
+    let retenu;
+    vert = await imprimer(html, { pref: true, surMoteur: (n) => { retenu = n; } });
+    rouge = await imprimer(html, { navigateur: retenu, pref: false });
   } catch (e) {
     // TF-1220 / TF-1408 — le moteur est PRÉSENT mais n'a pas annoncé son port à temps : ce n'est
     // PAS un échec de l'étage impression, c'est un point NON VÉRIFIÉ. Avant cette distinction, ce
@@ -376,7 +468,7 @@ async function selfTest() {
     if (e.portBloque) {
       console.log((casse.length ? 'SELF-TEST FAIL : ' + casse.join(' · ') + '\n' : '')
         + 'Self-test fiche-en-pdf : 3/3 PASS sur la règle d\'indice (étage hermétique). '
-        + `ÉTAGE IMPRESSION NON JOUÉ — SKIP MOTIVÉ : moteur présent (${navigateur}) mais NON `
+        + `ÉTAGE IMPRESSION NON JOUÉ — SKIP MOTIVÉ : moteur présent (${(e.essayes?.length ? e.essayes : [navigateur]).join(', ')}) mais NON `
         + `VÉRIFIÉ — port d'écoute non annoncé dans le délai (${e.delaiMs} ms). Rallonger avec `
         + "--delai-port <ms> ou FORGE_DELAI_PORT_MS sur ce poste. Ce n'est pas un PASS : la mesure "
         + "preferCSSPageSize n'a pas eu lieu.");
