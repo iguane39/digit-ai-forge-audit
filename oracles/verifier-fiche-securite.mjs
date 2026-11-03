@@ -18,13 +18,18 @@
  * ── LES SEPT RÈGLES ───────────────────────────────────────────────────────────────────────
  *   FS1 · zéro placeholder `{{…}}` résiduel — un livrable ne se diffuse pas avec ses trous.
  *   FS2 · les 8 sections du canevas sont présentes — une section perdue est un chapitre perdu.
- *   FS3 · référence interne `<TRIGRAMME>-SEC-DEV-<AAAAMMJJ><indice>`, bien formée, et IDENTIQUE
- *         en en-tête et en pied. Deux références divergentes dans un même document ne se voient
- *         qu'en ouvrant les deux bouts ; personne ne le fait.
- *   FS4 · le lien de l'environnement DEV est présent, et c'est une vraie URL. C'est la ligne qui
- *         PORTE l'URL qui est jugée, pas la première dont l'intitulé contient « Dev » (TF-2086) ;
- *         les intitulés sont lus en `th` (avec ou sans classe) comme en `td class="k"`, pour FS4
- *         comme pour FS8, FS10 et FS11.
+ *   FS3 · référence interne `<TRIGRAMME>-SEC-<ENV>-<AAAAMMJJ><indice>` (ENV = DEV, HPR ou PRD),
+ *         bien formée, et IDENTIQUE en en-tête et en pied. Deux références divergentes dans un
+ *         même document ne se voient qu'en ouvrant les deux bouts ; personne ne le fait.
+ *         L'environnement jugé se lit dans le NOM du fichier (`… - HPR - 20261030a.html`), à défaut
+ *         dans la référence de l'en-tête, à défaut c'est DEV ; un nom et une référence qui
+ *         annoncent deux environnements sont refusés (TF-2087).
+ *   FS4 · le lien de l'environnement jugé (DEV, HPR ou PRD) est présent, et c'est une vraie URL.
+ *         C'est la ligne qui PORTE l'URL parmi celles dont l'intitulé désigne cet environnement qui
+ *         est jugée, pas la première dont l'intitulé contient « Dev » (TF-2086) ; les intitulés
+ *         sont lus en `th` (avec ou sans classe) comme en `td class="k"`, pour FS4 comme pour FS8,
+ *         FS10 et FS11. Un lien DEV ne tient pas lieu de lien HPR, ni un lien de pré-production de
+ *         lien de production (TF-2087).
  *   FS5 · mise en page : colonne d'intitulés (`th`, `th.<classe>` ou `td.k`) ≤ 25 % et
  *         `table-layout` FIXE (TF-0697, TF-2086). Sans
  *         `table-layout:fixed`, une largeur déclarée n'est qu'un vœu — le moteur ré-élargit la
@@ -70,8 +75,25 @@ export const SECTIONS = 8;
 /** FS9 (TF-1095) : mêmes expressions que `oracle-gabarits-documents.mjs` G4 du pilot. */
 export const RE_GABARIT_ID = /gabarit\s*:\s*(gd-[a-z0-9-]+)/i;
 export const RE_VERSION_GABARIT = /version[_ ]du[_ ]gabarit\s*:?\s*\d+\.\d+\.\d+/i;
-/** La référence interne : trigramme, objet, environnement, jour, indice. */
-export const RE_REF = /\b([A-Z0-9]{2,6})-SEC-DEV-(\d{8})([a-z])\b/g;
+/**
+ * La référence interne : trigramme, objet, environnement, jour, indice. L'environnement est DEV,
+ * HPR (hors production, préproduction comprise) ou PRD (TF-2087) : la fiche d'un environnement
+ * n'est plus jugée comme si elle était celle de DEV.
+ */
+export const RE_REF = /\b([A-Z0-9]{2,6})-SEC-(DEV|HPR|PRD)-(\d{8})([a-z])\b/g;
+/** L'environnement porté par le NOM du fichier (`… - HPR - 20261030a.html`), mot entier. */
+export const RE_ENV_NOM = /(?<![A-Za-z0-9])(DEV|HPR|PRD)(?![A-Za-z0-9])/i;
+/**
+ * Par environnement, ce qui désigne SA ligne de lien dans la colonne des intitulés (TF-2087).
+ * HPR passe avant PRD : « pré-production » et « hors production » contiennent « production »
+ * sans être la production.
+ */
+const EST_HPR = (l) => /\bHPR\b|pr[ée][-\s]?prod|hors[-\s]+prod/i.test(l);
+export const ENVIRONNEMENTS = {
+  DEV: (l) => /\bDEV\b|développement|developpement/i.test(l),
+  HPR: EST_HPR,
+  PRD: (l) => !EST_HPR(l) && /\bPRD\b|\bprod(?:uction)?\b/i.test(l),
+};
 const RE_URL = /https?:\/\/[^\s"'<]+/i;
 /** Une cellule d'intitulé en `td` n'est lue que si elle porte la classe `k` (TF-2086). */
 const CLASSE_K = /\bclass\s*=\s*(["'])(?:[^"']*\s)?k(?:\s[^"']*)?\1/i;
@@ -170,8 +192,14 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
   const enTete = refsDe(bloc('header'));
   const pied = refsDe(bloc('footer'));
   const toutes = new Set(refsDe(html));
+  // TF-2087 · L'environnement jugé : celui du NOM du fichier, à défaut celui de la référence de
+  // l'en-tête, à défaut DEV (le cas historique). Nom et référence en désaccord : FS3 le refuse.
+  const envDeRef = (r) => (/-SEC-(DEV|HPR|PRD)-/.exec(r || '') || [])[1] ?? null;
+  const envNom = (RE_ENV_NOM.exec(path.basename(fiche)) || [])[1]?.toUpperCase() ?? null;
+  const envRefs = [...new Set([...toutes].map(envDeRef))];
+  const env = envNom ?? envDeRef(enTete[0] ?? [...toutes][0]) ?? 'DEV';
   if (!toutes.size) {
-    add('FAIL', 'FS3', 'aucune référence interne au format <TRIGRAMME>-SEC-DEV-<AAAAMMJJ><indice>. '
+    add('FAIL', 'FS3', 'aucune référence interne au format <TRIGRAMME>-SEC-<DEV|HPR|PRD>-<AAAAMMJJ><indice>. '
       + 'Sans elle, le document ne se rattache ni à son projet ni à sa révision : deux tirages '
       + 'différents deviennent indiscernables une fois imprimés.');
   } else if (!enTete.length || !pied.length) {
@@ -180,8 +208,12 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
   } else if (new Set([...enTete, ...pied]).size > 1) {
     add('FAIL', 'FS3', `références DIVERGENTES dans le même document : en-tête ${enTete.join('/')} contre `
       + `pied ${pied.join('/')}. Ce défaut ne se voit qu'en ouvrant les deux bouts, et personne ne le fait.`);
+  } else if (envNom && envRefs.some((e) => e !== envNom)) {
+    add('FAIL', 'FS3', `le nom du fichier annonce l'environnement ${envNom} et la référence imprimée DANS le `
+      + `document porte ${envRefs.join('/')} (${[...toutes][0]}). Une fiche ne juge qu'un environnement : `
+      + "celle-ci dit l'un à l'ouverture du fichier et l'autre à la lecture.");
   } else {
-    add('PASS', 'FS3', `référence interne ${enTete[0]}, identique en en-tête et en pied`);
+    add('PASS', 'FS3', `référence interne ${enTete[0]} (environnement ${env}), identique en en-tête et en pied`);
   }
 
   // ── FS3bis · la référence porte l'indice du NOM DE FICHIER ───────────────────────────────
@@ -199,23 +231,23 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
     add('PASS', 'FS3bis', `nom de fichier et référence interne portent le même indice (${iNom})`);
   }
 
-  // ── FS4 · le lien de l'environnement DEV ────────────────────────────────────────────────
+  // ── FS4 · le lien de l'environnement jugé (DEV, HPR ou PRD — TF-2087) ───────────────────
   // TF-2086 : on vise la ligne qui PORTE l'URL parmi celles dont l'intitulé désigne
   // l'environnement. La PREMIÈRE ligne dont l'intitulé contient « Dev » (« Dev-team / run ») n'est
   // pas forcément celle du lien : la prendre refusait une fiche complète.
-  const lignesDev = lignes.filter((l) => /\bDEV\b|développement|developpement/i.test(l.intitule));
-  const ligneLien = lignesDev.find((l) => RE_URL.test(l.valeur));
-  if (!lignesDev.length) {
-    add('FAIL', 'FS4', `aucune ligne ne porte le lien de l'environnement DEV. C'est la seule information `
+  const lignesEnv = lignes.filter((l) => ENVIRONNEMENTS[env](l.intitule));
+  const ligneLien = lignesEnv.find((l) => RE_URL.test(l.valeur));
+  if (!lignesEnv.length) {
+    add('FAIL', 'FS4', `aucune ligne ne porte le lien de l'environnement ${env}. C'est la seule information `
       + 'de la fiche qui permet à un tiers de CONSTATER par lui-même ce qui est exposé.');
   } else if (!ligneLien) {
-    add('FAIL', 'FS4', (lignesDev.length === 1
-      ? `la ligne « ${lignesDev[0].intitule.slice(0, 60)} » ne porte pas d'URL : « ${texteDe(lignesDev[0].valeur).slice(0, 60)} »`
-      : `aucune des ${lignesDev.length} lignes de l'environnement DEV (${lignesDev.map((l) => `« ${l.intitule.slice(0, 40)} »`).join(', ')}) `
+    add('FAIL', 'FS4', (lignesEnv.length === 1
+      ? `la ligne « ${lignesEnv[0].intitule.slice(0, 60)} » ne porte pas d'URL : « ${texteDe(lignesEnv[0].valeur).slice(0, 60)} »`
+      : `aucune des ${lignesEnv.length} lignes de l'environnement ${env} (${lignesEnv.map((l) => `« ${l.intitule.slice(0, 40)} »`).join(', ')}) `
         + 'ne porte d\'URL')
       + `. Un lien annoncé et absent vaut moins qu'un lien absent.`);
   } else {
-    add('PASS', 'FS4', `lien DEV présent : ${RE_URL.exec(ligneLien.valeur)[0].slice(0, 70)}`);
+    add('PASS', 'FS4', `lien ${env} présent : ${RE_URL.exec(ligneLien.valeur)[0].slice(0, 70)}`);
   }
 
   // ── FS5 · la mise en page ne réserve pas la page à la colonne des intitulés (TF-0697) ────
@@ -352,8 +384,8 @@ ${Array.from({ length: 8 }, (_, k) => `<section><h2>${k + 1} · Section ${k + 1}
 </body></html>`;
 
 /**
- * TF-2086 · le modèle de fiche à intitulés en `th.k` et `td.k` : une première ligne « Dev-team / run »
- * SANS URL avant la ligne qui porte le lien.
+ * TF-2086 / TF-2087 · le modèle de fiche à intitulés en `th.k` et `td.k`, pour un environnement
+ * donné : une première ligne « Dev-team / run » SANS URL avant la ligne qui porte le lien.
  */
 const FICHE_MODELE = (env = 'DEV', { ref = `CDC-SEC-${env}-20261030a`, largeur = 22, lien = `https://${env.toLowerCase()}.exemple.test/app` } = {}) =>
   `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><title>Fiche</title><style>table{table-layout:fixed;width:100%}`
@@ -460,23 +492,25 @@ function selfTest() {
     FICHE_VERTE('ACM-SEC-DEV-20260902p').replace('<tr><th>Comptes externes / invités en portée</th><td>0 (portail invités désactivé)</td></tr>', ''),
     'FS11');
 
-  // TF-2086 — le modèle à cellules th.k / td.k, À DOUBLE SENS. Sens vert : le modèle (ligne
-  // « Dev-team / run » sans URL avant celle du lien) est ACCEPTÉ ; sens rouge : th.k à 32 % (FS5,
-  // qui rendait SKIP) et modèle sans URL (FS4).
-  {
-    const p = ecrire('ACM - Fiche Securite - Dev - 20261030a.html', FICHE_MODELE('DEV'));
+  // TF-2086 / TF-2087 — le modèle à cellules th.k / td.k et les trois environnements, À DOUBLE SENS.
+  // Sens vert : le modèle DEV (ligne « Dev-team / run » sans URL avant celle du lien) et le modèle
+  // HPR sont ACCEPTÉS ; sens rouge : th.k à 32 % (FS5, qui rendait SKIP), modèle sans URL (FS4),
+  // nom HPR contre référence DEV (FS3).
+  for (const [nom, env] of [['ACM - Fiche Securite - Dev - 20261030a.html', 'DEV'], ['ACM - Fiche Securite - HPR - 20261030a.html', 'HPR']]) {
+    const p = ecrire(nom, FICHE_MODELE(env));
     fs.writeFileSync(pdfDe(p), pdfFabrique(1200));
     const m = juger(p);
-    if (m.verdict !== 'PASS') casse.push('le modèle th.k/td.k est refusé : ' + m.findings.filter((f) => f.statut === 'FAIL').map((f) => f.regle).join(','));
+    if (m.verdict !== 'PASS') casse.push(`le modèle th.k/td.k ${env} est refusé : ` + m.findings.filter((f) => f.statut === 'FAIL').map((f) => f.regle).join(','));
   }
   rouge('ACM - Fiche Securite - Dev - 20261030b.html', FICHE_MODELE('DEV', { ref: 'CDC-SEC-DEV-20261030b', largeur: 32 }), 'FS5');
   rouge('ACM - Fiche Securite - Dev - 20261030c.html', FICHE_MODELE('DEV', { ref: 'CDC-SEC-DEV-20261030c', lien: 'à venir' }), 'FS4');
+  rouge('ACM - Fiche Securite - HPR - 20261030d.html', FICHE_MODELE('HPR', { ref: 'CDC-SEC-DEV-20261030d' }), 'FS3');
 
   fs.rmSync(dir, { recursive: true, force: true });
   console.log(casse.length
     ? 'SELF-TEST FAIL : ' + casse.join(' · ')
-    : 'Self-test verifier-fiche-securite : 19/19 PASS — fiche complète acceptée, modèle th.k/td.k '
-      + 'accepté (TF-2086) · th.k à 32 % (FS5) et modèle sans URL (FS4) '
+    : 'Self-test verifier-fiche-securite : 21/21 PASS — fiche complète acceptée, modèle th.k/td.k en DEV et en HPR '
+      + 'acceptés (TF-2086, TF-2087) · th.k à 32 % (FS5), modèle sans URL (FS4), nom HPR contre référence DEV (FS3) '
       + 'refusés · placeholder résiduel (FS1), '
       + 'section perdue (FS2), références divergentes en-tête/pied (FS3), indice du nom ≠ indice imprimé (FS3bis), '
       + 'lien DEV sans URL (FS4), colonne à 32 % sans table-layout fixe (FS5), PDF de diffusion absent (FS6), '

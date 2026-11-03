@@ -42,7 +42,7 @@ const temporaire = () => fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-t-'));
 test('verifier-fiche-securite --self-test : le cas vert est accepté, chaque cas rouge est refusé', () => {
   const r = jouer(ORACLE, '--self-test');
   assert.equal(r.status, 0, `auto-test rouge : ${r.stdout}${r.stderr}`);
-  assert.match(r.stdout, /19\/19 PASS/, 'le compte de cas exercés a changé sans que le test le dise');
+  assert.match(r.stdout, /21\/21 PASS/, 'le compte de cas exercés a changé sans que le test le dise');
 });
 
 test('fiche-en-pdf --self-test : la règle d\'indice mord, et preferCSSPageSize est MESURÉ', () => {
@@ -356,11 +356,12 @@ test('TF-1020 — la police résolue est la police EMBARQUÉE, pas celle du post
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
-// ── TF-2086 · LE MODÈLE DE FICHE D'UN PRODUIT (cellules `th.k` / `td.k`). Extrait minimal du
-//    modèle qui a fait rendre FS4 FAIL, FS5 SKIP et FS8/10/11 FAIL sur une fiche pourtant
-//    complète : intitulés en `<th class="k">` (largeur déclarée par `th.k{…}`) ET en
-//    `<td class="k">`, et une première ligne « Dev-team / run » SANS URL avant la ligne qui porte
-//    le lien. Chaque fixture a son sens vert et son sens rouge.
+// ── TF-2086 / TF-2087 · LE MODÈLE DE FICHE D'UN PRODUIT (cellules `th.k` / `td.k`) ET LES TROIS
+//    ENVIRONNEMENTS. Extrait minimal du modèle qui a fait rendre FS4 FAIL, FS5 SKIP et FS8/10/11
+//    FAIL sur une fiche pourtant complète, puis FS3/FS4 FAIL sur une fiche HPR bien formée
+//    (`CDC-SEC-HPR-20261030a`) : intitulés en `<th class="k">` (largeur déclarée par `th.k{…}`)
+//    ET en `<td class="k">`, et une première ligne « Dev-team / run » SANS URL avant la ligne qui
+//    porte le lien. Chaque fixture a son sens vert et son sens rouge.
 const SECTIONS_MODELE = (env, { lien, libelleLien, population, restriction, invites, intitule = 'td' }) =>
   Array.from({ length: 8 }, (_, k) => {
     const cellule = (libelle, valeur) => (intitule === 'td'
@@ -433,6 +434,41 @@ test('TF-2086 — sens rouge : champs td.k absents ou vides → FS8, FS10, FS11 
   // La même fiche, intitulés en th.k : toujours lue, toujours PASS.
   const th = jugerFiche(nom, ficheModele({ intitule: 'th' }));
   for (const regle of ['FS8', 'FS10', 'FS11']) assert.equal(statutDe(th, regle), 'PASS', `${regle} ne lit pas les intitulés en th.k`);
+});
+
+test('TF-2087 — une fiche HPR bien formée (CDC-SEC-HPR-20261030a) est jugée sur HPR : FS3 et FS4 PASS', () => {
+  const r = jugerFiche('CDC - Fiche Securite - HPR - 20261030a.html', ficheModele({ env: 'HPR' }));
+  assert.equal(statutDe(r, 'FS3'), 'PASS', r.findings.find((f) => f.regle === 'FS3').message);
+  assert.equal(statutDe(r, 'FS4'), 'PASS', r.findings.find((f) => f.regle === 'FS4').message);
+  assert.equal(r.verdict, 'PASS');
+  assert.match(r.findings.find((f) => f.regle === 'FS4').message, /HPR/, 'le message doit dire quel environnement est jugé');
+});
+
+test('TF-2087 — double sens : la fiche DEV reste jugée juste, et un lien DEV ne tient pas lieu de lien HPR', () => {
+  // DEV (le cas historique) : toujours verte.
+  assert.equal(jugerFiche('CDC - Fiche Securite - Dev - 20261030a.html', ficheModele({ env: 'DEV' })).verdict, 'PASS');
+  // HPR dont la seule ligne à lien est celle de DEV : FS4 FAIL, l'environnement jugé est HPR.
+  const croise = jugerFiche('CDC - Fiche Securite - HPR - 20261030a.html',
+    ficheModele({ env: 'HPR', libelleLien: 'Lien environnement DEV' }));
+  assert.equal(statutDe(croise, 'FS4'), 'FAIL', 'un lien DEV est accepté comme lien HPR');
+  // Nom HPR mais références DEV : deux environnements dans un même livrable, FS3 FAIL.
+  const incoherent = jugerFiche('CDC - Fiche Securite - HPR - 20261030a.html',
+    ficheModele({ env: 'HPR', ref: 'CDC-SEC-DEV-20261030a' }));
+  assert.equal(statutDe(incoherent, 'FS3'), 'FAIL', 'nom HPR et référence DEV acceptés ensemble');
+  assert.match(incoherent.findings.find((f) => f.regle === 'FS3').message, /HPR[\s\S]*DEV|DEV[\s\S]*HPR/);
+});
+
+test('TF-2087 — l\'environnement se lit aussi dans l\'en-tête quand le nom n\'en porte pas, et PRD ne se confond pas avec HPR', () => {
+  // Nom sans environnement : c'est la référence de l'en-tête qui fixe HPR.
+  const entete = jugerFiche('fiche-securite-cdc-20261030a.html', ficheModele({ env: 'HPR' }));
+  assert.equal(entete.verdict, 'PASS', entete.findings.filter((f) => f.statut === 'FAIL').map((f) => f.message).join(' | '));
+  assert.match(entete.findings.find((f) => f.regle === 'FS4').message, /HPR/);
+  // PRD vert.
+  assert.equal(jugerFiche('CDC - Fiche Securite - PRD - 20261030a.html', ficheModele({ env: 'PRD', libelleLien: 'Lien environnement PRD (production)' })).verdict, 'PASS');
+  // PRD dont la seule ligne à lien est « pré-production » : ce n'est pas la production.
+  const prerod = jugerFiche('CDC - Fiche Securite - PRD - 20261030a.html',
+    ficheModele({ env: 'PRD', libelleLien: 'Lien pré-production' }));
+  assert.equal(statutDe(prerod, 'FS4'), 'FAIL', 'un lien de pré-production est accepté comme lien de production');
 });
 
 // ── Utilitaires ──────────────────────────────────────────────────────────────────────────────

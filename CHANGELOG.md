@@ -7,6 +7,15 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2087 — `oracles/verifier-fiche-securite.mjs` juge la fiche de l'environnement qu'elle porte,
+  pas seulement DEV** (03/11/2026) — la regex de référence n'admettait que `<TRI>-SEC-DEV-…` et FS4 ne
+  cherchait que « DEV » : une fiche HPR bien formée (`CDC-SEC-HPR-20261030a`) rendait FS3 et FS4 FAIL.
+  `RE_REF` admet DEV, HPR et PRD ; l'environnement se lit dans le nom du fichier, à défaut dans la
+  référence de l'en-tête, à défaut DEV (cas historique) ; FS3 refuse un nom et une référence qui
+  annoncent deux environnements ; FS4 cherche la ligne de lien de l'environnement jugé (un lien DEV ne
+  tient pas lieu de lien HPR, un lien de pré-production ne tient pas lieu de lien de production).
+  Recette à double sens (3 tests, fiche HPR verte, fiche DEV toujours juste, PRD) et 2 cas ajoutés à
+  l'auto-test de l'oracle (19 → 21).
 - **TF-2086 — `oracles/verifier-fiche-securite.mjs` juge le modèle de fiche à intitulés en `th.k` et
   `td.k`** (03/11/2026) — sur le modèle d'un produit, une fiche complète rendait FS4 FAIL, FS5 SKIP et
   FS8, FS10, FS11 FAIL. FS4 prenait la première ligne dont l'intitulé contient « Dev » (« Dev-team / run »,
