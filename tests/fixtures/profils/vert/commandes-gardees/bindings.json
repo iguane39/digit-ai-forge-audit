@@ -1,0 +1,25 @@
+{
+  "profile": "commandes-gardees",
+  "version": "1.0.0",
+  "description": "Fixture verte (TF-2112, règles P12 et P13) : les mêmes trois contrôles que la fixture rouge secret-en-ligne, remède joué. Aucun identifiant dans la ligne (variable d'environnement), et l'appel au fournisseur de modèle ne part qu'après le constat du fichier d'accord du client.",
+  "bindings": [
+    {
+      "control": "CTL-D14-04",
+      "instanciation": "Les entrées et sorties du modèle sont filtrées avant transmission. Le test d'injection est un appel facturé au déploiement du client : il n'est joué qu'avec l'accord écrit du client, consigné dans input/00 - Cadrage, et la clé est lue dans la variable AZURE_OPENAI_API_KEY.",
+      "verification_command": "az cognitiveservices account show --name <aoai-name> --resource-group <rg> --query 'properties.contentFilters' && { compgen -G \"input/00 - Cadrage/* - Accord appel IA - *\" >/dev/null || { echo \"Accord écrit du client absent de input/00 - Cadrage : appel au déploiement non joué\" >&2; false; }; } && curl -s -X POST \"https://<aoai-name>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=2024-06-01\" -H \"api-key: $AZURE_OPENAI_API_KEY\" -d @prompt-injection-test.json",
+      "evidence": "Configuration des filtres de contenu + accord écrit du client + résultat d'un test d'injection de prompt confirmant le blocage."
+    },
+    {
+      "control": "CTL-D16-01",
+      "instanciation": "Le modèle de données est inventorié par une requête sur le schéma de la base.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"SELECT table_name FROM information_schema.tables WHERE table_schema='public';\"",
+      "evidence": "Liste des tables relevée par la requête, datée."
+    },
+    {
+      "control": "CTL-D08-05",
+      "instanciation": "La complexité et la dette technique sont mesurées par une analyse en ligne.",
+      "verification_command": "curl -s -u \"$SONAR_TOKEN:\" \"https://sonarcloud.io/api/measures/component?component=<project-key>&metricKeys=complexity,code_smells\"",
+      "evidence": "Rapport de complexité daté."
+    }
+  ]
+}

@@ -7,6 +7,22 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2112 — `tools/verifier-profils.mjs` : P12 refuse un identifiant en clair dans une commande de
+  profil, P13 un appel de modèle sans accord du client** (03/11/2026, décision D-163 (a)) — le contrôle
+  CTL-D14-04 du profil azure postait un appel facturé au déploiement Azure OpenAI du client avec
+  `-H "api-key: <key>"`, et aucun contrôle ne lisait les `verification_command`. Relevé du jour : 21
+  commandes écrivaient un identifiant dans la ligne (azure 11, elastic 10), donc dans l'historique du
+  shell. P12 exige une variable d'environnement (`--admin-password`, `--storage-key`, `--token`,
+  en-têtes `api-key:` et `Authorization:`, `curl -u`, identifiants d'URL, paramètre `key=`) et ne
+  reprend jamais la valeur trouvée ; P13 exige la mention de l'accord avant l'appel à Azure OpenAI,
+  OpenAI, Gemini, Vertex AI, Anthropic, Mistral, Cohere ou Bedrock. Profil azure 1.3.0 : CTL-D14-04 ne
+  poste qu'après avoir constaté `input/00 - Cadrage/* - Accord appel IA - *` et lit
+  `AZURE_OPENAI_API_KEY` ; 8 commandes `az postgres flexible-server execute` lisent
+  `AZURE_PG_ADMIN_PASSWORD`, CTL-D01-15 `AZURE_SQL_ADMIN_PASSWORD` et `AZURE_STORAGE_KEY`, CTL-D08-05
+  `SONAR_TOKEN`. Profil elastic 1.1.0 : 10 commandes lisent `ELASTIC_USER` et `ELASTIC_PASSWORD`.
+  Preuves à double sens : fixtures `rouge/secret-en-ligne` (état d'avant) et `vert/commandes-gardees`
+  (remède joué), et 24 cas de commandes dans l'auto-test (23 écarts avant la réécriture des profils,
+  0 après).
 - **TF-2089 — `tools/init-audit-workspace.mjs` ne prend plus une option pour le dossier cible**
   (03/11/2026, récidive de TF-1181) — `node tools/init-audit-workspace.mjs --help` avait créé un dossier
   nommé « --help » (avec ses `.gitkeep` et son README) dans le dépôt au lieu d'afficher l'usage. Facteur

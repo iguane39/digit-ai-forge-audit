@@ -1,0 +1,25 @@
+{
+  "profile": "secret-en-ligne",
+  "version": "1.0.0",
+  "description": "Fixture rouge (TF-2112, règles P12 et P13) : l'état d'avant du profil azure. Un identifiant littéral dans la ligne de commande (P12) et un appel facturé à un fournisseur de modèle sans mention d'accord (P13). Les valeurs sont fictives.",
+  "bindings": [
+    {
+      "control": "CTL-D14-04",
+      "instanciation": "Les entrées et sorties du modèle sont filtrées avant transmission, testé par une sollicitation malveillante bloquée.",
+      "verification_command": "az cognitiveservices account show --name <aoai-name> --resource-group <rg> --query 'properties.contentFilters' && curl -s -X POST \"https://<aoai-name>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=2024-06-01\" -H \"api-key: <key>\" -d @prompt-injection-test.json",
+      "evidence": "Configuration des filtres de contenu + résultat d'un test d'injection de prompt confirmant le blocage."
+    },
+    {
+      "control": "CTL-D16-01",
+      "instanciation": "Le modèle de données est inventorié par une requête sur le schéma de la base.",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT table_name FROM information_schema.tables WHERE table_schema='public';\"",
+      "evidence": "Liste des tables relevée par la requête, datée."
+    },
+    {
+      "control": "CTL-D08-05",
+      "instanciation": "La complexité et la dette technique sont mesurées par une analyse en ligne.",
+      "verification_command": "curl -s -u <sonar-token>: \"https://sonarcloud.io/api/measures/component?component=<project-key>&metricKeys=complexity,code_smells\"",
+      "evidence": "Rapport de complexité daté."
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "profile": "azure",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Instanciations Azure des contrôles core (+ Terraform/Azure DevOps)",
   "bindings": [
     {
@@ -234,7 +234,7 @@
     {
       "control": "CTL-D16-02",
       "instanciation": "L'intégrité référentielle est vérifiée directement sur la base managée (Azure Database for PostgreSQL flexible server ou Azure SQL) par une requête d'introspection du catalogue système recensant les tables sans clé primaire ou les colonnes de référence non contraintes.",
-      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname='public' AND NOT EXISTS (SELECT 1 FROM pg_constraint con WHERE con.conrelid=c.oid AND con.contype='p');\"",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"SELECT relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE c.relkind='r' AND n.nspname='public' AND NOT EXISTS (SELECT 1 FROM pg_constraint con WHERE con.conrelid=c.oid AND con.contype='p');\"",
       "evidence": "Résultat de la requête d'introspection (liste des tables sans clé primaire, doit être vide) + export des contraintes de clé étrangère déclarées."
     },
     {
@@ -330,7 +330,7 @@
     {
       "control": "CTL-D01-15",
       "instanciation": "Le plan de réversibilité s'appuie sur les exports automatisés des données (BACPAC Azure SQL) et des configurations (état Terraform, templates ARM), testés au moins une fois et documentés dans le dépôt.",
-      "verification_command": "az sql db export --resource-group <rg> --server <server-name> --name <db-name> --admin-user <admin> --admin-password <pwd> --storage-key-type StorageAccessKey --storage-key <key> --storage-uri https://<storage>.blob.core.windows.net/exports/<db>.bacpac",
+      "verification_command": "az sql db export --resource-group <rg> --server <server-name> --name <db-name> --admin-user <admin> --admin-password \"$AZURE_SQL_ADMIN_PASSWORD\" --storage-key-type StorageAccessKey --storage-key \"$AZURE_STORAGE_KEY\" --storage-uri https://<storage>.blob.core.windows.net/exports/<db>.bacpac",
       "evidence": "Rapport d'exécution du dernier export de données/configuration + plan de réversibilité versionné listant les formats d'export."
     },
     {
@@ -414,7 +414,7 @@
     {
       "control": "CTL-D04-05",
       "instanciation": "Les champs de données collectés par l'application sont confrontés au strict besoin de la finalité déclarée par une requête d'introspection du schéma de la base managée, tout champ excédentaire devant être justifié.",
-      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT table_name, column_name FROM information_schema.columns WHERE table_schema='public';\"",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"SELECT table_name, column_name FROM information_schema.columns WHERE table_schema='public';\"",
       "evidence": "Extrait du schéma réel des données collectées + cartographie finalité par champ, avec justification des champs additionnels."
     },
     {
@@ -522,7 +522,7 @@
     {
       "control": "CTL-D05-13",
       "instanciation": "Une dimension de temps partagée (table dim_date) est matérialisée dans l'entrepôt Azure SQL/Synapse et référencée par chaque modèle sémantique Power BI exposé, sans calendrier recalculé localement.",
-      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT COUNT(*) FROM information_schema.tables WHERE table_name='dim_date';\"",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"SELECT COUNT(*) FROM information_schema.tables WHERE table_name='dim_date';\"",
       "evidence": "Preuve d'existence de la dimension de temps centrale + liste des modèles Power BI la référençant."
     },
     {
@@ -618,7 +618,7 @@
     {
       "control": "CTL-D08-05",
       "instanciation": "La complexité cyclomatique et la dette technique (TODO/FIXME, duplication) sont mesurées à chaque build par une analyse SonarCloud intégrée au pipeline Azure DevOps, avec un quality gate documenté comme seuil d'alerte.",
-      "verification_command": "curl -s -u <sonar-token>: \"https://sonarcloud.io/api/measures/component?component=<project-key>&metricKeys=complexity,code_smells,duplicated_lines_density\"",
+      "verification_command": "curl -s -u \"$SONAR_TOKEN:\" \"https://sonarcloud.io/api/measures/component?component=<project-key>&metricKeys=complexity,code_smells,duplicated_lines_density\"",
       "evidence": "Rapport de complexité/dette technique SonarCloud daté + historique de tendance et seuil de quality gate documenté."
     },
     {
@@ -642,7 +642,7 @@
     {
       "control": "CTL-D09-09",
       "instanciation": "Chaque base hors production (abonnements ou groupes de ressources distincts par environnement, ADR0506) porte une étiquette `source_donnees` qui déclare la source de ses données, par exemple `synthetique` ou `extrait-anonymise` ; une base sans étiquette n'a pas de source déclarée. Le masquage dynamique d'Azure SQL (Dynamic Data Masking) ne transforme pas la donnée stockée, il en masque l'affichage à certains utilisateurs : une base hors production copiée de la production reste une base de données personnelles en clair, et ce masquage ne prouve pas l'anonymisation. Restaurer une sauvegarde de production sur un serveur hors production y recopie les données personnelles en clair.",
-      "verification_command": "az resource list --subscription <id-abonnement-hors-production> --query \"[?type=='Microsoft.Sql/servers/databases' || type=='Microsoft.DBforPostgreSQL/flexibleServers'].{nom:name,groupe:resourceGroup,source:tags.source_donnees}\" -o table && az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT <colonne-personnelle> FROM <table> ORDER BY random() LIMIT 20;\"",
+      "verification_command": "az resource list --subscription <id-abonnement-hors-production> --query \"[?type=='Microsoft.Sql/servers/databases' || type=='Microsoft.DBforPostgreSQL/flexibleServers'].{nom:name,groupe:resourceGroup,source:tags.source_donnees}\" -o table && az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"SELECT <colonne-personnelle> FROM <table> ORDER BY random() LIMIT 20;\"",
       "evidence": "Inventaire des bases des abonnements hors production avec leur étiquette `source_donnees` (0 base sans étiquette) + échantillon des colonnes personnelles identifiées par CTL-D16-04, par base, relu par le porteur sans conserver les valeurs (0 valeur d'une personne réelle) + pour chaque base déclarée `extrait-anonymise`, procédure d'anonymisation et rapport de contrôle daté. Le masquage dynamique n'est pas une preuve d'anonymisation."
     },
     {
@@ -851,9 +851,9 @@
     },
     {
       "control": "CTL-D14-04",
-      "instanciation": "Les entrées et sorties de chaque modèle sont filtrées par Azure AI Content Safety (contenu dangereux, données personnelles, injection de prompt) avant transmission, testé par une sollicitation malveillante bloquée.",
-      "verification_command": "az cognitiveservices account show --name <aoai-name> --resource-group <rg> --query 'properties.contentFilters' && curl -s -X POST \"https://<aoai-name>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=2024-06-01\" -H \"api-key: <key>\" -d @prompt-injection-test.json",
-      "evidence": "Configuration des filtres de contenu Azure AI Content Safety + résultat d'un test d'injection de prompt confirmant le blocage."
+      "instanciation": "Les entrées et sorties de chaque modèle sont filtrées par Azure AI Content Safety (contenu dangereux, données personnelles, injection de prompt) avant transmission, testé par une sollicitation malveillante bloquée. Ce test est un appel facturé au déploiement Azure OpenAI du client : il n'est joué qu'avec l'accord écrit du client, consigné au dossier d'audit (input/00 - Cadrage, fichier « <client> - <TRI> - Accord appel IA - <AAAAMMJJ><indice> »), et la clé est lue dans la variable d'environnement AZURE_OPENAI_API_KEY, jamais écrite dans la ligne de commande. Sans accord, seul le relevé de configuration est joué.",
+      "verification_command": "az cognitiveservices account show --name <aoai-name> --resource-group <rg> --query 'properties.contentFilters' && { compgen -G \"input/00 - Cadrage/* - Accord appel IA - *\" >/dev/null || { echo \"Accord écrit du client absent de input/00 - Cadrage : appel au déploiement non joué\" >&2; false; }; } && curl -s -X POST \"https://<aoai-name>.openai.azure.com/openai/deployments/<deployment>/chat/completions?api-version=2024-06-01\" -H \"api-key: $AZURE_OPENAI_API_KEY\" -d @prompt-injection-test.json",
+      "evidence": "Configuration des filtres de contenu Azure AI Content Safety + accord écrit du client consigné au dossier d'audit (input/00 - Cadrage) + résultat d'un test d'injection de prompt confirmant le blocage ; sans accord, le test est noté « non joué : accord absent » et le blocage n'est pas établi."
     },
     {
       "control": "CTL-D14-05",
@@ -942,13 +942,13 @@
     {
       "control": "CTL-D16-01",
       "instanciation": "L'ERD documenté est confronté à l'introspection réelle du schéma de la base managée (information_schema), garantissant l'exhaustivité et la fraîcheur de l'inventaire des tables, vues et relations.",
-      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT table_name FROM information_schema.tables WHERE table_schema='public';\"",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"SELECT table_name FROM information_schema.tables WHERE table_schema='public';\"",
       "evidence": "Extrait d'introspection du schéma réel + ERD/MCD versionné, avec écarts éventuels identifiés."
     },
     {
       "control": "CTL-D16-03",
       "instanciation": "Les index déclarés sur le schéma sont confrontés aux requêtes les plus fréquentes/coûteuses observées en production, vérifiés par plan d'exécution EXPLAIN sur la base Azure Database for PostgreSQL.",
-      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"EXPLAIN ANALYZE SELECT * FROM <table> WHERE <filtre_frequent>;\"",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"EXPLAIN ANALYZE SELECT * FROM <table> WHERE <filtre_frequent>;\"",
       "evidence": "Plans d'exécution des requêtes fréquentes/coûteuses montrant l'utilisation effective des index + liste des index déclarés."
     },
     {
@@ -960,13 +960,13 @@
     {
       "control": "CTL-D16-07",
       "instanciation": "Le dictionnaire de données par table/colonne est maintenu via les propriétés étendues SQL ou le catalogue Purview, consultable par les équipes non créatrices du schéma.",
-      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT c.table_name, c.column_name, pgd.description FROM information_schema.columns c LEFT JOIN pg_catalog.pg_description pgd ON pgd.objsubid=c.ordinal_position;\"",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"SELECT c.table_name, c.column_name, pgd.description FROM information_schema.columns c LEFT JOIN pg_catalog.pg_description pgd ON pgd.objsubid=c.ordinal_position;\"",
       "evidence": "Extrait du dictionnaire de données (descriptions par table/colonne) + taux de couverture des tables/colonnes du schéma réel."
     },
     {
       "control": "CTL-D16-08",
       "instanciation": "La volumétrie de chaque table significative est mesurée et sa croissance projetée à partir des statistiques de la base managée, avec un partitionnement déclenché au-delà des seuils déclarés.",
-      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password <pwd> --database-name <db-name> --querytext \"SELECT relname, pg_total_relation_size(relid) AS taille FROM pg_catalog.pg_statio_user_tables ORDER BY taille DESC LIMIT 20;\"",
+      "verification_command": "az postgres flexible-server execute --name <server-name> --admin-user <admin> --admin-password \"$AZURE_PG_ADMIN_PASSWORD\" --database-name <db-name> --querytext \"SELECT relname, pg_total_relation_size(relid) AS taille FROM pg_catalog.pg_statio_user_tables ORDER BY taille DESC LIMIT 20;\"",
       "evidence": "Mesures de volumétrie et projection de croissance par table significative + configuration de partitionnement au-delà du seuil déclaré."
     }
   ],

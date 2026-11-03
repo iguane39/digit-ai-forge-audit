@@ -14,4 +14,8 @@ sécurité (_security), et Kibana pour les SLO, l'alerting, les connecteurs
 d'astreinte et la gestion de cas (api/observability, api/alerting,
 api/actions, api/cases).
 
+Les commandes lisent l'utilisateur et le mot de passe dans les variables d'environnement
+`ELASTIC_USER` et `ELASTIC_PASSWORD` (`curl -u`), jamais écrits dans la ligne
+(`tools/verifier-profils.mjs`, règle P12, TF-2112).
+
 10 contrôles sont liés dans bindings.json.
