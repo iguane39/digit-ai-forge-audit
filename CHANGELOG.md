@@ -7,6 +7,21 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2106 — un kit de `deliverables/generated/` qui embarque une copie périmée d'un outil fait échouer
+  la recette** (04/11/2026) — les kits emportent des COPIES de `fiche-en-pdf.mjs`,
+  `verifier-remediation.mjs`, des oracles de `oracles/`, des schémas, et génèrent l'init d'espace d'audit
+  et les deux autonomes de rapport ; aucun contrôle ne comparait la copie à sa source après TF-2086 à
+  TF-2089. Nouveau `tests/oracles/kits-embarques-a-jour.test.mjs` : (1) comparateur à double sens sur un
+  vrai kit fabriqué à l'instant (frais conforme ; copie périmée, oracle absent, copie obsolète nommés ;
+  fins de ligne et entrées non embarquées sans écart) ; (2) le générateur livre bien chaque oracle de
+  `oracles/` et des copies identiques à leurs sources ; (3) état réel : le dernier kit de chaque sorte
+  est comparé à un kit fabriqué à l'instant — le tenant « ACME » étant porté par l'exemple et par la
+  fixture minimale de la CI, une copie est à jour si elle égale celle d'au moins un des deux. Sans kit
+  sur le poste (dossier ignoré par git, runner neuf), le contrôle se déclare SKIP motivé. Remesure du
+  04/11 avant régénération : le dernier kit de chaque sorte (`20261103n`) était déjà conforme, les
+  verifier rejoués depuis TF-2089 les ayant refabriqués ; le contrôle rend rouge sur le kit
+  `20260902d` (11 écarts : 3 oracles absents ; périmés : 4 fichiers d'`oracles/`, 1 schéma,
+  `fiche-en-pdf.mjs`, l'init autonome et le rendu de rapport autonome). Kits régénérés par `node tools/build-kit.mjs … --kind both`.
 - **TF-2105 — la valeur de `--out` n'est plus prise pour un dossier quand elle commence par « - »**
   (04/11/2026, variante de TF-2089) — `node tools/build-kit.mjs <tenant> --out --dry-run` et `node
   tools/build-theme.mjs <tenant> --out --dry-run` créaient un dossier nommé « --dry-run » et y rendaient
