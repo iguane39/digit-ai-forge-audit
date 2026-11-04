@@ -7,6 +7,15 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2104 — sept fichiers de `tests/oracles/` rejoignent la batterie de la CI, et un contrôle
+  ferme la dérive** (04/11/2026) — `build-kit-compliance-fiche`, `ci-workflow-labels`, `gitattributes`,
+  `methode-audit-capture`, `onboarding-doc`, `rapport-socle-page` et `verifier-schema-modele` ne figuraient
+  pas dans l'étape « Batterie des oracles » de `.github/workflows/ci.yml` : verts en local (remesuré le
+  04/11, 7 fichiers sur 7 passent sur `617c025`, aucun neutralisé), ils ne tournaient jamais sur le
+  runner. Nouveau `tests/oracles/batterie-ci-complete.test.mjs` : il échoue, en nommant le fichier, quand
+  un `*.test.mjs` de `tests/oracles/` n'est pas dans la commande `node --test` du workflow (un nom cité
+  dans un commentaire ne compte pas). Rouge avant correction (8 absents : les 7 plus lui-même), vert
+  après ; quatre fixtures sur racine factice (verte, absent, commentaire, préfixe de nom).
 - **TF-2112 — `tools/verifier-profils.mjs` : P12 refuse un identifiant en clair dans une commande de
   profil, P13 un appel de modèle sans accord du client** (03/11/2026, décision D-163 (a)) — le contrôle
   CTL-D14-04 du profil azure postait un appel facturé au déploiement Azure OpenAI du client avec
