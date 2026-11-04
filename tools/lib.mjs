@@ -82,3 +82,23 @@ export function dossierCibleOuUsage(argument, usage) {
   (aide ? console.log : console.error)(usage);
   process.exit(aide ? 0 : 2);
 }
+
+/**
+ * TF-2105 (variante de TF-2089) — la valeur d'une OPTION de dossier (`--out <dir>`). Même règle que
+ * `dossierCibleOuUsage` : un argument qui commence par « - » est une option, jamais un dossier ;
+ * `build-kit.mjs <tenant> --out --dry-run` créait un dossier nommé « --dry-run ». Rend `undefined` si
+ * l'option n'est pas passée, la valeur si c'est un dossier ; sinon (valeur absente ou en « - »)
+ * refus motivé + usage sur stderr, sortie 2, et l'outil s'arrête ici avant de rien créer.
+ */
+export function valeurDossierOuUsage(argv, option, usage) {
+  const i = argv.indexOf(option);
+  if (i === -1) return undefined;
+  const valeur = argv[i + 1];
+  if (valeur !== undefined && !String(valeur).startsWith('-')) return valeur;
+  console.error(valeur === undefined
+    ? `Option ${option} sans valeur : un dossier est attendu.`
+    : `Option ${option} : « ${valeur} » refusé comme dossier, un argument qui commence par « - » `
+      + 'est une option, pas un dossier.');
+  console.error(usage);
+  process.exit(2);
+}

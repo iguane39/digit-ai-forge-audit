@@ -8,12 +8,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Ajv from 'ajv';
-import { rel, loadYaml, loadJson } from './lib.mjs';
+import { rel, loadYaml, loadJson, valeurDossierOuUsage } from './lib.mjs';
 
 const file = process.argv[2];
-const outIdx = process.argv.indexOf('--out');
-if (!file || outIdx === -1) { console.error('Usage: node tools/forge-adapter.mjs <remediation-actions.yaml> --out <repo-cible> [--dry-run]'); process.exit(2); }
-const outRepo = path.resolve(process.argv[outIdx + 1]);
+const USAGE = 'Usage: node tools/forge-adapter.mjs <remediation-actions.yaml> --out <repo-cible> [--dry-run]';
+// TF-2105 : la valeur de --out est un dossier — une autre option (« --dry-run ») est refusée, pas prise pour lui.
+const outArg = file ? valeurDossierOuUsage(process.argv, '--out', USAGE) : undefined;
+if (!file || outArg === undefined) { console.error(USAGE); process.exit(2); }
+const outRepo = path.resolve(outArg);
 const dryRun = process.argv.includes('--dry-run');
 
 const doc = loadYaml(file);

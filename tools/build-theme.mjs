@@ -31,7 +31,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadTenant, frontmatter } from './lib.mjs';
+import { loadTenant, frontmatter, valeurDossierOuUsage } from './lib.mjs';
 
 export const RACINE = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -146,9 +146,10 @@ code,pre{font-family:var(--font-mono);}
 
 function principal(argv) {
   const file = argv[0];
-  if (!file) { console.error('Usage: node tools/build-theme.mjs <tenant.yaml> [--out <dir>]'); return 2; }
-  const outIdx = argv.indexOf('--out');
-  const outArg = outIdx > -1 ? argv[outIdx + 1] : undefined;
+  const usage = 'Usage: node tools/build-theme.mjs <tenant.yaml> [--out <dir>]';
+  if (!file) { console.error(usage); return 2; }
+  // TF-2105 : la valeur de --out est un dossier — une autre option (« --dry-run ») est refusée, pas créée.
+  const outArg = valeurDossierOuUsage(argv, '--out', usage);
   const { outDir, css, domains } = genererTheme(file, outArg);
   console.log(`✔ thème généré → ${outDir} (theme.css ${css.length} o, header.html) — ${domains.length} couleurs de domaines`);
   return 0;

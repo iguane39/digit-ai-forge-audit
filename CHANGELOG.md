@@ -7,6 +7,16 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2105 — la valeur de `--out` n'est plus prise pour un dossier quand elle commence par « - »**
+  (04/11/2026, variante de TF-2089) — `node tools/build-kit.mjs <tenant> --out --dry-run` et `node
+  tools/build-theme.mjs <tenant> --out --dry-run` créaient un dossier nommé « --dry-run » et y rendaient
+  leur sortie (mesuré le 04/11 dans un dossier vide). `tools/forge-adapter.mjs <actions> --out --dry-run`
+  ne créait rien, parce que `--dry-run` y restait honoré, mais `--out -x` sans dry-run aurait écrit
+  `-x/_bmad-output/…` ; une valeur absente (`--out` en dernier) levait une exception brute. Facteur
+  commun `valeurDossierOuUsage` dans `tools/lib.mjs`, appliqué aux trois seuls outils dont `--out` est un
+  dossier créé : refus motivé + usage, sortie 2, rien de créé. Les `--out <fichier>` des autres outils
+  nomment un fichier et restent hors garde. Recette `tests/oracles/outils-option-dossier.test.mjs` :
+  3 tests sur 6 rouges avant correctif, 6 verts après, joués dans un dossier vide, sens vert compris.
 - **TF-2104 — sept fichiers de `tests/oracles/` rejoignent la batterie de la CI, et un contrôle
   ferme la dérive** (04/11/2026) — `build-kit-compliance-fiche`, `ci-workflow-labels`, `gitattributes`,
   `methode-audit-capture`, `onboarding-doc`, `rapport-socle-page` et `verifier-schema-modele` ne figuraient

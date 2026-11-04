@@ -10,19 +10,20 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { ROOT, rel, loadTenant, loadJson, loadYaml } from './lib.mjs';
+import { ROOT, rel, loadTenant, loadJson, loadYaml, valeurDossierOuUsage } from './lib.mjs';
 import { createZip } from './ziplib.mjs';
 
 const tenantYaml = process.argv[2];
-if (!tenantYaml) { console.error('Usage: node tools/build-kit.mjs <tenant.yaml> [--kind audit|compliance|both] [--out <dir>]'); process.exit(2); }
+const USAGE = 'Usage: node tools/build-kit.mjs <tenant.yaml> [--kind audit|compliance|both] [--out <dir>]';
+if (!tenantYaml) { console.error(USAGE); process.exit(2); }
 const kindArg = process.argv.includes('--kind') ? process.argv[process.argv.indexOf('--kind') + 1] : 'both';
 const kinds = kindArg === 'both' ? ['compliance', 'audit'] : [kindArg];
 const { cfg } = loadTenant(tenantYaml);
 const tenant = cfg.tenant.name;
 const slug = tenant.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-const outDir = process.argv.includes('--out')
-  ? path.resolve(process.argv[process.argv.indexOf('--out') + 1])
-  : rel('deliverables', 'generated', slug);
+// TF-2105 : la valeur de --out est un dossier — une autre option (« --dry-run ») est refusée, pas créée.
+const outArg = valeurDossierOuUsage(process.argv, '--out', USAGE);
+const outDir = outArg !== undefined ? path.resolve(outArg) : rel('deliverables', 'generated', slug);
 fs.mkdirSync(outDir, { recursive: true });
 
 // ── 1. Produits dérivés (réutilise les outils existants, sortie en répertoire temporaire)
