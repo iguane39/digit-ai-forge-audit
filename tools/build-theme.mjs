@@ -119,13 +119,14 @@ ${fontFaceEmbarquee()}
   --accent:${c('accent', c('primary', '#2563eb'))};
   --fatal:${c('fatal', '#a3231c')}; --bloq:${c('bloquant', '#9a4a06')};
   --maj:${c('majeur', '#8a6500')}; --std:${c('standard', '#136e34')};
+  --brand-bg:${c('brand-bg', '#1A1A1A')}; --on-brand:#fff;
 ${domains.map(d => `  --dom-${d.key}:${d.color ?? 'var(--accent)'};`).join('\n')}
   --font-body:${typography.body ?? typography.heading ?? 'Roboto, system-ui, sans-serif'};
   --font-mono:${typography.mono ?? 'JetBrains Mono, Consolas, monospace'};
 }
 body{font-family:var(--font-body);color:var(--txt);background:var(--bg);}
 code,pre{font-family:var(--font-mono);}
-.brand{background:${c('brand-bg', '#1A1A1A')};color:#fff;font-weight:700;border-radius:6px;
+.brand{background:var(--brand-bg);color:var(--on-brand);font-weight:700;border-radius:6px;
   display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;}
 .badge-fatal{color:var(--fatal)}.badge-bloq{color:var(--bloq)}.badge-maj{color:var(--maj)}.badge-std{color:var(--std)}
 `;

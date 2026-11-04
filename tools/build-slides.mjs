@@ -20,7 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { rel, loadTenant, loadJson, valeurFichierOuUsage } from './lib.mjs';
-import { aUnScore, estBloquant, constatsGraves, buildPlan, renderArchi, ARCHI_CSS, STR } from './rapport-engine.mjs';
+import { aUnScore, estBloquant, constatsGraves, buildPlan, renderArchi, ARCHI_CSS, TOKENS_DERIVES_CSS, STR } from './rapport-engine.mjs';
 import { titresDuGabarit, gateAttendu, jugerPresentation } from './verifier-presentation.mjs';
 
 const file = process.argv[2];
@@ -147,18 +147,18 @@ if (gabarit.length !== slides.length || gabarit.some((g, i) => g.titre !== slide
 
 const faits = { gate, bloquants: bloquants.map(b => b.id), score_global: scoreGlobal, nb_actions: plan.length, nb_constats_graves: graves.length };
 const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(cfg.tenant.name)} — Présentation audit ${esc(projet)}</title><style>${themeCss}
+<title>${esc(cfg.tenant.name)} — Présentation audit ${esc(projet)}</title><style>${themeCss}${TOKENS_DERIVES_CSS}
 html,body{height:100%}.deck{height:100vh;overflow:hidden}
 .slide{height:100vh;padding:7vh 9vw;display:none;flex-direction:column;justify-content:center;gap:12px;box-sizing:border-box}
 .slide.on{display:flex}h1{font-size:34px}h2{font-size:26px;color:var(--accent)}.big{font-size:20px}
-.gate{display:inline-block;padding:10px 20px;border-radius:10px;color:#fff;font-weight:700;font-size:22px;width:fit-content}
+.gate{display:inline-block;padding:10px 20px;border-radius:10px;color:var(--on-accent);font-weight:700;font-size:22px;width:fit-content}
 b.gate{padding:4px 14px;font-size:18px}
 .gate.std{background:var(--std)}.gate.maj{background:var(--maj)}.gate.fatal{background:var(--fatal)}
 .kpis{display:flex;gap:18px}.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 26px}
 .kpi span{color:var(--muted)}.kpi b{display:block;font-size:34px}
 table{border-collapse:collapse}th,td{border:1px solid var(--line);padding:8px 12px;text-align:left}
 .badge{border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px}
-.t-urgent{background:var(--fatal);color:#fff;border-color:var(--fatal)}.t-prio{color:var(--maj);border-color:var(--maj)}
+.t-urgent{background:var(--fatal);color:var(--on-accent);border-color:var(--fatal)}.t-prio{color:var(--maj);border-color:var(--maj)}
 .muted{color:var(--muted)}.nav{position:fixed;bottom:14px;right:18px;color:var(--muted);font-size:12px}
 .archi svg{max-width:100%;max-height:52vh;min-width:0!important}.archi h3{display:none}
 ${ARCHI_CSS}

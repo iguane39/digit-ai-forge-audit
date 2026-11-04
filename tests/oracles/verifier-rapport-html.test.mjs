@@ -135,7 +135,7 @@ test('TF-0940 — le rapport qui porte un schéma de base rend le CANEVAS et res
 });
 
 test('TF-0940 — schéma rendu SANS son marquage PII → exit 1 (le contrôle déplacé mord toujours)', () => {
-  const r = varianteRiche('sans-pii', (h) => h.replaceAll('PII 🔒', 'PII'));
+  const r = varianteRiche('sans-pii', (h) => h.replace(/(<th>PII)\s*<svg class="ico-pii"[\s\S]*?<\/svg>/, '$1'));   // TF-2139 : le marquage PII est l'icône SVG, plus l'emoji
   assert.equal(r.status, 1, 'un schéma sans dictionnaire des tables doit rester refusé');
   assert.match(r.stderr, /schéma de base de données présent sans dictionnaire des tables/);
 });

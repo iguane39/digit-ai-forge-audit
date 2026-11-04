@@ -7,6 +7,31 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2139 — le rapport HTML rendu passe les oracles de design de la forge design, et la porte de rendu les
+  joue** (04/11/2026, RU-6) — `run-oracles-design` rendait FAIL sur le rapport du moteur : oracle-slop 11
+  écarts durs (bandeaux latéraux `border-left` de 3 et 4 px sur `.verdict` et `.constat`, huit accents
+  « néon » #ede9fe #c4b5fd #dbeafe… de la palette du schéma, un emoji « 🔒 »), oracle-tokens 77 (35 couleurs
+  en dur, 42 espacements hors de l'échelle 4pt) — mesuré le 04/11 sur le rapport de la fixture riche. La
+  feuille de style du moteur (`RAPPORT_CSS`, exportée) ne porte plus aucune couleur littérale : le blanc des
+  aplats est `--on-accent`, les six familles de teinte du schéma d'architecture s'appuient sur les jetons du
+  thème (`FAMILLES_TEINTE` : accent, std, maj, bloq, fatal, muted) par `color-mix` avec `--panel`, et le thème
+  généré (`build-theme.mjs`) expose `--brand-bg` et `--on-brand` au lieu d'un `#1A1A2E` en dur dans
+  `.brand` ; les cadres `.verdict` et `.constat` n'ont plus de liseré latéral ; marges, remplissages et
+  écarts sont des multiples de 4 px. Le canevas du schéma de base de données, copie conforme (HERITAGE.json),
+  n'est pas modifié : le moteur l'ADAPTE à l'assemblage (palette `--c-*` dérivée, blanc des badges, aplats
+  et traits SVG de la légende passés en `var(--c-…)`, emoji remplacé par l'icône SVG `ico-pii`) — la dérive de
+  la source reste mesurable. Le marquage PII du dictionnaire des tables devient `PII <svg class="ico-pii">` ;
+  le gate de rendu, la CI et le banc `verifier-rapport-html.test.mjs` suivent le marqueur, avec la même exigence.
+  Branchement : `tools/oracles-design.mjs` résout `forge-design` (option `--design-root`, variable
+  `FORGE_DESIGN_ROOT`, dépôt voisin `../digit-ai-forge-design`) et joue `run-oracles-design.mjs` ;
+  `verifier-rapport-html.mjs` l'appelle en dernier, sur un rapport déjà vert — FAIL d'un oracle = rapport non
+  diffusable, racine donnée introuvable = erreur 2, rien de trouvé (runner de CI) = « NON JUGÉ » dit tout haut,
+  jamais un PASS ; `--sans-oracles-design` est le refus explicite, dit de la même façon. La présentation
+  (`build-slides.mjs`) reprend les jetons dérivés. Banc `tests/oracles/rapport-design.test.mjs` : 14 tests, 14
+  rouges avant correctif (couleurs, bandeaux, emoji, espacements, oracle exécuté, branchement), 14 verts après
+  — les deux rapports (valide et riche) rendent PASS à `run-oracles-design`. Constat : `build-rapport.mjs`
+  réutilise un `theme/theme.css` déjà généré sans le comparer au générateur — après ce changement de
+  `build-theme.mjs`, un cache de thème antérieur garde l'ancien `.brand` en dur jusqu'à sa régénération.
 - **TF-2131 — la valeur d'une option de fichier n'est plus prise pour un fichier quand elle commence par
   « - »** (04/11/2026, suite de TF-2105 et TF-2089) — `node tools/build-catalogue.mjs <tenant> --out --dry-run`
   écrivait un fichier littéralement nommé « --dry-run » (mesuré le 04/11 dans un dossier vide) ; des lectures d'option du dépôt
