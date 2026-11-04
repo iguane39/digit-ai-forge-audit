@@ -132,10 +132,10 @@ export const RES = {
     kpi: {
       score: ['Score global', 'Moyenne des scores des dimensions instruites, sur une échelle de 0 à 5.',
         (n, tot) => `${n} dimension(s) instruite(s) sur ${tot} du référentiel — barème des crans en vue Méthode & lecture.`],
-      bloquants: ['Bloquants', 'Dimensions au score inférieur ou égal à 2, ou de criticité Fatal.',
+      bloquants: ['Bloquants', 'Dimensions instruites au score inférieur ou égal à 2, ou de criticité Fatal ; une dimension hors périmètre n’en fait jamais partie.',
         (n, ids) => (n ? `Dimensions concernées : ${ids} — chacune ouvre une action au plan.` : 'Aucune dimension bloquante : le verdict de porte ne tient qu\'aux règles instruites.')],
       regles: ['Règles instruites', 'Règles du référentiel effectivement instruites sur ce périmètre.',
-        (nc, part, so) => `${nc} non conforme(s), ${part} partielle(s), ${so} sans objet motivé — le reste est conforme.`],
+        (nc, part, so, ae, conf) => `${conf} conforme(s), ${nc} non conforme(s), ${part} partielle(s), ${so} sans objet motivé, ${ae} à évaluer (non instruites) — chaque état est nommé, aucun n'est fondu dans « conforme ».`],
       plan: ['Actions de remédiation', 'Actions consolidées : plans des dimensions et règles non conformes réunis.',
         (u, p) => `${u} urgente(s) et ${p} prioritaire(s) en tête de file — l'ordre de traitement est celui de la vue Plan d'action.`],
     },
@@ -226,10 +226,10 @@ export const RES = {
     kpi: {
       score: ['Overall score', 'Average of the scores of the assessed dimensions, on a 0 to 5 scale.',
         (n, tot) => `${n} dimension(s) assessed out of ${tot} in the baseline — scale of the steps in the Method & reading view.`],
-      bloquants: ['Blockers', 'Dimensions scoring 2 or below, or of Fatal criticality.',
+      bloquants: ['Blockers', 'Assessed dimensions scoring 2 or below, or of Fatal criticality; a dimension out of scope is never one.',
         (n, ids) => (n ? `Dimensions concerned: ${ids} — each opens an action in the plan.` : 'No blocking dimension: the gate verdict rests only on the assessed rules.')],
       regles: ['Rules assessed', 'Baseline rules actually assessed on this scope.',
-        (nc, part, so) => `${nc} non-compliant, ${part} partial, ${so} not applicable with a reason — the rest are compliant.`],
+        (nc, part, so, ae, conf) => `${conf} compliant, ${nc} non-compliant, ${part} partial, ${so} not applicable with a reason, ${ae} to be assessed (not yet assessed) — every state is named, none is folded into "compliant".`],
       plan: ['Remediation actions', 'Consolidated actions: dimension plans and non-compliant rules together.',
         (u, p) => `${u} urgent and ${p} high priority at the head of the queue — the processing order is the one of the Action plan view.`],
     },
@@ -606,8 +606,13 @@ export function controlesEvalues(data, coreVersion) {
  * coercition : `typeof` d'abord. Source unique du compte, partagée par le rapport et la présentation.
  */
 export const aUnScore = (d) => typeof d?.score === 'number' && Number.isFinite(d.score);
-/** Dimension bloquante : score noté 2 ou moins, ou criticité Fatal (`dimensions.yaml`, scoring.blockers). */
-export const estBloquant = (d) => (aUnScore(d) && d.score <= 2) || d?.criticite === 'Fatal' || d?.criticality === 'fatal';
+/**
+ * Dimension bloquante : score noté 2 ou moins, ou criticité Fatal (`dimensions.yaml`, scoring.blockers).
+ * TF-2140 (RU-7) : une dimension hors périmètre (`applicability: 'off'`) n'est JAMAIS bloquante — ni par un
+ * score bas, ni par une criticité Fatal héritée : « sans objet » ne pèse ni en bien ni en mal.
+ */
+export const estBloquant = (d) => d?.applicability !== 'off'
+  && ((aUnScore(d) && d.score <= 2) || d?.criticite === 'Fatal' || d?.criticality === 'fatal');
 
 export function renderRapport(data, { tenant, dimensions, families, themeCss = '', coreVersion = '', lang = 'fr' } = {}) {
   const L = STR[lang] ?? STR.fr;
@@ -835,7 +840,7 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
     <div class="kpis">
       ${kpiHtml('kr-score', [T.kpi.score[0], T.kpi.score[1], T.kpi.score[2](applicable.length, dims.length)], scoreGlobal, '/5', 'dimensions')}
       ${kpiHtml('kr-bloq', [T.kpi.bloquants[0], T.kpi.bloquants[1], T.kpi.bloquants[2](bloquants.length, bloquants.map(b => b.id).join(' · '))], String(bloquants.length), '', 'dimensions')}
-      ${kpiHtml('kr-regles', [T.kpi.regles[0], T.kpi.regles[1], T.kpi.regles[2](nbNC, nbPartiel, nbSO)], String(regles.length), '', 'regles')}
+      ${kpiHtml('kr-regles', [T.kpi.regles[0], T.kpi.regles[1], T.kpi.regles[2](nbNC, nbPartiel, nbSO, nbAutres, nbConf)], String(regles.length), '', 'regles')}
       ${kpiHtml('kr-plan', [T.kpi.plan[0], T.kpi.plan[1], T.kpi.plan[2](urgentes, prioritaires)], String(plan.length), '', 'plan')}
     </div>
     ${data.syntheses ? tableau({

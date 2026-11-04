@@ -7,6 +7,15 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2140 — la synthèse du rapport ne range plus une dimension off parmi les bloquants et nomme les
+  règles à évaluer** (04/11/2026, RU-7) — deux défauts relevés sur un rapport réel : D14 (off, sans score)
+  était comptée bloquante (suite de TF-2143, qui ne traitait que le null : une dimension off de criticité
+  Fatal ou notée bas l'était encore) ; la carte « Règles instruites » concluait « … le reste est conforme »
+  alors que le reste mêlait cinq règles à évaluer et cinq conformes. `estBloquant` exclut toute dimension
+  `applicability: 'off'` (rapport, auto-test embarqué, présentation) ; la carte nomme chaque état en
+  français et en anglais — conformes, non conformes, partielles, sans objet, à évaluer — et ne fond plus
+  rien dans « conforme ». Banc `tests/oracles/synthese-off-et-a-evaluer.test.mjs` : 4 tests sur 4 rouges
+  avant correctif (KPI à 3 pour 1 ; « le reste est conforme » sur 5 conformes + 5 à évaluer), 4 verts après.
 - **TF-2143 — un score null n'est plus compté bloquant** (04/11/2026, RU-9) — en JavaScript `null <= 2`
   vaut true : `rapport-engine.mjs` et `build-slides.mjs` comptaient bloquante toute dimension sans score
   (« off »), et le verdict de porte basculait. Mesuré sur le jeu d'une campagne du 04/11 : 16 bloquants
