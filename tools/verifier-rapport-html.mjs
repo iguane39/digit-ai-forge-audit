@@ -113,6 +113,26 @@ const manifeste = txt((h.match(/<footer class="ecarts">([\s\S]*?)<\/footer>/) ??
 if (!manifeste) errors.push("RL-10 : aucun manifeste d'écarts (.ecarts) — l'absence d'écart se déclare, elle ne se tait pas");
 else if (manifeste.length < 20) errors.push("RL-10 : manifeste d'écarts vide");
 
+// COMPLÉTUDE DU GABARIT `rapport-audit.template.md` (TF-2138, RU-5, voisin de TF-1001). Le rendu d'un rapport
+// qui n'a pas rempli son gabarit DÉCLARE ses absences au manifeste d'écarts (RL-10) — et sortait pourtant
+// « diffusable » : sans cartes de synthèse, sans périmètre D00, sans architecture, sans section
+// tests/analyses/composants, sans plan d'action pour une dimension en écart. Une absence déclarée reste une
+// absence : le gate la refuse, bloc par bloc. Le contrôle de DONNÉES (verifier-rapport.mjs) juge la source ;
+// celui-ci juge ce qui sera LU — un HTML rendu par un moteur ancien, ou édité, passe par ici.
+if (!/id="t-__syntheses"/.test(h) || !['fonctionnelle', 'technique', 'audit'].every(k => new RegExp(`<th>${k}</th>`, 'i').test(h)))
+  errors.push('gabarit rapport-audit : cartes de synthèse absentes du rendu (fonctionnelle, technique, audit)');
+const sectionDim = (id) => (h.match(new RegExp(`<section class="dim" id="${id}">([\\s\\S]*?)</section>`)) ?? [])[1] ?? '';
+if (!/<\/h4>\s*<p>[^<]{10,}/.test(sectionDim('D00')))
+  errors.push('gabarit rapport-audit : périmètre D00 non rédigé dans le rendu (la section D00 ne porte aucun résumé)');
+if (!/aria-label="Schéma d'architecture"/.test(h)) errors.push('gabarit rapport-audit : schéma d\'architecture absent du rendu');
+if (!h.includes('id="v-donnees"')) errors.push('gabarit rapport-audit : vue « Données analysées » (tests / analyses / composants) absente du rendu');
+const sansPlan = [...h.matchAll(/<section class="dim" id="(D\d{2})">([\s\S]*?)<\/section>/g)]
+  .filter(([, id, corps]) => /class="constat |class="badge v-(non_conforme|partiel)"/.test(corps) && !corps.includes(`id="t-plan-${id}"`))
+  .map(([, id]) => id);
+if (sansPlan.length)
+  errors.push(`gabarit rapport-audit : plan d'action vide pour ${sansPlan.join(', ')} — la dimension porte un écart (constat ou règle non conforme) `
+    + 'sans action ; mode « action par constat » : constat_ref + couvre, voir verifier-rapport.mjs');
+
 // RL-5 · un tableau long se trie et se filtre, ou déclare MOTIVÉMENT qu'il ne le fait pas.
 const SEUIL = 8;
 let filtrables = 0;

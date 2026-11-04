@@ -7,6 +7,22 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2138 — un rapport qui ne remplit pas `rapport-audit.template.md` n'est plus « diffusable »** (04/11/2026,
+  RU-5, voisin de TF-1001) — `verifier-rapport` et `verifier-rapport-html` rendaient exit 0 sur un rapport sans
+  cartes de synthèse, sans périmètre D00, sans architecture, sans section tests/analyses/composants et sans
+  verdict de gate ; vider `actions` pour passer le refus des redites (TF-0624) laissait vide le plan d'action de
+  chaque dimension. Contrôle de complétude, bloquant, bloc par bloc, sur la donnée (`gate.verdict` dans GO / GO
+  SOUS RÉSERVE / NO-GO, `syntheses.fonctionnelle|technique|audit`, résumé de D00, `architecture.nodes`, au
+  moins une matière parmi tests / analyses / composants) et sur le rendu (tableau de synthèse, section D00
+  rédigée, schéma d'architecture, vue « Données analysées »). Mode « action par constat » : une dimension qui
+  porte un écart (constat, règle non conforme ou partielle) exige une action ; l'action se rattache à un
+  constat (`constat_ref`) et nomme les règles qu'elle couvre (`couvre`), que `buildPlan` n'ouvre alors plus en
+  seconde action — le plan non vide ne retombe pas dans la redite. `couvre` est un déclaratif vérifié (règle
+  inconnue, conforme, déjà couverte, constat_ref absent ou introuvable : refus). Fixtures versionnées
+  (`valide`, `riche`, `titre-duplique`, `db-schema-invalid`) complétées (l'action de D05 porte l'identifiant explicite `REM-D05-090`, pour que la règle non conforme garde
+  `REM-D05-001` dont `remediation.test.mjs` dépend), les deux rouges gardent leur seul défaut. Banc `tests/oracles/rapport-completude-gabarit.test.mjs` : 12 tests sur 16 rouges avant correctif, 16
+  verts après (les 4 témoins verts — rapport complet, dimension sans écart, redite sans `couvre`, fixtures —
+  passaient avant et après). Non couvert : `verifier-rapport-standalone.mjs` du kit client reste sans ce contrôle.
 - **TF-2140 — la synthèse du rapport ne range plus une dimension off parmi les bloquants et nomme les
   règles à évaluer** (04/11/2026, RU-7) — deux défauts relevés sur un rapport réel : D14 (off, sans score)
   était comptée bloquante (suite de TF-2143, qui ne traitait que le null : une dimension off de criticité

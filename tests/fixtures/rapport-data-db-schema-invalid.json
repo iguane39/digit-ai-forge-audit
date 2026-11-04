@@ -8,7 +8,8 @@
       "gate1b": "go",
       "preuves": [
         "src/x.py:10"
-      ]
+      ],
+      "resume": "Périmètre : suivi des commandes ; hors périmètre : facturation. Valeur métier : délai de préparation."
     },
     {
       "id": "D01",
@@ -173,6 +174,20 @@
         {
           "ref": "config.py:12"
         }
+      ],
+      "id": "C-D02-1",
+      "dimension": "D02"
+    },
+    {
+      "id": "C-D05-1",
+      "dimension": "D05",
+      "titre": "Aucun contrôle de la fraîcheur des données",
+      "severite": "Majeur",
+      "desc": "Les jeux de données ne portent aucune date de dernière mise à jour.",
+      "preuves": [
+        {
+          "ref": "etl/charge.py:41"
+        }
       ]
     }
   ],
@@ -192,6 +207,17 @@
         "mode": "forge-assisted",
         "reason": "substitution mécanique, relecture humaine du coffre requise"
       }
+    },
+    {
+      "id": "REM-D05-090",
+      "titre": "Horodater chaque jeu de données à sa publication",
+      "desc": "Ajouter la date de dernière mise à jour au catalogue.",
+      "dimension": "D05",
+      "tag": "prio",
+      "effort": "1j",
+      "severite": "Majeur",
+      "constat_ref": "C-D05-1",
+      "verification": "chaque jeu du catalogue porte une date de mise à jour de moins de 24 h"
     }
   ],
   "db_schema": {
@@ -409,5 +435,13 @@
       "reco_flag": "Oui",
       "perimetre": "direct"
     }
-  ]
+  ],
+  "gate": {
+    "verdict": "GO"
+  },
+  "syntheses": {
+    "fonctionnelle": "Application de suivi de commandes pour les équipes logistiques ; trois profils d'utilisateurs.",
+    "technique": "Service web et base relationnelle, déployés en conteneurs sur un seul environnement.",
+    "audit": "Audit conduit le 10/08/2026 : deux scans automatisés, revue statique et inspections manuelles."
+  }
 }

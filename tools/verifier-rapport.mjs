@@ -124,6 +124,62 @@ if (db) {
   }
 }
 
+// 9. COMPLÉTUDE DU GABARIT `rapport-audit.template.md` (TF-2138, RU-5, voisin de TF-1001).
+// Relevé du 04/11/2026 : un rapport SANS cartes de synthèse, SANS périmètre D00, SANS architecture, SANS
+// section tests/analyses/composants et SANS verdict de gate sortait exit 0 — « diffusable ». Les six champs
+// du contrôle 6 sont des manques LÉGITIMES (un audit sans reprise n'a rien à dire) ; ceux-ci sont les blocs
+// que le gabarit écrit en dur, et l'absence d'un bloc n'est pas une absence de matière : c'est un rapport
+// qui n'a pas rempli son gabarit. BLOQUANT, chaque bloc nommé.
+const GATES = ['GO', 'GO SOUS RÉSERVE', 'NO-GO'];
+const rempli = (v) => (typeof v === 'string' ? v.trim().length > 0
+  : Array.isArray(v) ? v.length > 0 : Boolean(v) && typeof v === 'object' && Object.keys(v).length > 0);
+if (!data.gate?.verdict) errors.push('gabarit rapport-audit : verdict de gate absent (gate.verdict : GO, GO SOUS RÉSERVE ou NO-GO)');
+else if (!GATES.includes(data.gate.verdict))
+  errors.push(`gabarit rapport-audit : gate.verdict « ${data.gate.verdict} » hors vocabulaire (${GATES.join(', ')})`);
+if (!rempli(data.syntheses)) errors.push('gabarit rapport-audit : cartes de synthèse absentes (syntheses.fonctionnelle, .technique et .audit)');
+else for (const carte of ['fonctionnelle', 'technique', 'audit'])
+  if (!rempli(data.syntheses[carte])) errors.push(`gabarit rapport-audit : carte de synthèse « ${carte} » absente ou vide (syntheses.${carte})`);
+const d00 = (data.dimensions ?? []).find(d => d.id === 'D00');
+if (d00 && !rempli(d00.resume)) errors.push('gabarit rapport-audit : périmètre D00 non rédigé (dimensions[D00].resume vide — cas d\'usage, personas, hors périmètre)');
+if (!(data.architecture?.nodes ?? []).length) errors.push('gabarit rapport-audit : schéma d\'architecture absent (architecture.nodes vide)');
+if (![data.tests, data.analyses, data.composants].some(rempli))
+  errors.push('gabarit rapport-audit : section tests / analyses / composants vide (aucune des trois matières n\'est renseignée)');
+
+// 10. MODE « ACTION PAR CONSTAT » (TF-2138). Vider `actions` pour passer le refus des redites (TF-0624)
+// laissait vide le plan d'action de chaque dimension : le contrôle 4 n'exige l'existence d'aucune action. Une
+// dimension qui porte un ÉCART (un constat, ou une règle non conforme / partielle) exige au moins une action.
+// Pour que ce plan non vide ne retombe pas dans la redite que le plan refuse, l'action se rattache à un
+// constat (`constat_ref`, par id ou par titre) et NOMME les règles qu'elle couvre (`couvre`) : le moteur
+// n'ouvre alors pas de seconde action pour une règle couverte. Le déclaratif est vérifié ici, pas deviné.
+const dimDeRegle = (r) => (r.dimension ?? r.dimension_audit ?? '').match(/D\d{2}/)?.[0] ?? r.id?.match(/\bD\d{2}\b/)?.[0] ?? null;
+const enEcart = new Set();
+for (const r of data.regles ?? []) if (PORTE_ECART(r) && dimDeRegle(r)) enEcart.add(dimDeRegle(r));
+for (const c of data.constats ?? []) if (c.dimension) enEcart.add(c.dimension);
+const sansAction = [...enEcart].filter(id => !(data.actions ?? []).some(a => a.dimension === id)
+  && (data.dimensions ?? []).find(d => d.id === id)?.applicability !== 'off').sort();
+if (sansAction.length)
+  errors.push(`plan d'action vide pour ${sansAction.join(', ')} : une dimension qui porte un écart (constat, règle non conforme ou partielle) `
+    + 'exige au moins une action — mode « action par constat » : action rattachée à un constat (constat_ref) qui nomme les règles qu\'elle couvre (couvre), sans redite');
+const dejaCouverte = new Map();
+for (const a of data.actions ?? []) {
+  if (a.couvre === undefined) continue;
+  const nom = `action « ${a.titre ?? '?'} »`;
+  if (!Array.isArray(a.couvre)) { errors.push(`${nom}: couvre doit être une liste d'identifiants de règles`); continue; }
+  for (const id of a.couvre) {
+    const r = regleParId[id];
+    if (!r) errors.push(`${nom}: couvre ${id} — règle inconnue`);
+    else if (!PORTE_ECART(r)) errors.push(`${nom}: couvre ${id} dont le verdict « ${r.verdict} » ne porte aucun écart — seule une règle non conforme ou partielle se couvre`);
+    else if (r.couverte_par) errors.push(`${nom}: couvre ${id}, déjà couverte par la règle ${r.couverte_par} — une règle n'a qu'une couverture`);
+    else if (dejaCouverte.has(id)) errors.push(`${nom}: couvre ${id}, déjà couverte par l'action « ${dejaCouverte.get(id)} » — deux actions pour une règle sont une redite`);
+    else dejaCouverte.set(id, a.titre ?? '?');
+  }
+  if (a.couvre.length) {
+    if (!a.constat_ref) errors.push(`${nom}: couvre sans constat_ref — le mode « action par constat » rattache l'action à un constat`);
+    else if (!(data.constats ?? []).some(c => c.id === a.constat_ref || c.titre === a.constat_ref))
+      errors.push(`${nom}: constat_ref « ${a.constat_ref} » ne désigne aucun constat (id ou titre)`);
+  }
+}
+
 if (warnings.length) for (const w of warnings) console.error(`AVERTISSEMENT: ${w}`);
 
 if (errors.length) {

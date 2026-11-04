@@ -452,6 +452,8 @@ export function buildPlan(data) {
       source: a.dimension ?? '—', source_type: 'dimension',
       verification: a.verification ?? CRITERE_ABSENT,
       activation: a.activation ?? null,
+      // TF-2138 — mode « action par constat » : l'action nomme les règles qu'elle COUVRE (cf. plus bas).
+      ...(Array.isArray(a.couvre) && a.couvre.length ? { couvre: [...a.couvre] } : {}),
     });
   });
   // 2 · règles non conformes ou partielles — jamais écartées silencieusement
@@ -477,7 +479,21 @@ export function buildPlan(data) {
     couvertesPar.get(p).push(r.id);
   }
   const estCouverte = (r) => Boolean(r.couverte_par) && (couvertesPar.get(r.couverte_par) ?? []).includes(r.id);
-  ecartsRegles.filter(r => !estCouverte(r)).forEach(r => {
+  // TF-2138 (mode « action par constat ») — une ACTION de dimension peut elle aussi couvrir des règles
+  // (`couvre: [ids]`) : la règle couverte n'ouvre pas sa propre action, sans quoi le plan non vide d'une
+  // dimension redirait, au texte voisin, la remédiation de ses règles (TF-0624). Rien n'est écarté en silence :
+  // l'action NOMME ses règles (colonne Source, `covers` du YAML), y compris celles que sa règle couverte porte
+  // à son tour. Seule une règle en écart se couvre ; le gate machine refuse le reste (verifier-rapport.mjs).
+  const couvertesParAction = new Set();
+  for (const b of brut) {
+    if (b.source_type && b.source_type !== 'dimension') continue;
+    for (const id of [...(b.couvre ?? [])]) {
+      if (!ecartParId[id] || ecartParId[id].couverte_par) { b.couvre = b.couvre.filter(x => x !== id); continue; }
+      couvertesParAction.add(id);
+      for (const sous of couvertesPar.get(id) ?? []) { b.couvre.push(sous); couvertesParAction.add(sous); }
+    }
+  }
+  ecartsRegles.filter(r => !estCouverte(r) && !couvertesParAction.has(r.id)).forEach(r => {
     const couvre = couvertesPar.get(r.id) ?? [];
     brut.push({
       couvre,
