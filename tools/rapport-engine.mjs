@@ -342,9 +342,22 @@ function renderERD(db, L = STR.fr, T = RES.fr) {
   <p class="muted small">${L.legende_erd}</p>`;
 }
 
+/**
+ * Feuille de style du schéma d'architecture (`renderArchi`). Exportée : la présentation à l'autorité (TF-2142)
+ * réutilise TEL QUEL le schéma du rapport — « pas de second schéma divergent » — et doit donc en porter les styles.
+ */
+export const ARCHI_CSS = `/* .erd-band sert encore au schéma d'ARCHITECTURE (renderArchi) ; les autres classes .erd-*
+   ont disparu avec le moteur ERD en SVG pur remplacé par le canevas (TF-0940). */
+.erd-band{font-size:10px;font-weight:700;letter-spacing:.08em;fill:var(--muted);text-transform:uppercase}
+.a-t{font-weight:700;font-size:12px}.a-s{font-size:10px}
+.a-purple rect{fill:#ede9fe;stroke:#c4b5fd}.a-purple text{fill:#5b21b6}.a-blue rect{fill:#dbeafe;stroke:#93c5fd}.a-blue text{fill:#1d4ed8}
+.a-teal rect{fill:#ccfbf1;stroke:#5eead4}.a-teal text{fill:#0f766e}.a-coral rect{fill:#fee2e2;stroke:#fca5a5}.a-coral text{fill:#b91c1c}
+.a-amber rect{fill:#fef3c7;stroke:#fcd34d}.a-amber text{fill:#92400e}.a-gray rect{fill:#f1f3f7;stroke:#cbd5e1}.a-gray text{fill:#374151}
+.a-e{fill:none;stroke:#475569;stroke-width:1.5}.a-e.dashed{stroke-dasharray:5 3;stroke:#94a3b8}.a-e.coral{stroke:#b91c1c}`;
+
 // ── M5 v1.5 · Schéma d'architecture : data.architecture = { bandes:[{key,label}],
 //    nodes:[{id,bande,label,sub,style}], edges:[{from,to,style,label}] } — auto-layout barycentre.
-function renderArchi(arch, L = STR.fr) {
+export function renderArchi(arch, L = STR.fr) {
   if (!arch?.nodes?.length) return '';
   const bandes = arch.bandes?.length ? arch.bandes : [{ key: '_', label: '' }];
   const NW = 180, NH = 56, GX = 34, BH = 120, W = 1240;
@@ -629,6 +642,19 @@ export const aUnScore = (d) => typeof d?.score === 'number' && Number.isFinite(d
  */
 export const estBloquant = (d) => d?.applicability !== 'off'
   && ((aUnScore(d) && d.score <= 2) || d?.criticite === 'Fatal' || d?.criticality === 'fatal');
+
+/**
+ * TF-2142 (RU-8, 04/11/2026) — les constats GRAVES, ceux qu'une présentation à l'autorité nomme « risques
+ * majeurs ». Le référentiel gradue Fatal > Bloquant > Majeur > Standard (`dimensions.yaml`, criticites) ;
+ * `build-slides.mjs` filtrait `severite === 'critique'`, un mot qu'il ne contient pas, d'où « Aucun constat
+ * critique » affiché sur un NO-GO. `critique` reste accepté comme alias HÉRITÉ (le vocabulaire de `SEV`
+ * ci-dessus, encore porté par des données d'audit anciennes) et se range avec Fatal. Le Fatal d'abord.
+ */
+export const SEVERITES_GRAVES = ['Fatal', 'critique', 'Bloquant'];
+const RANG_GRAVE = { Fatal: 0, critique: 0, Bloquant: 1 };
+export const constatsGraves = (data) => (data?.constats ?? [])
+  .filter(c => SEVERITES_GRAVES.includes(c.severite))
+  .sort((a, b) => RANG_GRAVE[a.severite] - RANG_GRAVE[b.severite]);
 
 export function renderRapport(data, { tenant, dimensions, families, themeCss = '', coreVersion = '', lang = 'fr' } = {}) {
   const L = STR[lang] ?? STR.fr;
@@ -1014,14 +1040,7 @@ th{background:var(--bg);position:relative}
 .constat{border-left:3px solid var(--line);padding:6px 10px;margin:6px 0;background:var(--panel)}
 .constat.s-critique{border-color:var(--fatal)}.constat.s-majeur{border-color:var(--maj)}
 .radar{max-width:460px}.rlab{font-size:10.5px;fill:var(--txt)}
-/* .erd-band sert encore au schéma d'ARCHITECTURE (renderArchi) ; les autres classes .erd-*
-   ont disparu avec le moteur ERD en SVG pur remplacé par le canevas (TF-0940). */
-.erd-band{font-size:10px;font-weight:700;letter-spacing:.08em;fill:var(--muted);text-transform:uppercase}
-.a-t{font-weight:700;font-size:12px}.a-s{font-size:10px}
-.a-purple rect{fill:#ede9fe;stroke:#c4b5fd}.a-purple text{fill:#5b21b6}.a-blue rect{fill:#dbeafe;stroke:#93c5fd}.a-blue text{fill:#1d4ed8}
-.a-teal rect{fill:#ccfbf1;stroke:#5eead4}.a-teal text{fill:#0f766e}.a-coral rect{fill:#fee2e2;stroke:#fca5a5}.a-coral text{fill:#b91c1c}
-.a-amber rect{fill:#fef3c7;stroke:#fcd34d}.a-amber text{fill:#92400e}.a-gray rect{fill:#f1f3f7;stroke:#cbd5e1}.a-gray text{fill:#374151}
-.a-e{fill:none;stroke:#475569;stroke-width:1.5}.a-e.dashed{stroke-dasharray:5 3;stroke:#94a3b8}.a-e.coral{stroke:#b91c1c}
+${ARCHI_CSS}
 /* — Filtres de colonne (composant du socle, G1-G6) + recherche libre — */
 .t-outils{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:10px 0 2px}
 .t-outils input[type=search]{flex:1 1 240px;padding:8px;border:1px solid var(--line);border-radius:8px;font:inherit}

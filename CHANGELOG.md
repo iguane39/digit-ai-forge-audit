@@ -7,6 +7,20 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2142 — la présentation à l'autorité de décision tient ses 8 diapositives, dit la vérité du rapport, et
+  un oracle la juge** (04/11/2026, RU-8) — `build-slides.mjs` filtrait `severite === 'critique'`, hors du
+  vocabulaire du référentiel (Fatal / Bloquant / Majeur / Standard) : « Aucun constat critique » s'affichait sur
+  un NO-GO ; il lisait le plan dans `data.actions` au lieu de `buildPlan` (les règles non conformes en
+  manquaient) ; il rendait 5 diapositives pour 8 au gabarit `presentation-autorite.template.md` (schéma
+  d'architecture, contexte et contacts absents). Les risques majeurs sont désormais les constats Fatal puis
+  Bloquant (`constatsGraves`, `critique` gardé comme alias hérité), le plan est celui de `buildPlan` réparti par
+  mode d'activation, le schéma est celui du rapport (`renderArchi` et `ARCHI_CSS` exportés, un seul rendu), les
+  huit diapositives suivent le gabarit, lu à l'exécution. Classe « générateur de livrable sans oracle » : nouvel
+  oracle `tools/verifier-presentation.mjs` (P1-P8 : nombre, ordre et titres du gabarit, placeholders, verdict
+  et bloquants recalculés depuis les données, risques majeurs, schéma identique au rapport, modes d'activation
+  totalisant le plan, contacts ; ce qui n'est pas jugé faute d'entrée est dit « non jugé »), joué par
+  `build-slides.mjs` sur sa propre sortie et par la CI (nouvelle étape). Banc
+  `tests/oracles/presentation-autorite.test.mjs` : 11 tests sur 12 rouges avant correctif, 12 verts après.
 - **TF-2138 — un rapport qui ne remplit pas `rapport-audit.template.md` n'est plus « diffusable »** (04/11/2026,
   RU-5, voisin de TF-1001) — `verifier-rapport` et `verifier-rapport-html` rendaient exit 0 sur un rapport sans
   cartes de synthèse, sans périmètre D00, sans architecture, sans section tests/analyses/composants et sans

@@ -48,7 +48,8 @@ function bloquantsDesDiapositives(chemin) {
   const sortie = path.join(dossier, `slides-${path.basename(chemin, '.json')}.html`);
   const r = node([path.join(RACINE, 'tools', 'build-slides.mjs'), chemin, '--tenant', TENANT, '--out', sortie]);
   assert.equal(r.status, 0, r.stderr);
-  const m = /<span>Bloquants<\/span><b>(\d+)<\/b>/.exec(fs.readFileSync(sortie, 'utf8'));
+  // diapositive « Verdict Gate » (TF-2142) : colonne Bloquants du tableau Score global / Statut Gate / Bloquants
+  const m = /(\d+) dimension\(s\) ≤ 2 ou Fatal/.exec(fs.readFileSync(sortie, 'utf8'));
   assert.ok(m, 'la diapositive de synthèse porte le compte des bloquants');
   return Number(m[1]);
 }
@@ -84,7 +85,7 @@ test('TF-2143 — le score global ne compte pas un null pour un zéro (ni dans l
   const sortie = path.join(dossier, 'slides-moyenne.html');
   const r = node([path.join(RACINE, 'tools', 'build-slides.mjs'), chemin, '--tenant', TENANT, '--out', sortie]);
   assert.equal(r.status, 0, r.stderr);
-  assert.match(fs.readFileSync(sortie, 'utf8'), /<span>Score global<\/span><b>4\.0\/5<\/b>/, 'présentation : un null est compté pour 0');
+  assert.match(fs.readFileSync(sortie, 'utf8'), /<td>4\.0\/5<\/td>/, 'présentation : un null est compté pour 0');
 });
 
 test('TF-2143 — le gate de données refuse un score null ou textuel sur une dimension instruite, et accepte off + null', () => {
