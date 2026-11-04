@@ -90,15 +90,26 @@ export function dossierCibleOuUsage(argument, usage) {
  * l'option n'est pas passée, la valeur si c'est un dossier ; sinon (valeur absente ou en « - »)
  * refus motivé + usage sur stderr, sortie 2, et l'outil s'arrête ici avant de rien créer.
  */
-export function valeurDossierOuUsage(argv, option, usage) {
+export function valeurDossierOuUsage(argv, option, usage, genre = 'dossier', codeUsage = 2) {
   const i = argv.indexOf(option);
   if (i === -1) return undefined;
   const valeur = argv[i + 1];
   if (valeur !== undefined && !String(valeur).startsWith('-')) return valeur;
   console.error(valeur === undefined
-    ? `Option ${option} sans valeur : un dossier est attendu.`
-    : `Option ${option} : « ${valeur} » refusé comme dossier, un argument qui commence par « - » `
-      + 'est une option, pas un dossier.');
+    ? `Option ${option} sans valeur : un ${genre} est attendu.`
+    : `Option ${option} : « ${valeur} » refusé comme ${genre}, un argument qui commence par « - » `
+      + `est une option, pas un ${genre}.`);
   console.error(usage);
-  process.exit(2);
+  process.exit(codeUsage);
 }
+
+/**
+ * TF-2131 (suite de TF-2105) — la valeur d'une option de FICHIER (`--out <fichier>`, `--tenant <yaml>`,
+ * `--data <json>`, `--status <suivi>`…). Même règle que pour un dossier : `build-catalogue.mjs <tenant> --out
+ * --dry-run` écrivait un fichier littéralement nommé « --dry-run » ; une quinzaine d'outils lisaient
+ * `process.argv[indexOf(option) + 1]` sans rien refuser. `valeurDossierOuUsage` porte le garde (paramètre
+ * `genre`) ; ce raccourci le nomme pour la lecture. Les oracles de `oracles/`, autoportants (embarqués dans le
+ * kit, sans import de ce fichier), recopient la règle en ligne dans leur `opt()`.
+ */
+export const valeurFichierOuUsage = (argv, option, usage, codeUsage = 2) =>
+  valeurDossierOuUsage(argv, option, usage, 'fichier', codeUsage);

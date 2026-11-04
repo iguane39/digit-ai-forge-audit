@@ -4,13 +4,15 @@
 // Usage: node tools/init-audit-workspace.mjs <dossier-cible> [--tenant <tenant.yaml>]
 import fs from 'node:fs';
 import path from 'node:path';
-import { loadTenant, dossierCibleOuUsage } from './lib.mjs';
+import { loadTenant, dossierCibleOuUsage, valeurFichierOuUsage } from './lib.mjs';
 
 // TF-2089 : un argument qui commence par « - » n'est jamais le dossier cible (--help en a créé un).
 const target = dossierCibleOuUsage(process.argv[2],
   'Usage: node tools/init-audit-workspace.mjs <dossier-cible> [--tenant <tenant.yaml>]');
-const tIdx = process.argv.indexOf('--tenant');
-const tenantName = tIdx > -1 ? loadTenant(process.argv[tIdx + 1]).cfg.tenant.name : '{{tenant}}';
+// TF-2131 : la valeur de --tenant est un fichier, jamais une autre option.
+const tenantArg = valeurFichierOuUsage(process.argv, '--tenant',
+  'Usage: node tools/init-audit-workspace.mjs <dossier-cible> [--tenant <tenant.yaml>]');
+const tenantName = tenantArg !== undefined ? loadTenant(tenantArg).cfg.tenant.name : '{{tenant}}';
 
 const INPUT = ['00 - Cadrage', '01 - Code & dépôt', '02 - Architecture & IaC', '03 - Sécurité & secrets',
   '04 - Données', '05 - Tests & CI-CD', '06 - Observabilité', '07 - Docs & gouvernance'];

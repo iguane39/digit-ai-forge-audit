@@ -36,10 +36,23 @@ if (!src) fail("indiquer un rapport HTML ou un remediation-actions.yaml. Voir l'
 if (!fs.existsSync(src)) fail('fichier introuvable : ' + src);
 const iInit = args.indexOf('--init');
 const doInit = iInit >= 0;
-const initArg = (doInit && args[iInit + 1] && !args[iInit + 1].startsWith('--') && args[iInit + 1] !== src) ? args[iInit + 1] : null;
+// TF-2131 : « - » en tête = une option, jamais le nom d'un fichier (`--init -x` aurait écrit « -x »).
+const initArg = (doInit && args[iInit + 1] && !args[iInit + 1].startsWith('-') && args[iInit + 1] !== src) ? args[iInit + 1] : null;
+// `--status <suivi.json>` : un fichier, jamais une autre option (refus motivé + usage, sortie 2). Règle de
+// `valeurFichierOuUsage` (tools/lib.mjs) recopiée ICI : cet outil est embarqué dans le kit, sans import du dépôt.
 const iStatus = args.indexOf('--status');
-const statusFile = iStatus >= 0 ? args[iStatus + 1] : null;
-if (iStatus >= 0 && !statusFile) fail('--status attend un chemin de fichier de suivi.');
+let statusFile = null;
+if (iStatus >= 0) {
+  const v = args[iStatus + 1];
+  if (v === undefined || v.startsWith('-')) {
+    console.error(v === undefined
+      ? 'Option --status sans valeur : un fichier est attendu.'
+      : `Option --status : « ${v} » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.`);
+    console.error('Usage: node tools/verifier-remediation.mjs <rapport.html|actions.yaml> [--init [suivi.json]] [--status <suivi.json>]');
+    process.exit(2);
+  }
+  statusFile = v;
+}
 
 // ── Extraction du plan ───────────────────────────────────────────────────────
 let plan = [];

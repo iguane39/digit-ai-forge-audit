@@ -7,6 +7,28 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2131 — la valeur d'une option de fichier n'est plus prise pour un fichier quand elle commence par
+  « - »** (04/11/2026, suite de TF-2105 et TF-2089) — `node tools/build-catalogue.mjs <tenant> --out --dry-run`
+  écrivait un fichier littéralement nommé « --dry-run » (mesuré le 04/11 dans un dossier vide) ; des lectures d'option du dépôt
+  (`process.argv[indexOf('--out') + 1]`, `flag()`, `opt()`) n'en refusaient aucune.
+  `valeurDossierOuUsage` de `tools/lib.mjs` prend un paramètre `genre` (« dossier » par défaut, message de
+  TF-2105 inchangé) et `valeurFichierOuUsage` le nomme pour les fichiers : refus motivé + usage, sortie 2, rien
+  de créé, valeur absente comprise. Appliqué à `build-banc`, `build-catalogue`, `build-referentiel`,
+  `build-fiche` (`--data`, `--out`), `build-rapport` et `build-slides` (`--tenant`, `--out`),
+  `init-audit-workspace` (`--tenant`), `merge-packs` (`--baseline`, `--pack`, `--authority`, `--tenant`,
+  `--out`), `importer-doctrine` (`--ecart`, `--out`, `--ecarts-md`), `verifier-rapport` (`--tenant`),
+  `verifier-referentiel` (`--dimensions`, `--doctrine`, `--out`, `--type`). Les outils et oracles autoportants,
+  embarqués dans le kit sans import du dépôt, recopient la règle en ligne : `verifier-remediation` (`--status`,
+  et `--init -x` n'est plus pris pour un nom de fichier), `fiche-en-pdf` (`--out`, `--navigateur`,
+  `--delai-port`, `--pages-max`), douze oracles de `oracles/` (`smoke-parcours`, qui sort 3 comme pour tout son
+  usage, `verifier-couverture-fonctionnelle`, `verifier-dependances-env`, `verifier-modele-semantique`,
+  `verifier-rapport-pbir`, `verifier-roundtrip`, `verifier-schema-modele`, `verifier-pdf`, `verifier-fiche-securite`,
+  `verifier-migrations`, `maj-versions`, `decouvrir-oracles`) et le rendu de rapport autonome que `build-kit`
+  livre. Banc `tests/oracles/outils-option-fichier.test.mjs` : 75 tests, 63 rouges avant correctif (chacun des
+  32 couples outil × option de la table, joué avec `--dry-run`, `-x` et sans valeur) et 12 verts (8 témoins où
+  une vraie valeur reste honorée, le contrôle de couverture de la table, 3 refus déjà levés par un autre
+  chemin), 75 verts après. Hors périmètre, constaté : l'autonome `build-rapport-standalone.mjs` du kit importe
+  `./canevas-modele-donnees.mjs`, que le kit ne livre pas — il lève `ERR_MODULE_NOT_FOUND` hors du dépôt.
 - **TF-2142 — la présentation à l'autorité de décision tient ses 8 diapositives, dit la vérité du rapport, et
   un oracle la juge** (04/11/2026, RU-8) — `build-slides.mjs` filtrait `severite === 'critique'`, hors du
   vocabulaire du référentiel (Fatal / Bloquant / Majeur / Standard) : « Aucun constat critique » s'affichait sur

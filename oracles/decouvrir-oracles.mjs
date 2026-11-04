@@ -81,7 +81,15 @@ const lanceEnDirect = process.argv[1]
 if (lanceEnDirect) {
   const args = process.argv.slice(2);
   const i = args.indexOf('--racine');
-  const racine = resolve(i >= 0 && args[i + 1] ? args[i + 1] : join(dirname(fileURLToPath(import.meta.url)), '..'));
+  // TF-2131 : la valeur de --racine est un dossier, jamais une autre option (règle de `valeurDossierOuUsage`, recopiée : oracle autoportant).
+  if (i >= 0 && (args[i + 1] === undefined || args[i + 1].startsWith('-'))) {
+    console.error(args[i + 1] === undefined
+      ? 'Option --racine sans valeur : un dossier est attendu.'
+      : `Option --racine : « ${args[i + 1]} » refusé comme dossier, un argument qui commence par « - » est une option, pas un dossier.`);
+    console.error('usage: node decouvrir-oracles.mjs [--racine <dossier>]');
+    process.exit(2);
+  }
+  const racine = resolve(i >= 0 ? args[i + 1] : join(dirname(fileURLToPath(import.meta.url)), '..'));
   const r = decouvrirOracles(racine);
   console.log(JSON.stringify(r, null, 1));
   process.exit(r.motif ? 2 : 0);

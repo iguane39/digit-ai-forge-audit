@@ -310,7 +310,23 @@ const USAGE = 'Usage: node fiche-en-pdf.mjs <fiche.html> [--out <fiche.pdf>] [--
   + '[--navigateur <chemin>] [--delai-port <ms>] [--sans-relecture]  |  node fiche-en-pdf.mjs --self-test';
 
 async function principal(args) {
-  const opt = (n, d = null) => { const i = args.indexOf(n); return i === -1 ? d : args[i + 1]; };
+  // TF-2131 : la valeur d'une option (--out, --navigateur : fichiers ; --delai-port, --pages-max : nombres) n'est
+  // jamais une autre option — `--out --dry-run` aurait écrit un PDF nommé « --dry-run ». Règle de
+  // `valeurFichierOuUsage` (tools/lib.mjs) recopiée ICI : cet outil est embarqué dans le kit, sans import du dépôt.
+  const opt = (n, d = null) => {
+    const i = args.indexOf(n);
+    if (i === -1) return d;
+    const v = args[i + 1];
+    if (v === undefined || v.startsWith('-')) {
+      console.error(v === undefined
+        ? `Option ${n} sans valeur : une valeur est attendue.`
+        : `Option ${n} : « ${v} » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.`);
+      console.error(USAGE);
+      process.exit(2);
+    }
+    return v;
+  };
+  for (const o of ['--out', '--navigateur', '--delai-port', '--pages-max']) opt(o);   // refus avant toute lecture
   const source = args.find((a) => !a.startsWith('--') && /\.html?$/i.test(a));
   if (!source) { console.error(USAGE); return 2; }
   if (!fs.existsSync(source)) { console.error(`fiche HTML introuvable : ${source}`); return 2; }

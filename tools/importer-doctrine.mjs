@@ -39,10 +39,13 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import * as yaml from 'js-yaml';
 import Ajv from 'ajv';
-import { rel, loadJson, loadYaml } from './lib.mjs';
+import { rel, loadJson, loadYaml, valeurFichierOuUsage } from './lib.mjs';
 
 const args = process.argv.slice(2);
-const opt = (n, d = null) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
+// TF-2131 : la valeur de --ecart, --out et --ecarts-md est un fichier, jamais une autre option (`--out --dry-run`
+// écrivait un fichier nommé « --dry-run »). Absente (option non passée) → `d`.
+const USAGE = 'usage: node tools/importer-doctrine.mjs <ref-donnees.json> [--ecart <ecart.json>] [--out <doctrine.yaml>] [--ecarts-md <doctrine-ecarts.md>] [--dry-run]';
+const opt = (n, d = null) => valeurFichierOuUsage(args, n, USAGE) ?? d;
 // Drapeaux À VALEUR : leur argument suivant n'est pas le positionnel. Sans cette distinction,
 // `--out fichier.yaml` en tête ferait passer `fichier.yaml` pour la source à importer.
 const A_VALEUR = new Set(['--ecart', '--out', '--ecarts-md']);
@@ -54,7 +57,7 @@ for (let i = 0; i < args.length; i++) {
   break;
 }
 if (!source) {
-  console.error('usage: node tools/importer-doctrine.mjs <ref-donnees.json> [--ecart <ecart.json>] [--out <doctrine.yaml>] [--ecarts-md <doctrine-ecarts.md>] [--dry-run]');
+  console.error(USAGE);
   process.exit(2);
 }
 if (!fs.existsSync(source)) { console.error(`source introuvable : ${source}`); process.exit(2); }

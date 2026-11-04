@@ -26,7 +26,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { rel, loadTenant, loadJson } from './lib.mjs';
+import { rel, loadTenant, loadJson, valeurFichierOuUsage } from './lib.mjs';
 import { allouerIndice } from './allouer-indice.mjs';
 
 // TF-1095 (restes archivés TF-0690, TF-0702, releve P-2 du 14/09/2026) : « une instance perimee
@@ -42,9 +42,10 @@ const tenantYaml = process.argv[2];
 const USAGE = 'Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>] (--produit <racine> | --out <fichier.html>) [--sans-pdf]';
 if (!tenantYaml) { console.error(USAGE); process.exit(2); }
 const { cfg, tenantDir } = loadTenant(tenantYaml);
-const dIdx = process.argv.indexOf('--data');
-const outIdx = process.argv.indexOf('--out');
-const data = dIdx > -1 ? loadJson(path.resolve(process.argv[dIdx + 1])) : {};
+// TF-2131 : la valeur de --data et de --out est un fichier, jamais une autre option.
+const dataArg = valeurFichierOuUsage(process.argv, '--data', USAGE);
+const outArg = valeurFichierOuUsage(process.argv, '--out', USAGE);
+const data = dataArg !== undefined ? loadJson(path.resolve(dataArg)) : {};
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const LEGENDE_PH = 'les champs affichés en <span class="ph">chasse fixe</span> restent à compléter.';
 const V = (k, ph) => data[k] !== undefined ? esc(data[k]) : `<span class="ph">{{${ph ?? k}}}</span>`;
@@ -199,10 +200,10 @@ const slug = cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 const auj = new Date();
 const jourDuJour = `${auj.getFullYear()}${String(auj.getMonth() + 1).padStart(2, '0')}${String(auj.getDate()).padStart(2, '0')}`;
 let out, jour = jourDuJour, indice = 'a';
-if (outIdx > -1) {
+if (outArg !== undefined) {
   // `--out` reste honoré TEL QUEL (build-kit.mjs en dépend, et il rend dans un temporaire).
   // Si le nom donné est daté, son indice fait foi ; sinon la référence porte le jour et `a`.
-  out = path.resolve(process.argv[outIdx + 1]);
+  out = path.resolve(outArg);
   const m = /(\d{8})([a-z])(?=\.[A-Za-z0-9]+$)/.exec(path.basename(out));
   if (m) { jour = m[1]; indice = m[2]; }
 } else if (produitIdx > -1) {
@@ -223,7 +224,7 @@ if (outIdx > -1) {
 const html = htmlAvec(jour, indice);
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');
-console.log(`✔ fiche sécurité: 8 sections ${dIdx > -1 ? '(remplie)' : '(squelette à compléter)'} `
+console.log(`✔ fiche sécurité: 8 sections ${dataArg !== undefined ? '(remplie)' : '(squelette à compléter)'} `
   + `— réf. ${cfg.tenant.short_code}-SEC-DEV-${jour}${indice} → ${out}`);
 
 // ---- LES DEUX FORMATS DANS LA MEME PASSE (TF-0506) — ET LE PDF EST *IMPRIMÉ* (TF-0700) ----

@@ -24,7 +24,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const args = process.argv.slice(2);
-const opt = (n, d = null) => { const i = args.indexOf(n); return i === -1 ? d : args[i + 1]; };
+// TF-2131 : la valeur d'une option est un fichier (ou un nombre), jamais une autre option — `--out --dry-run`
+// écrivait un fichier nommé « --dry-run ». Règle de `valeurFichierOuUsage` (tools/lib.mjs) recopiée ICI : cet oracle
+// est autoportant, embarqué dans le kit, sans import du dépôt.
+const USAGE_OPTION = "usage: node verifier-pdf.mjs <tirage.pdf> [--format A4|A3|LETTER] [--pages-max N] [--apres <horodatage ms>] [--source <fichier>] [--json-only]";
+const opt = (n, d = null) => {
+  const i = args.indexOf(n);
+  if (i === -1) return d;
+  const v = args[i + 1];
+  if (v === undefined || v.startsWith('-')) {
+    console.error(v === undefined
+      ? `Option ${n} sans valeur : un fichier est attendu.`
+      : `Option ${n} : « ${v} » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.`);
+    console.error(USAGE_OPTION);
+    process.exit(2);
+  }
+  return v;
+};
 const jsonOnly = args.includes('--json-only');
 const cible = args.find((a) => !a.startsWith('--') && /\.pdf$/i.test(a));
 const format = (opt('--format', 'A4') || 'A4').toUpperCase();

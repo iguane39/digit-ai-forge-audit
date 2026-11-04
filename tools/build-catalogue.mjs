@@ -11,12 +11,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { rel, loadTenant, loadJson } from './lib.mjs';
+import { rel, loadTenant, loadJson, valeurFichierOuUsage } from './lib.mjs';
 
 const tenantYaml = process.argv[2];
 if (!tenantYaml) { console.error('Usage: node tools/build-catalogue.mjs <tenant.yaml> [--out <fichier.html>]'); process.exit(2); }
 const { cfg, tenantDir } = loadTenant(tenantYaml);
-const outIdx = process.argv.indexOf('--out');
+const outArg = valeurFichierOuUsage(process.argv, '--out', 'Usage: node tools/build-catalogue.mjs <tenant.yaml> [--out <fichier.html>]');
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // ── corpus : parse frontmatter + titre + extraits des 84 ADRs
@@ -103,7 +103,7 @@ function apply(){var q=document.getElementById('q').value.toLowerCase(),n=0;
  document.getElementById('n').textContent=n;}
 </script></body></html>`;
 
-const out = outIdx > -1 ? path.resolve(process.argv[outIdx + 1])
+const out = outArg !== undefined ? path.resolve(outArg)
   : rel('deliverables', 'generated', cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 'catalogue-adr.html');
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');

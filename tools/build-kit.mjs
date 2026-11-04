@@ -139,7 +139,11 @@ const rapportStandalone = [
   "if(!file){console.error('Usage: node build-rapport-standalone.mjs <rapport-data.json> [--out <fichier.html>]');process.exit(2);}",
   "const data=JSON.parse(fs.readFileSync(file,'utf-8')); data._constraints_index=CIDX; data._short_code=SHORT;",
   'const html=renderRapport(data,{tenant:TENANT,dimensions:DIMS,families:FAMS,themeCss:THEME,coreVersion:CORE,lang:LANG});',
-  "const oi=process.argv.indexOf('--out'); const out=oi>-1?process.argv[oi+1]:'rapport-audit.html';",
+  // TF-2131 : la valeur de --out est un fichier, jamais une autre option (`--out --dry-run` écrivait un fichier nommé
+  // « --dry-run »). Règle de `valeurFichierOuUsage` (tools/lib.mjs) recopiée dans l'autonome : le kit est autoportant.
+  "const oi=process.argv.indexOf('--out'); const ov=oi>-1?process.argv[oi+1]:undefined;",
+  "if(oi>-1&&(ov===undefined||ov.startsWith('-'))){console.error(ov===undefined?'Option --out sans valeur : un fichier est attendu.':'Option --out : « '+ov+' » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.');console.error('Usage: node build-rapport-standalone.mjs <rapport-data.json> [--out <fichier.html>]');process.exit(2);}",
+  "const out=oi>-1?ov:'rapport-audit.html';",
   "fs.writeFileSync(out,html,'utf-8');",
   "console.log('✔ rapport rendu → '+out+' — gate machine : node verifier-rapport-standalone.mjs '+file);",
 ].join('\n');

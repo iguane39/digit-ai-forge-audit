@@ -14,10 +14,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Ajv from 'ajv';
-import { ROOT, rel, loadTenant, loadJson, saveJson, deriveBucket } from './lib.mjs';
+import { ROOT, rel, loadTenant, loadJson, saveJson, deriveBucket, valeurFichierOuUsage } from './lib.mjs';
 
 const argv = process.argv.slice(2);
-const flag = (name, def) => { const i = argv.indexOf(name); return i > -1 ? argv[i + 1] : def; };
+// TF-2131 : la valeur d'une option (fichier : --baseline, --pack, --tenant, --out ; nom : --authority) n'est jamais une
+// autre option — `--out --dry-run` écrivait un fichier nommé « --dry-run ». Même règle que `valeurFichierOuUsage`.
+const USAGE = 'Usage: node tools/merge-packs.mjs <tenant.yaml> [--out f] | --derive-pack --baseline f --pack f [--authority N] | --iso-test --baseline f --pack f --tenant f';
+const flag = (name, def) => valeurFichierOuUsage(argv, name, USAGE) ?? def;
 const BASELINE = flag('--baseline', null);
 const PACK_OUT = flag('--pack', null);
 const AUTHORITY = flag('--authority', 'Tenant');
@@ -124,7 +127,7 @@ else if (argv.includes('--iso-test')) isoTest();
 else {
   const tenantYaml = argv.find((a, i) => !a.startsWith('--') && !FLAGS_WITH_VALUE.includes(argv[i - 1]));
   if (!tenantYaml) { console.error('Usage: node tools/merge-packs.mjs <tenant.yaml> [--out f] | --derive-pack --baseline f --pack f [--authority N] | --iso-test --baseline f --pack f --tenant f'); process.exit(2); }
-  const out = argv.includes('--out') ? argv[argv.indexOf('--out') + 1] : rel('config', 'merged.json');
+  const out = flag('--out', rel('config', 'merged.json'));
   const merged = mergePacks(tenantYaml, { allowMissing: argv.includes('--allow-missing') });
   // validation de chaque contrainte contre le schéma control (les C- historiques sont tolérés via pattern)
   const ajv = new Ajv({ allErrors: true, strict: false });

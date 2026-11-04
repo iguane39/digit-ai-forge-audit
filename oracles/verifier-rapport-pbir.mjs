@@ -45,7 +45,23 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const args = process.argv.slice(2);
-const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : null; };
+// TF-2131 : la valeur d'une option est un fichier (ou un nombre), jamais une autre option — `--out --dry-run`
+// écrivait un fichier nommé « --dry-run ». Règle de `valeurFichierOuUsage` (tools/lib.mjs) recopiée ICI : cet oracle
+// est autoportant, embarqué dans le kit, sans import du dépôt.
+const USAGE_OPTION = "usage: node verifier-rapport-pbir.mjs --rapport <dossier *.Report/ ou definition/> [--out rapport.json]";
+const opt = (n) => {
+  const i = args.indexOf(n);
+  if (i === -1) return null;
+  const v = args[i + 1];
+  if (v === undefined || v.startsWith('-')) {
+    console.error(v === undefined
+      ? `Option ${n} sans valeur : un fichier est attendu.`
+      : `Option ${n} : « ${v} » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.`);
+    console.error(USAGE_OPTION);
+    process.exit(2);
+  }
+  return v;
+};
 const rapportArg = opt('--rapport');
 const outArg = opt('--out');
 if (!rapportArg) { console.error('usage: node verifier-rapport-pbir.mjs --rapport <dossier *.Report/ ou definition/> [--out rapport.json]'); process.exit(2); }

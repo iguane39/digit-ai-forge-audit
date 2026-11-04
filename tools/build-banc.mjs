@@ -4,13 +4,14 @@
 // Usage: node tools/build-banc.mjs <tenant.yaml> [--out <fichier.md>]
 import fs from 'node:fs';
 import path from 'node:path';
-import { rel, loadTenant, loadJson, loadYaml, deriveBucket } from './lib.mjs';
+import { rel, loadTenant, loadJson, loadYaml, deriveBucket, valeurFichierOuUsage } from './lib.mjs';
 
 const file = process.argv[2];
 if (!file) { console.error('Usage: node tools/build-banc.mjs <tenant.yaml> [--out <fichier.md>]'); process.exit(2); }
 const { cfg, tenantDir, resolveRef } = loadTenant(file);
-const outIdx = process.argv.indexOf('--out');
-const out = outIdx > -1 ? path.resolve(process.argv[outIdx + 1])
+// TF-2131 : la valeur de --out est un fichier, jamais une autre option (`--out --dry-run` créait « --dry-run »).
+const outArg = valeurFichierOuUsage(process.argv, '--out', 'Usage: node tools/build-banc.mjs <tenant.yaml> [--out <fichier.md>]');
+const out = outArg !== undefined ? path.resolve(outArg)
   : rel('deliverables', 'generated', cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 'banc-de-preuves.md');
 
 // fusion (mêmes règles que merge-packs, tolère les packs absents en construction)

@@ -525,7 +525,21 @@ function selfTest() {
 if (path.resolve(process.argv[1] ?? '') === path.resolve(fileURLToPath(import.meta.url))) {
   const args = process.argv.slice(2);
   if (args.includes('--self-test')) process.exit(selfTest());
-  const opt = (n, d = null) => { const i = args.indexOf(n); return i === -1 ? d : args[i + 1]; };
+  // TF-2131 : la valeur d'une option n'est jamais une autre option (règle de `valeurFichierOuUsage`, tools/lib.mjs,
+  // recopiée ICI : cet oracle est autoportant, embarqué dans le kit, sans import du dépôt).
+  const opt = (n, d = null) => {
+    const i = args.indexOf(n);
+    if (i === -1) return d;
+    const v = args[i + 1];
+    if (v === undefined || v.startsWith('-')) {
+      console.error(v === undefined
+        ? `Option ${n} sans valeur : une valeur est attendue.`
+        : `Option ${n} : « ${v} » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.`);
+      console.error('usage: node verifier-fiche-securite.mjs <fiche.html> [--seuil-texte N] [--sans-pdf] [--json-only]');
+      process.exit(2);
+    }
+    return v;
+  };
   const jsonOnly = args.includes('--json-only');
   const cible = args.find((a) => !a.startsWith('--') && /\.html?$/i.test(a));
   if (!cible || !fs.existsSync(cible)) {

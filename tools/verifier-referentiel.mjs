@@ -29,11 +29,14 @@
 // =============================================================================
 import fs from 'node:fs';
 import path from 'node:path';
-import { rel, loadYaml } from './lib.mjs';
+import { rel, loadYaml, valeurFichierOuUsage } from './lib.mjs';
 
 const ORACLE = 'verifier-referentiel';
 const args = process.argv.slice(2);
-const opt = (n, d = null) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : d; };
+// TF-2131 : la valeur de --dimensions, --doctrine et --out est un fichier, jamais une autre option ; --type, un nom de
+// projet (jamais « -x » non plus). Absente → `d`.
+const USAGE_CLI = 'usage: node tools/verifier-referentiel.mjs [--dimensions <dimensions.yaml>] [--doctrine <doctrine.yaml>] [--type <projet>] [--out <rapport.json>]';
+const opt = (n, d = null) => valeurFichierOuUsage(args, n, USAGE_CLI) ?? d;
 
 const dimensionsPath = path.resolve(opt('--dimensions', rel('core', 'dimensions', 'dimensions.yaml')));
 const doctrinePath = path.resolve(opt('--doctrine', rel('core', 'dimensions', 'doctrine.yaml')));

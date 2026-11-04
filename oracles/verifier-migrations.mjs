@@ -16,7 +16,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const dir = process.argv[2];
-const outArg = (() => { const i = process.argv.indexOf('--out'); return i >= 0 ? process.argv[i + 1] : null; })();
+// TF-2131 : la valeur de --out est un fichier, jamais une autre option (`--out --dry-run` écrivait un fichier nommé
+// « --dry-run »). Règle de `valeurFichierOuUsage` (tools/lib.mjs) recopiée ICI : oracle autoportant, embarqué dans le kit.
+const outArg = (() => {
+  const i = process.argv.indexOf('--out');
+  if (i === -1) return null;
+  const v = process.argv[i + 1];
+  if (v === undefined || v.startsWith('-')) {
+    console.error(v === undefined
+      ? 'Option --out sans valeur : un fichier est attendu.'
+      : `Option --out : « ${v} » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.`);
+    console.error('usage: node verifier-migrations.mjs <dossier-projet> [--out migrations.json]');
+    process.exit(2);
+  }
+  return v;
+})();
 if (!dir || dir.startsWith('--') || !fs.existsSync(dir)) { console.error('usage: node verifier-migrations.mjs <dossier-projet> [--out migrations.json]'); process.exit(2); }
 
 const files = [];

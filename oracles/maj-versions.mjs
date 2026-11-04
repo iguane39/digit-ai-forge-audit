@@ -325,7 +325,17 @@ function pySecuritySteps(dir, reqFile, list) {
 async function main() {
   const args = process.argv.slice(2);
   const dir = args.find(a => !a.startsWith('--')) || '.';
-  const out = (args.includes('--out') ? args[args.indexOf('--out') + 1] : null) || path.join(dir, 'versions-actuelles.json');
+  // TF-2131 : la valeur de --out est un fichier, jamais une autre option (`--out --dry-run` écrivait un fichier nommé
+// « --dry-run »). Règle de `valeurFichierOuUsage` (tools/lib.mjs) recopiée ICI : oracle autoportant, embarqué dans le kit.
+  const iOut = args.indexOf('--out');
+  if (iOut !== -1 && (args[iOut + 1] === undefined || args[iOut + 1].startsWith('-'))) {
+    console.error(args[iOut + 1] === undefined
+      ? 'Option --out sans valeur : un fichier est attendu.'
+      : `Option --out : « ${args[iOut + 1]} » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.`);
+    console.error('usage: node maj-versions.mjs [dossier-projet] [--out versions-actuelles.json]');
+    process.exit(2);
+  }
+  const out = (iOut !== -1 ? args[iOut + 1] : null) || path.join(dir, 'versions-actuelles.json');
   const read = f => { try { return fs.readFileSync(f, 'utf8'); } catch { return null; } };
   const files = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
   const comps = [];

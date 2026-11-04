@@ -19,18 +19,20 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { rel, loadTenant, loadJson } from './lib.mjs';
+import { rel, loadTenant, loadJson, valeurFichierOuUsage } from './lib.mjs';
 import { aUnScore, estBloquant, constatsGraves, buildPlan, renderArchi, ARCHI_CSS, STR } from './rapport-engine.mjs';
 import { titresDuGabarit, gateAttendu, jugerPresentation } from './verifier-presentation.mjs';
 
 const file = process.argv[2];
 const tIdx = process.argv.indexOf('--tenant');
 if (!file || tIdx === -1) { console.error('Usage: node tools/build-slides.mjs <rapport-data.json> --tenant <tenant.yaml> [--out <fichier.html>]'); process.exit(2); }
-const { cfg, tenantDir } = loadTenant(process.argv[tIdx + 1]);
-const outIdx = process.argv.indexOf('--out');
+const USAGE = 'Usage: node tools/build-slides.mjs <rapport-data.json> --tenant <tenant.yaml> [--out <fichier.html>]';
+const tenantArg = valeurFichierOuUsage(process.argv, '--tenant', USAGE);   // TF-2131 : une option n'est jamais le fichier d'une autre
+const { cfg, tenantDir } = loadTenant(tenantArg);
+const outArg = valeurFichierOuUsage(process.argv, '--out', USAGE);
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const data = loadJson(path.resolve(file));
-const tenantAbs = path.resolve(process.argv[tIdx + 1]);
+const tenantAbs = path.resolve(tenantArg);
 
 const themePath = path.join(tenantDir, 'theme', 'theme.css');
 if (!fs.existsSync(themePath))
@@ -169,7 +171,7 @@ var i=0,S=document.querySelectorAll('.slide');
 document.addEventListener('keydown',function(e){if(e.key==='ArrowRight')i=Math.min(i+1,S.length-1);else if(e.key==='ArrowLeft')i=Math.max(i-1,0);else return;S.forEach((s,j)=>s.classList.toggle('on',j===i));});
 </script></body></html>`;
 
-const out = outIdx > -1 ? path.resolve(process.argv[outIdx + 1])
+const out = outArg !== undefined ? path.resolve(outArg)
   : rel('deliverables', 'generated', cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 'presentation-autorite.html');
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');

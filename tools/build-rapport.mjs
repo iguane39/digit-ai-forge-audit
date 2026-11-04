@@ -6,14 +6,16 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import * as yaml from 'js-yaml';
-import { rel, loadTenant, loadJson, loadYaml } from './lib.mjs';
+import { rel, loadTenant, loadJson, loadYaml, valeurFichierOuUsage } from './lib.mjs';
 import { renderRapport, buildPlan, planToActions, controlesEvalues } from './rapport-engine.mjs';
 
 const file = process.argv[2];
 const tIdx = process.argv.indexOf('--tenant');
 if (!file || tIdx === -1) { console.error('Usage: node tools/build-rapport.mjs <rapport-data.json> --tenant <tenant.yaml> [--out <fichier.html>]'); process.exit(2); }
-const { cfg, tenantDir } = loadTenant(process.argv[tIdx + 1]);
-const outIdx = process.argv.indexOf('--out');
+const USAGE = 'Usage: node tools/build-rapport.mjs <rapport-data.json> --tenant <tenant.yaml> [--out <fichier.html>]';
+const tenantArg = valeurFichierOuUsage(process.argv, '--tenant', USAGE);   // TF-2131 : une option n'est jamais le fichier d'une autre
+const { cfg, tenantDir } = loadTenant(tenantArg);
+const outArg = valeurFichierOuUsage(process.argv, '--out', USAGE);
 
 const data = loadJson(path.resolve(file));
 const lang = cfg.tenant.language === 'en' ? 'en' : 'fr';
@@ -24,7 +26,7 @@ const dimensions = dimsPack.dimensions.map(d => ({ ...d, label: relabel[d.id] ??
 const families = dimsPack.families.map(f => ({ ...f, label: lang === 'en' ? (f.label_en ?? f.label) : f.label }));
 
 // thème : généré si absent (le yaml peut porter n'importe quel nom)
-const tenantAbs = path.resolve(process.argv[tIdx + 1]);
+const tenantAbs = path.resolve(tenantArg);
 const themePath = path.join(tenantDir, 'theme', 'theme.css');
 if (!fs.existsSync(themePath))
   execFileSync(process.execPath, [rel('tools', 'build-theme.mjs'), tenantAbs, '--out', path.join(tenantDir, 'theme')], { stdio: 'ignore' });
@@ -43,7 +45,7 @@ const html = renderRapport(data, {
   tenant: cfg.tenant.name, dimensions, families,
   themeCss, coreVersion: String(cfg.core_version), lang,
 });
-const out = outIdx > -1 ? path.resolve(process.argv[outIdx + 1])
+const out = outArg !== undefined ? path.resolve(outArg)
   : rel('deliverables', 'generated', cfg.tenant.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), 'rapport-audit.html');
 fs.mkdirSync(path.dirname(out), { recursive: true });
 fs.writeFileSync(out, html, 'utf-8');

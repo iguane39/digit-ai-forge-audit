@@ -5,14 +5,15 @@
 // verdicts complets sur toutes les règles applicables. Gate BLOQUANT avant diffusion.
 // Usage: node tools/verifier-rapport.mjs <rapport-data.json> [--tenant <tenant.yaml>]
 import fs from 'node:fs';
-import { rel, loadJson, loadYaml, loadTenant } from './lib.mjs';
+import { rel, loadJson, loadYaml, loadTenant, valeurFichierOuUsage } from './lib.mjs';
 import { STR } from './rapport-engine.mjs';
 import { STYLES_CANEVAS } from './canevas-modele-donnees.mjs';
 
 const file = process.argv[2];
 if (!file) { console.error('Usage: node tools/verifier-rapport.mjs <rapport-data.json> [--tenant <tenant.yaml>]'); process.exit(2); }
-const tIdx = process.argv.indexOf('--tenant');
-const tenant = tIdx > -1 ? loadTenant(process.argv[tIdx + 1]).cfg : null;
+// TF-2131 : la valeur de --tenant est un fichier, jamais une autre option.
+const tenantArg = valeurFichierOuUsage(process.argv, '--tenant', 'Usage: node tools/verifier-rapport.mjs <rapport-data.json> [--tenant <tenant.yaml>]');
+const tenant = tenantArg !== undefined ? loadTenant(tenantArg).cfg : null;
 
 const errors = [];
 const raw = fs.readFileSync(file, 'utf-8');
