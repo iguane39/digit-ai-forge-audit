@@ -599,6 +599,16 @@ export function controlesEvalues(data, coreVersion) {
   };
 }
 
+/**
+ * TF-2143 (RU-9, 04/11/2026) — un score est un NOMBRE avant d'être comparé à un seuil. En JavaScript
+ * `null <= 2` vaut true : une dimension « off » sans score (D14, mesurée) était comptée bloquante, et le
+ * verdict de porte basculait (16 bloquants annoncés pour 15 réels). Le comparateur ne se fie plus à la
+ * coercition : `typeof` d'abord. Source unique du compte, partagée par le rapport et la présentation.
+ */
+export const aUnScore = (d) => typeof d?.score === 'number' && Number.isFinite(d.score);
+/** Dimension bloquante : score noté 2 ou moins, ou criticité Fatal (`dimensions.yaml`, scoring.blockers). */
+export const estBloquant = (d) => (aUnScore(d) && d.score <= 2) || d?.criticite === 'Fatal' || d?.criticality === 'fatal';
+
 export function renderRapport(data, { tenant, dimensions, families, themeCss = '', coreVersion = '', lang = 'fr' } = {}) {
   const L = STR[lang] ?? STR.fr;
   const T = RES[lang] ?? RES.fr;
@@ -606,11 +616,11 @@ export function renderRapport(data, { tenant, dimensions, families, themeCss = '
   const famList = families ?? [...new Set(dims.map(d => d.family))].map(k => ({ key: k, label: k }));
   const byId = Object.fromEntries((data.dimensions ?? []).map(d => [d.id, d]));
   const scored = dims.map(d => ({ ...d, ...byId[d.id] })).filter(d => byId[d.id]);
-  const applicable = scored.filter(d => d.applicability !== 'off' && d.score !== undefined);
+  const applicable = scored.filter(d => d.applicability !== 'off' && aUnScore(d));
 
   const scoreGlobal = applicable.length
     ? (applicable.reduce((s, d) => s + d.score, 0) / applicable.length).toFixed(1) : '—';
-  const bloquants = scored.filter(d => d.score <= 2 || d.criticite === 'Fatal' || d.criticality === 'fatal');
+  const bloquants = scored.filter(estBloquant);
   const gate = data.gate?.verdict
     ?? (scored.some(d => d.gate1b === 'nogo') || bloquants.length >= 5 ? 'NO-GO'
       : scored.some(d => d.gate1b === 'reserve') || bloquants.length ? 'GO SOUS RÉSERVE' : 'GO');

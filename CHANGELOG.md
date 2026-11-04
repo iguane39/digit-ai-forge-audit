@@ -7,6 +7,16 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **TF-2143 — un score null n'est plus compté bloquant** (04/11/2026, RU-9) — en JavaScript `null <= 2`
+  vaut true : `rapport-engine.mjs` et `build-slides.mjs` comptaient bloquante toute dimension sans score
+  (« off »), et le verdict de porte basculait. Mesuré sur le jeu d'une campagne du 04/11 : 16 bloquants
+  annoncés pour 15 réels, la 16e étant D14 (off, null). Prédicats `aUnScore` / `estBloquant` exportés de
+  `rapport-engine.mjs` (un score est un nombre, `typeof`, avant tout seuil), repris par la présentation ;
+  le score global ne compte plus un null pour un zéro ; `verifier-rapport.mjs` refuse un score textuel
+  (`'2' >= 1` se coerçait) autant que null sur une dimension instruite. Banc
+  `tests/oracles/score-null-bloquant.test.mjs` : 4 tests sur 4 rouges avant correctif (16 pour 15 ;
+  `['D05','D13','D14']` pour `['D05']` ; moyenne de présentation 3.8 pour 4.0 ; score `'2'` accepté), 4 verts
+  après, sens vert compris (un score 2 compte, off + null reste accepté).
 - **TF-2106 — un kit de `deliverables/generated/` qui embarque une copie périmée d'un outil fait échouer
   la recette** (04/11/2026) — les kits emportent des COPIES de `fiche-en-pdf.mjs`,
   `verifier-remediation.mjs`, des oracles de `oracles/`, des schémas, et génèrent l'init d'espace d'audit

@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { rel, loadTenant, loadJson } from './lib.mjs';
+import { aUnScore, estBloquant } from './rapport-engine.mjs';
 
 const file = process.argv[2];
 const tIdx = process.argv.indexOf('--tenant');
@@ -28,9 +29,10 @@ if (!fs.existsSync(themePath))
 const themeCss = fs.readFileSync(themePath, 'utf-8');
 
 const dims = data.dimensions ?? [];
-const scored = dims.filter(d => d.score !== undefined);
+// TF-2143 : un score null n'est ni noté ni bloquant (`null <= 2` vaut true) — mêmes prédicats que le rapport.
+const scored = dims.filter(d => d.applicability !== 'off' && aUnScore(d));
 const scoreGlobal = scored.length ? (scored.reduce((s, d) => s + d.score, 0) / scored.length).toFixed(1) : '—';
-const bloquants = dims.filter(d => d.score <= 2 || d.criticite === 'Fatal');
+const bloquants = dims.filter(estBloquant);
 const gate = data.gate?.verdict ?? (bloquants.length >= 5 ? 'NO-GO' : bloquants.length ? 'GO SOUS RÉSERVE' : 'GO');
 const gateClass = gate === 'GO' ? 'std' : gate === 'NO-GO' ? 'fatal' : 'maj';
 const constats = (data.constats ?? []).filter(c => c.severite === 'critique').slice(0, 5);

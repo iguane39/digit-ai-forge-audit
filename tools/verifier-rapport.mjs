@@ -27,7 +27,8 @@ const dims = loadYaml(rel('core', 'dimensions', 'dimensions.yaml')).dimensions.m
 const got = (data.dimensions ?? []).map(d => d.id);
 for (const d of dims) if (!got.includes(d)) errors.push(`dimension manquante: ${d}`);
 for (const d of data.dimensions ?? []) {
-  if (!(d.score >= 1 && d.score <= 5) && d.applicability !== 'off')
+  // TF-2143 : `null >= 1` et `'2' >= 1` se coercent ; un score est un nombre ou n'existe pas.
+  if (!(typeof d.score === 'number' && d.score >= 1 && d.score <= 5) && d.applicability !== 'off')
     errors.push(`${d.id}: score invalide ou absent (${d.score}) — « pas de score sans preuve »`);
   if (d.score !== undefined && !(d.preuves?.length) && d.applicability !== 'off')
     errors.push(`${d.id}: score sans preuve — interdit (invariant)`);
