@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<!--
+  AuditCore — gabarit du rapport d'audit, forme POC-to-Prod (TF-2145, décision humaine D-171 (a) du 04/11/2026).
+  Rendu PAR DÉFAUT de `tools/build-rapport.mjs`. Forme de référence : rapport d'audit POC-to-Prod de Produit-68
+  (24/09/2026, pleine largeur, routage du schéma par ports et voies) et son modèle à champs ; seule la STRUCTURE, le
+  moteur et le style en sont repris — aucune donnée. Agnostique : aucune marque, couleurs par les jetons du thème du
+  tenant (theme.css), libellés par la langue du tenant.
+  Ce fichier n'est pas un rapport : chaque champ entre doubles accolades est rempli par `tools/rapport-poc-to-prod.mjs`
+  depuis rapport-data.json, de façon déterministe. Un champ laissé vide fait refuser le rendu (verifier-rapport-html).
+-->
+<html lang="{{LANG}}" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="light">
+<meta name="auditcore-forme" content="poc-to-prod">
+<meta name="forge-type-page" content="editoriale">
+<script id="theme-init">
+(function () {
+  /* sans navigateur complet (porte de rendu, extraction du plan), aucune racine où poser le thème */
+  if (typeof document === 'undefined' || !document.documentElement || typeof document.documentElement.setAttribute !== 'function') return;
+  var stocke = null;
+  try { stocke = window.localStorage.getItem('auditcore-theme'); } catch (e) {}
+  var theme = stocke === 'dark' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', theme);
+  var meta = typeof document.querySelector === 'function' ? document.querySelector('meta[name="color-scheme"]') : null;
+  if (meta && meta.setAttribute) meta.setAttribute('content', theme);
+})();
+</script>
+<title>{{TITRE_DOCUMENT}}</title>
+<link rel="icon" type="image/svg+xml" href="{{FAVICON}}">
+<style>
+{{CSS_THEME}}
+{{CSS_SOMBRE}}
+/* ==== Forme POC-to-Prod — couche sémantique, dérivée des jetons du tenant (aucune couleur littérale ici) ==== */
+:root{
+  --r-fond:var(--bg);--r-surface:var(--panel);--r-voile:color-mix(in srgb,var(--line) 42%,var(--bg));
+  --r-trait:var(--line);--r-trait-2:color-mix(in srgb,var(--line) 62%,var(--muted));
+  --r-encre:var(--txt);--r-encre-2:color-mix(in srgb,var(--txt) 82%,var(--muted));--r-attenue:var(--muted);
+  --r-pale:color-mix(in srgb,var(--muted) 55%,var(--panel));--r-attenue-voile:color-mix(in srgb,var(--muted) 62%,var(--txt));--r-ombre:color-mix(in srgb,var(--txt) 14%,transparent);
+  --r-rouge:var(--fatal);--r-rouge-fond:color-mix(in srgb,var(--fatal) 7%,var(--panel));--r-rouge-trait:color-mix(in srgb,var(--fatal) 20%,var(--panel));--r-rouge-encre:color-mix(in srgb,var(--fatal) 60%,var(--txt));
+  --r-orange:var(--bloq);--r-orange-fond:color-mix(in srgb,var(--bloq) 7%,var(--panel));--r-orange-trait:color-mix(in srgb,var(--bloq) 22%,var(--panel));--r-orange-encre:color-mix(in srgb,var(--bloq) 60%,var(--txt));
+  --r-ambre:var(--maj);--r-ambre-fond:color-mix(in srgb,var(--maj) 8%,var(--panel));--r-ambre-trait:color-mix(in srgb,var(--maj) 22%,var(--panel));--r-ambre-encre:color-mix(in srgb,var(--maj) 60%,var(--txt));
+  --r-vert:var(--std);--r-vert-fond:color-mix(in srgb,var(--std) 7%,var(--panel));--r-vert-trait:color-mix(in srgb,var(--std) 20%,var(--panel));--r-vert-encre:color-mix(in srgb,var(--std) 60%,var(--txt));
+  --r-bleu:var(--accent);--r-bleu-fond:color-mix(in srgb,var(--accent) 7%,var(--panel));--r-bleu-trait:color-mix(in srgb,var(--accent) 24%,var(--panel));--r-bleu-encre:color-mix(in srgb,var(--accent) 60%,var(--txt));
+  --r-sarcelle:color-mix(in srgb,var(--std) 55%,var(--accent));--r-sarcelle-fond:color-mix(in srgb,var(--r-sarcelle) 8%,var(--panel));--r-sarcelle-trait:color-mix(in srgb,var(--r-sarcelle) 24%,var(--panel));--r-sarcelle-encre:color-mix(in srgb,var(--r-sarcelle) 60%,var(--txt));
+  --r-violet:color-mix(in srgb,var(--accent) 55%,var(--fatal));--r-violet-fond:color-mix(in srgb,var(--r-violet) 7%,var(--panel));--r-violet-trait:color-mix(in srgb,var(--r-violet) 22%,var(--panel));--r-violet-encre:color-mix(in srgb,var(--r-violet) 60%,var(--txt));
+  --r-titre:var(--font-head,var(--font-body));--r-texte:var(--font-body);--r-mono:var(--font-mono);
+  --schema-fond:color-mix(in srgb,var(--bg) 55%,var(--panel));
+  --focus-anneau:2px solid var(--accent);--focus-decalage:2px;
+  --gouttiere:clamp(1.5rem,1.25vw,3rem);--dur-1:.15s;--ease:cubic-bezier(.2,0,0,1);
+}
+{{CSS_FAMILLES}}
+[hidden]{display:none!important}
+:where(a,button,input,select,[tabindex]):focus-visible{outline:var(--focus-anneau);outline-offset:var(--focus-decalage)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{font-family:var(--r-texte);background:var(--r-surface);color:var(--r-encre);line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--r-titre);font-weight:500;line-height:1.25}
+code,.mono{font-family:var(--r-mono);font-size:.85em}
+a{color:var(--r-bleu-encre)}
+input[type="text"],input[type="search"]{background:var(--r-surface);color:var(--r-encre);border:1px solid var(--r-trait-2)}
+input::placeholder{color:var(--r-attenue)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.lire{max-width:1080px;margin-left:auto;margin-right:auto}
+.app{max-width:none;margin:0 auto;padding:0 var(--gouttiere) 4rem}
+/* — en-tête — */
+.header{position:sticky;top:0;z-index:100;background:color-mix(in srgb,var(--r-surface) 95%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--r-voile);padding:1rem var(--gouttiere);margin:0 0 2rem}
+.header-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem}
+.marque{display:flex;align-items:center;gap:.75rem}
+.marque-texte .marque-titre{font-size:.95rem;font-weight:500}
+.marque-texte p{font-size:.75rem;color:var(--r-attenue)}
+.header-actions{display:flex;gap:8px;align-items:center}
+.btn{font-family:var(--r-texte);font-size:.8rem;padding:0 .9rem;min-height:36px;display:inline-flex;align-items:center;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:6px;cursor:pointer;color:var(--r-encre);transition:border-color var(--dur-1) var(--ease)}
+.btn:hover{border-color:var(--r-encre)}
+.theme-toggle{appearance:none;border:1px solid var(--r-trait);background:var(--r-surface);color:var(--r-encre);border-radius:999px;width:36px;height:36px;flex:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.theme-toggle .icon-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .icon-moon{display:none}
+:root[data-theme="dark"] .theme-toggle .icon-sun{display:inline}
+/* — bloc titre — */
+.title-block{padding:1.5rem 0;border-bottom:1px solid var(--r-voile);margin-bottom:2rem}
+.title-block .label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--r-attenue);margin-bottom:.5rem}
+.title-block h1{font-size:1.85rem;font-weight:500;margin-bottom:.5rem}
+.title-block .subtitle{font-size:1rem;color:var(--r-attenue);line-height:1.6}
+.title-block .meta{display:flex;flex-wrap:wrap;gap:1.5rem;font-size:.85rem;color:var(--r-attenue);margin-top:1.2rem}
+.title-block .meta strong{color:var(--r-encre);font-weight:500}
+/* — bandeau du verdict — */
+.gate-banner{display:flex;align-items:center;gap:1rem;padding:1rem 1.4rem;border-radius:8px;margin-bottom:2rem;border:1px solid}
+.gate-banner .verdict{flex:0 0 auto}
+.gate-banner .gb-label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.gate-banner .gb-verdict{font-family:var(--r-titre);font-size:1.55rem;font-weight:600;line-height:1.1}
+.gate-banner .gb-chiffres{font-size:.78rem;opacity:.9;margin-top:4px}
+.gate-banner .gb-desc{font-size:.86rem;line-height:1.55;flex:1}
+.gate-banner.nogo{background:var(--r-rouge-trait);border-color:var(--r-rouge);color:var(--r-rouge-encre)}
+.gate-banner.reserve{background:var(--r-ambre-trait);border-color:var(--r-orange);color:var(--r-ambre-encre)}
+.gate-banner.go{background:var(--r-vert-trait);border-color:var(--r-vert-encre);color:var(--r-vert-encre)}
+.gate{font:inherit;color:inherit}
+/* — cartes de synthèse : tableau clé/texte rendu en grille de cartes — */
+.summary-grid{width:100%;margin-bottom:2rem;border-collapse:separate}
+.summary-grid thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.summary-grid tbody{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
+.summary-grid tr{display:block;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:1.1rem 1.25rem;border-top:3px solid var(--card-color,var(--r-encre))}
+.summary-grid th{display:inline-block;font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--r-attenue);margin-bottom:.55rem;font-weight:500;text-align:left}
+.summary-grid td{display:block;font-size:.85rem;color:var(--r-encre-2);line-height:1.6}
+.summary-grid .sc-title{font-size:1rem;font-weight:500;margin-bottom:.5rem;color:var(--r-encre)}
+.summary-grid ul.sc-bullets{list-style:none;padding:0;margin:.4rem 0 0;display:flex;flex-direction:column;gap:.35rem}
+.summary-grid ul.sc-bullets li{position:relative;padding-left:.95rem;font-size:.82rem;line-height:1.55}
+.summary-grid ul.sc-bullets li::before{content:'';position:absolute;left:0;top:.5rem;width:5px;height:5px;border-radius:50%;background:var(--card-color,var(--r-encre));opacity:.8}
+.summary-grid tr.sc-fonc{--card-color:var(--r-sarcelle-encre)}.summary-grid tr.sc-tech{--card-color:var(--r-encre-2)}.summary-grid tr.sc-audit{--card-color:var(--r-encre)}
+@media (min-width:1000px){.summary-grid tbody{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:2400px){.summary-grid tbody{grid-template-columns:repeat(6,1fr)}}
+/* — KPI (valeur, définition, repère de lecture) — */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+.kpi{background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:.3rem}
+.kpi .k-label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--r-attenue)}
+.kpi .k-valeur{font-family:var(--r-titre);font-size:2.1rem;font-weight:600;line-height:1}
+.kpi .k-valeur small{font-size:.9rem;color:var(--r-attenue);font-weight:500}
+.kpi .kpi-d{font-size:.75rem;color:var(--r-attenue);line-height:1.4}
+.kpi .k-repere{font-size:.75rem;color:var(--r-encre-2);background:var(--r-fond);border-radius:6px;padding:8px;line-height:1.45}
+.kpi .k-action{font-size:.75rem;font-weight:600;color:var(--r-bleu-encre);text-decoration:none}
+.kpi .kv-gate{font-size:1.5rem}
+.kpi .kv-nogo,.kpi .kv-alerte{color:var(--r-rouge)}
+.kpi .kv-reserve{color:var(--r-orange)}
+.kpi .kv-go{color:var(--r-vert-encre)}
+.kpi-radar{background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:.8rem .9rem}
+.kpi-radar figcaption{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--r-attenue)}
+.kpi-radar svg{width:100%;height:auto;max-height:220px}
+.kpi-radar .radar-note{font-size:.72rem;color:var(--r-attenue)}
+.radar .rlab{font-size:12px;fill:var(--r-encre-2)}
+.kpi-blocklist{margin-top:.55rem;display:flex;flex-direction:column;gap:.35rem}
+.kpi-block-chip{display:flex;align-items:center;gap:.45rem;padding:.35rem .55rem;border:1px solid var(--r-rouge-trait);background:var(--r-rouge-fond);border-radius:6px;cursor:pointer;font:inherit;font-size:.78rem;color:var(--r-encre);text-align:left;width:100%}
+.kpi-block-chip:hover{border-color:var(--r-rouge)}
+.kpi-block-chip .bid{font-family:var(--r-mono);font-weight:700;color:var(--r-rouge)}
+.kpi-block-chip .bname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kpi-block-chip .bscore{font-weight:700;color:var(--r-rouge);white-space:nowrap}
+@media (max-width:1100px){.kpi-grid{grid-template-columns:1fr 1fr}}
+/* — contrôle qualité — */
+.qa-panel{border-radius:8px;padding:12px 16px;margin:0 0 1.5rem;font-size:.8rem;border:1px solid}
+.qa-panel h4{margin:0 0 4px;font-size:.84rem;font-family:var(--r-titre);font-weight:700}
+.qa-panel ul{margin:8px 0 0;padding-left:20px}.qa-panel li{margin:4px 0}
+.qa-panel .qa-cat{font-weight:700;text-transform:uppercase;font-size:.72rem;letter-spacing:.02em}
+.qa-ok{background:var(--r-vert-fond);border-color:var(--r-vert-trait);color:var(--r-vert-encre)}
+.qa-ko{background:var(--r-rouge-fond);border-color:var(--r-rouge-trait);color:var(--r-rouge-encre)}
+.qa-info{background:var(--r-voile);border-color:var(--r-trait);color:var(--r-encre-2)}
+/* — chemins de lecture — */
+.chemins{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,420px));gap:8px;margin:0 0 1.5rem;padding:0}
+.chemin{font-size:.8rem;padding:12px;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;color:var(--r-encre-2)}
+.chemin b{display:block;margin-bottom:4px;color:var(--r-encre)}
+.chemins-titre{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--r-attenue);margin-bottom:8px}
+/* — sommaire : bascule des vues — */
+nav.toc{display:flex;flex-wrap:wrap;align-items:center;gap:0;max-width:100%;margin-bottom:1.5rem;padding:.25rem;background:var(--r-voile);border-radius:8px;border:1px solid var(--r-voile)}
+.mode-btn{padding:.55rem 1rem;background:transparent;border:none;cursor:pointer;font-family:var(--r-texte);font-size:.85rem;color:var(--r-encre-2);border-radius:6px;display:flex;align-items:center;gap:.5rem;text-decoration:none;transition:background-color var(--dur-1) var(--ease)}
+.mode-btn:hover{background:color-mix(in srgb,var(--r-surface) 60%,transparent)}
+.mode-btn.active{background:var(--r-encre);color:var(--r-surface);box-shadow:0 1px 2px var(--r-ombre)}
+.mode-btn .mb-meta{font-family:var(--r-mono);font-size:.7rem;color:var(--r-attenue-voile)}
+.mode-btn.active .mb-meta{color:color-mix(in srgb,var(--r-surface) 70%,transparent)}
+.toc-ecarts{margin-left:auto;padding:.55rem 1rem;font-size:.78rem;color:var(--r-attenue)}
+section.vue{display:none}section.vue.active{display:block}
+.ch-apprend{color:var(--r-attenue);font-size:.82rem;margin:0 0 1rem}
+/* — familles et dimensions — */
+.family-nav{display:flex;gap:.25rem;margin-bottom:1.5rem;padding:.3rem;background:var(--r-voile);border-radius:8px;overflow-x:auto}
+.family-nav>*+*{border-left:1px solid var(--r-voile)}
+.family-tab{flex:1;min-width:130px;padding:.7rem .9rem;background:transparent;border:none;cursor:pointer;font-family:var(--r-texte);font-size:.85rem;color:var(--r-encre-2);border-radius:6px;display:flex;flex-direction:column;align-items:center;gap:.15rem}
+.family-tab:hover{background:color-mix(in srgb,var(--r-surface) 60%,transparent)}
+.family-tab.active{background:var(--r-surface);color:var(--r-encre);box-shadow:0 1px 2px var(--r-ombre)}
+.family-tab .ftab-name{font-weight:500}
+.family-tab .ftab-meta{font-family:var(--r-mono);font-size:.7rem;color:var(--r-attenue-voile)}
+.family-tab.active .ftab-meta{color:var(--family-color);font-weight:500}
+.family-tab .ftab-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--family-color);margin-right:.35rem;vertical-align:middle}
+.family-tab .ftab-avg{font-family:var(--r-mono);font-size:.78rem;font-weight:600;color:var(--family-color);margin-top:.15rem}
+.domain-nav{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--r-voile)}
+.domain-tab{padding:.5rem .9rem;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:6px;cursor:pointer;font-family:var(--r-texte);font-size:.82rem;color:var(--r-encre-2);display:flex;align-items:center;gap:.5rem}
+.domain-tab:hover{border-color:var(--r-encre)}
+.domain-tab.active{background:var(--r-encre);color:var(--r-surface);border-color:var(--r-encre)}
+.domain-tab .dtab-id{font-family:var(--r-mono);font-size:.72rem;color:var(--r-attenue)}
+.domain-tab.active .dtab-id{color:color-mix(in srgb,var(--r-surface) 70%,transparent)}
+.domain-tab .dtab-score{font-family:var(--r-mono);font-size:.72rem;font-weight:700;padding:.1rem .35rem;border-radius:3px}
+.domain-tab.schema-tab{background:var(--r-voile);border-color:var(--r-bleu-trait)}
+.domain-tab.schema-tab.active{background:var(--r-encre-2);border-color:var(--r-encre-2)}
+.dtab-score.s1,.score-pill.s1{background:var(--r-rouge-trait);color:var(--r-rouge-encre)}
+.dtab-score.s2,.score-pill.s2{background:var(--r-ambre-trait);color:var(--r-rouge-encre)}
+.dtab-score.s3,.score-pill.s3{background:var(--r-ambre-trait);color:var(--r-ambre-encre)}
+.dtab-score.s4,.dtab-score.s5,.score-pill.s4,.score-pill.s5{background:var(--r-vert-trait);color:var(--r-vert-encre)}
+.dtab-score.s0,.score-pill.s0{background:var(--r-voile);color:var(--r-encre-2)}
+.family-intro{background:var(--family-bg);border-left:1px solid var(--family-color);border-radius:0 8px 8px 0;padding:1.1rem 1.3rem;margin-bottom:1.5rem;font-size:.88rem;line-height:1.7;color:var(--r-encre-2)}
+.family-intro h3{font-size:.95rem;color:var(--family-color);margin-bottom:.4rem;font-weight:600}
+.domain-header{background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:1.5rem;margin-bottom:1.5rem}
+.domain-header .dh-meta{font-family:var(--r-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--family-color);margin-bottom:.4rem}
+.domain-header .dh-titre{font-size:1.45rem;font-weight:500;margin-bottom:.5rem}
+.domain-header .dh-pills{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.9rem}
+.score-pill,.crit-pill,.gate-pill{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .7rem;border-radius:20px;font-family:var(--r-mono);font-size:.75rem;font-weight:600;border:1px solid transparent}
+.crit-pill.fatal{background:var(--r-encre);color:var(--r-surface)}
+.crit-pill.bloquant{background:var(--r-rouge-trait);color:var(--r-rouge-encre)}
+.crit-pill.majeur{background:var(--r-ambre-trait);color:var(--r-ambre-encre);border-color:var(--r-orange-trait)}
+.crit-pill.standard,.crit-pill.absente{background:var(--r-surface);color:var(--r-encre-2);border-color:var(--r-voile)}
+.gate-pill.nogo{background:var(--r-rouge);color:var(--r-surface)}
+.gate-pill.reserve{background:var(--r-orange);color:var(--r-surface)}
+.gate-pill.go{background:var(--r-vert-encre);color:var(--r-surface)}
+.gate-pill.absente{background:var(--r-voile);color:var(--r-encre-2)}
+.perimeter-block{background:var(--r-surface);border:1px solid var(--r-voile);border-left:1px solid var(--family-color);border-radius:6px;padding:.95rem 1.15rem;margin-bottom:1rem}
+.perimeter-block .pb-label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--family-color);margin-bottom:.6rem;font-weight:500}
+.perimeter-block p{font-size:.86rem;line-height:1.65;color:var(--r-encre-2)}
+.audit-summary{background:var(--r-surface);border-radius:6px;padding:.95rem 1.15rem;font-size:.88rem;color:var(--r-encre-2);line-height:1.7;border-left:1px solid var(--family-color)}
+.audit-summary .as-label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--family-color);display:block;margin-bottom:.55rem;font-weight:500}
+.audit-summary ul.as-bullets{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.38rem}
+.audit-summary ul.as-bullets li{position:relative;padding-left:1.1rem;font-size:.86rem;line-height:1.6}
+.audit-summary ul.as-bullets li::before{content:'';position:absolute;left:0;top:.55rem;width:5px;height:5px;border-radius:50%;background:var(--family-color);opacity:.85}
+.audit-summary code,.perimeter-block code{background:var(--r-surface);padding:.05rem .32rem;border-radius:3px;font-size:.82em;border:1px solid var(--r-voile)}
+.section{background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:1.4rem;margin-bottom:1.5rem}
+.section-head{padding-bottom:.85rem;margin-bottom:1.1rem;border-bottom:1px solid var(--r-voile);display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap}
+.section-head h4{font-size:1.05rem;font-weight:500}
+.section-head .section-num{font-family:var(--r-mono);font-size:.72rem;color:var(--r-attenue)}
+.section-head .section-hint{font-size:.78rem;color:var(--r-attenue);margin-left:auto}
+.note-da{background:var(--r-surface);color:var(--r-encre-2);border:1px solid var(--r-voile);border-radius:10px;padding:1.5rem 1.6rem}
+.note-da .nda-titre{font-family:var(--r-titre);font-size:1.05rem;font-weight:700;color:var(--r-encre);padding-bottom:.9rem;margin-bottom:1rem;border-bottom:1px solid var(--r-voile)}
+.note-da .nda-label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--family-color);display:block;margin-bottom:.55rem;font-weight:600}
+.note-da .nda-inner{background:var(--r-voile);border-left:1px solid var(--family-color);border-radius:6px;padding:1rem 1.2rem}
+.note-da ul{list-style:none;display:flex;flex-direction:column;gap:.55rem}
+.note-da li{position:relative;padding-left:1.3rem;font-size:.9rem;line-height:1.65}
+.note-da li::before{content:'';position:absolute;left:0;top:.6rem;width:6px;height:6px;border-radius:50%;background:var(--family-color)}
+.dim-off{background:var(--r-voile);border-radius:6px;padding:.8rem 1rem;font-size:.85rem;color:var(--r-encre-2);margin-bottom:1rem}
+/* — schéma d'architecture — */
+.schema-page{background:var(--r-surface);border:1px solid var(--r-voile);border-radius:10px;padding:1.5rem 1.6rem;margin-bottom:1.5rem}
+.schema-page .sp-eyebrow{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--r-encre-2);font-weight:600;margin-bottom:.4rem}
+.schema-page h3{font-size:1.45rem;font-weight:700;color:var(--r-encre);margin-bottom:.4rem}
+.schema-page .sp-lead{font-size:.9rem;color:var(--r-encre-2);line-height:1.6;margin-bottom:1.2rem}
+.diagram-wrap{background:var(--schema-fond);border:1px solid var(--r-voile);border-radius:10px;padding:28px 20px;overflow-x:auto;margin-bottom:.9rem}
+.diagram-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto;max-height:85vh}
+.diagram-wrap [data-tip]{cursor:help}
+.diag-caption{font-size:.78rem;color:var(--r-attenue);font-style:italic;text-align:center;margin-bottom:1rem}
+.diag-legend{display:flex;flex-wrap:wrap;gap:.7rem 1.1rem;padding:.85rem 1rem;background:var(--r-fond);border:1px solid var(--r-voile);border-radius:8px;font-size:.78rem}
+.diag-legend .leg-item{display:flex;align-items:center;gap:.4rem;color:var(--r-encre-2)}
+.diag-legend .leg-swatch{width:14px;height:14px;border-radius:3px;border:1.5px solid;flex-shrink:0}
+.leg-swatch.purple{background:var(--c-purple-bg);border-color:var(--c-purple-stroke)}.leg-swatch.blue{background:var(--c-blue-bg);border-color:var(--c-blue-stroke)}
+.leg-swatch.teal{background:var(--c-teal-bg);border-color:var(--c-teal-stroke)}.leg-swatch.coral{background:var(--c-coral-bg);border-color:var(--c-coral-stroke)}
+.leg-swatch.amber{background:var(--c-amber-bg);border-color:var(--c-amber-stroke)}.leg-swatch.gray{background:var(--c-gray-bg);border-color:var(--c-gray-stroke)}
+#diagTooltip{position:fixed;z-index:9999;background:var(--r-encre);color:var(--r-surface);border-radius:8px;padding:.7rem .9rem;max-width:300px;min-width:200px;opacity:0;visibility:hidden;transition:opacity var(--dur-1);pointer-events:none;box-shadow:0 8px 24px var(--r-ombre)}
+#diagTooltip.visible{opacity:1;visibility:visible}
+#diagTooltip .tt-title{font-family:var(--r-titre);font-weight:700;font-size:13px;line-height:1.35;padding-bottom:.5rem;margin-bottom:.55rem;border-bottom:1px solid color-mix(in srgb,var(--r-surface) 18%,transparent)}
+#diagTooltip ul{list-style:none;display:flex;flex-direction:column;gap:.32rem}
+#diagTooltip ul li{font-size:12.5px;line-height:1.5;position:relative;padding-left:16px}
+#diagTooltip ul li::before{content:'';position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:currentColor}
+/* — schéma de base de données (canevas vendoré, TF-0940) — */
+.db-schema-hote{background:var(--schema-fond);border:1px solid var(--r-voile);border-radius:10px;padding:16px;margin-bottom:.9rem}
+/* — matrice de traçabilité — */
+.tm{--tm-teal:var(--r-sarcelle-encre);--tm-ink:var(--r-encre-2);--tm-ink2:var(--r-attenue);--tm-line:var(--r-trait);--tm-card:var(--r-surface);
+  --tm-ok:var(--r-vert);--tm-okbg:var(--r-vert-fond);--tm-oktx:var(--r-vert-encre);--tm-part:var(--r-ambre-encre);--tm-partbg:var(--r-ambre-fond);--tm-parttx:var(--r-ambre-encre);
+  --tm-ko:var(--r-rouge);--tm-kobg:var(--r-rouge-fond);--tm-kotx:var(--r-rouge-encre);--tm-na:var(--r-attenue);--tm-nabg:var(--r-voile);--tm-natx:var(--r-attenue);
+  --tm-todo:var(--r-attenue);--tm-todobg:var(--r-voile);--tm-todotx:var(--r-encre-2);color:var(--tm-ink);margin-top:8px}
+.tm-intro{font-size:.82rem;color:var(--tm-ink2);margin:0 0 12px}
+.tm-intro b{color:var(--tm-ink)}
+.tm-cov{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+.tm-cov .pill{background:var(--tm-card);border:1px solid var(--tm-line);border-radius:10px;padding:8px 12px;display:flex;flex-direction:column;min-width:104px}
+.tm-cov .pill .n{font-size:20px;font-weight:800;font-family:var(--r-titre)}
+.tm-cov .pill .l{font-size:10.5px;color:var(--tm-ink2);text-transform:uppercase;letter-spacing:.04em}
+.tm-cov .pill.ok .n{color:var(--tm-ok)}.tm-cov .pill.part .n{color:var(--tm-part)}.tm-cov .pill.todo .n{color:var(--tm-todo)}.tm-cov .pill.na .n{color:var(--tm-na)}
+.tm-tbl{background:var(--tm-card);border:1px solid var(--tm-line);border-radius:12px;overflow-x:auto}
+.tm-count{font-size:12px;color:var(--tm-ink2);padding:12px 16px 0}
+.tm-table{width:100%;border-collapse:collapse}
+.tm-table thead th{background:var(--r-voile);text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--r-attenue-voile);padding:12px 16px;border-bottom:1px solid var(--tm-line);white-space:nowrap;font-weight:600}
+.tm-table tbody tr.row{border-bottom:1px solid var(--tm-line);cursor:pointer}
+.tm-table tbody tr.row:hover{background:var(--r-fond)}
+.tm-table tbody tr.row.open{background:var(--r-sarcelle-fond)}
+.tm-table td{padding:12px 16px;vertical-align:top}
+.tm-idc{font-family:var(--r-mono);font-weight:700;color:var(--tm-teal);font-size:13px;cursor:pointer;background:none;border:none;padding:0}
+.tm-idc:hover{text-decoration:underline}
+.tm-t{font-weight:600;color:var(--tm-ink);display:block;margin-top:4px;max-width:330px}
+.tm .badge{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 8px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.badge.v-conforme{background:var(--tm-okbg);color:var(--tm-oktx)}.badge.v-partiel{background:var(--tm-partbg);color:var(--tm-parttx)}
+.badge.v-non_conforme{background:var(--tm-kobg);color:var(--tm-kotx)}.badge.v-sans_objet{background:var(--tm-nabg);color:var(--tm-natx)}.badge.v-a_evaluer{background:var(--tm-todobg);color:var(--tm-todotx)}
+.tm-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.tm-d-ok{background:var(--tm-ok)}.tm-d-part{background:var(--tm-part)}.tm-d-ko{background:var(--tm-ko)}.tm-d-na{background:var(--tm-na)}.tm-d-todo{background:var(--tm-todo)}
+.tm-chip{display:inline-flex;align-items:center;border-radius:999px;padding:4px 8px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.tm-c-fatal{background:var(--r-encre);color:var(--r-surface)}.tm-c-bloquant{background:var(--r-rouge-trait);color:var(--r-rouge-encre)}
+.tm-c-majeur{background:var(--r-ambre-trait);color:var(--r-ambre-encre)}.tm-c-standard,.tm-c-absente{background:var(--r-surface);color:var(--r-encre-2)}
+.tm-sev{font-size:10px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-radius:5px;padding:4px 8px;display:inline-block}
+.tm-sev.s-grave{background:var(--r-rouge-trait);color:var(--r-rouge-encre)}.tm-sev.s-majeur{background:var(--r-ambre-trait);color:var(--r-ambre-encre)}.tm-sev.s-mineur{background:var(--r-vert-fond);color:var(--r-vert-encre)}.tm-sev.s-absente{background:var(--r-voile);color:var(--r-encre-2)}
+.tm-enf{font-size:11px;color:var(--tm-ink2);margin-top:4px;border-bottom:1px dotted var(--r-trait-2);display:inline-block}
+.tm-lc{display:inline-flex;align-items:center;gap:8px;background:var(--r-bleu-fond);border:1px solid var(--r-trait-2);border-radius:8px;padding:4px 8px;margin:4px 4px 4px 0;font-size:12px;color:var(--tm-ink)}
+.tm-lc.action{background:var(--r-orange-fond);border-color:var(--r-ambre-trait)}
+.tm-lc .k{font-size:10px;font-weight:700;letter-spacing:.03em;opacity:.75;text-transform:uppercase}
+.tm-nolink{color:var(--tm-na);font-size:12px;font-style:italic}
+.tm-warn{color:var(--tm-kotx);font-weight:700;font-size:12px;display:inline-flex;align-items:center;gap:4px}
+.ico-alerte{width:12px;height:12px;fill:currentColor;vertical-align:-1px}
+.tm-empty{padding:24px;text-align:center;color:var(--tm-ink2)}
+.tm-table tr.detail>td{background:var(--r-fond);padding:0;cursor:default}
+.tm-din{padding:16px 20px 8px;border-top:1px solid var(--tm-line)}
+.tm-grid{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:16px}
+.tm-col h5{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--tm-teal);margin:0 0 8px;font-family:var(--r-titre)}
+.tm-blk{background:var(--tm-card);border:1px solid var(--tm-line);border-left:1px solid var(--tm-teal);border-radius:8px;padding:12px;margin-bottom:8px}
+.tm-blk.ok{border-left-color:var(--tm-ok)}.tm-blk.part{border-left-color:var(--tm-part)}.tm-blk.na{border-left-color:var(--tm-na)}.tm-blk.todo{border-left-color:var(--tm-todo)}.tm-blk.ko{border-left-color:var(--tm-ko)}
+.tm-blk .tt{font-weight:700;font-size:13px;color:var(--r-encre)}
+.tm-blk .ds{color:var(--tm-ink2);font-size:12.5px;margin-top:4px}
+.tm-bul{margin:8px 0 0;list-style:none}
+.tm-bul li{position:relative;padding:4px 0 4px 16px;font-size:12.5px;color:var(--tm-ink)}
+.tm-bul li::before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--tm-teal)}
+.tm-pv{display:flex;gap:8px;align-items:flex-start;margin-top:8px;font-size:12px}
+.tm-pv .type{font-family:var(--r-mono);font-weight:700;font-size:10px;background:var(--r-sarcelle-fond);color:var(--tm-teal);border-radius:5px;padding:4px 8px;white-space:nowrap}
+.tm-pv .ref{font-family:var(--r-mono);color:var(--tm-ink2);overflow-wrap:anywhere}
+.tm-tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.04em;border-radius:5px;padding:4px 8px;text-transform:uppercase}
+.tm-tag.urgent{background:var(--r-rouge-fond);color:var(--r-rouge-encre)}.tm-tag.prio{background:var(--r-ambre-trait);color:var(--r-ambre-encre)}.tm-tag.quick{background:var(--r-bleu-fond);color:var(--r-bleu-encre)}.tm-tag.norm{background:var(--r-voile);color:var(--r-encre-2)}
+.tm-note{margin-top:16px;background:var(--r-sarcelle-fond);border:1px solid var(--r-sarcelle-trait);border-radius:12px;padding:12px 16px;font-size:12.5px}
+.tm-note b{color:var(--tm-teal)}
+.tm-legend{margin:12px 0 0;font-size:12px;color:var(--tm-ink2);display:flex;gap:16px;flex-wrap:wrap}
+.tm-legend span{display:inline-flex;align-items:center;gap:8px}
+.tm-plan,.tm-orphelins{margin-top:16px}
+.tm-plan h5,.tm-orphelins h5{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--tm-teal);margin:0 0 8px;font-family:var(--r-titre)}
+/* — barres de filtres, listes (règles, plan, tests, analyses, composants, dictionnaire) — */
+.tm-fbar,.adr-filterbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+.adr-fdrop{position:relative}
+.adr-fbtn{font-family:var(--r-texte);font-size:.8rem;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:8px 12px;cursor:pointer;color:var(--r-encre);display:inline-flex;align-items:center;gap:8px}
+.adr-fbtn:hover{background:var(--r-voile)}
+.adr-fbtn .caret{color:var(--r-attenue);font-size:.7rem}
+.adr-fcount{background:var(--r-encre);color:var(--r-surface);border-radius:100px;font-family:var(--r-mono);font-size:.62rem;padding:0 8px}
+.adr-fpanel{display:none;position:absolute;z-index:30;top:calc(100% + 4px);left:0;min-width:200px;max-height:300px;overflow:auto;background:var(--r-surface);border:1px solid var(--r-trait);border-radius:8px;box-shadow:0 6px 20px var(--r-ombre);padding:8px}
+.adr-fdrop.open .adr-fpanel{display:block}
+.adr-factions{display:flex;gap:8px;margin-bottom:8px;border-bottom:1px solid var(--r-voile);padding-bottom:8px}
+.adr-factions button{flex:1;font-size:.72rem;border:1px solid var(--r-voile);background:var(--r-surface);color:var(--r-encre);border-radius:5px;padding:4px;cursor:pointer}
+.adr-fhelp{font-size:.66rem;color:var(--r-attenue);border-bottom:1px dashed var(--r-voile);margin-bottom:8px;padding-bottom:8px;line-height:1.35}
+.adr-fopt{display:flex;align-items:center;gap:8px;font-size:.78rem;padding:4px;cursor:pointer;color:var(--r-encre-2)}
+.adr-search{flex:1 1 220px;min-width:180px;font-family:var(--r-texte);font-size:.82rem;padding:8px 12px;border-radius:8px}
+.adr-reset{font-size:.78rem;background:transparent;border:1px solid var(--r-voile);border-radius:8px;padding:8px 12px;cursor:pointer;color:var(--r-attenue)}
+.adr-count{font-family:var(--r-mono);font-size:.72rem;color:var(--r-attenue);margin:4px 0 8px}
+.adr-view{max-width:none}
+.adr-head{margin-bottom:1rem}
+.adr-head .ah-label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--r-attenue);margin-bottom:.4rem}
+.adr-head h3{font-size:1.35rem;margin:0 0 .4rem;color:var(--r-encre)}
+.adr-head p{font-size:.85rem;color:var(--r-attenue)}
+.adr-kpis{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+.adr-kpi{flex:1 1 120px;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:12px 16px;cursor:pointer;user-select:none}
+.adr-kpi .ak-val{font-family:var(--r-titre);font-weight:800;font-size:1.5rem;line-height:1}
+.adr-kpi .ak-lbl{font-size:.72rem;color:var(--r-attenue);margin-top:4px}
+.adr-kpi .ak-hint{font-size:.58rem;color:var(--r-attenue);margin-top:4px;text-transform:uppercase;letter-spacing:.02em}
+.adr-kpi.v-ok .ak-val{color:var(--r-vert-encre)}.adr-kpi.v-part .ak-val{color:var(--r-ambre-encre)}.adr-kpi.v-ko .ak-val{color:var(--r-rouge-encre)}.adr-kpi.v-na .ak-val{color:var(--r-attenue)}.adr-kpi.v-todo .ak-val{color:var(--r-encre-2)}
+.adr-kpi.strong{background:var(--r-rouge-fond)}
+.adr-kpi.is-active{box-shadow:0 0 0 2px var(--r-sarcelle) inset}
+@media (hover:hover){.adr-kpi:hover{box-shadow:0 2px 8px var(--r-ombre)}}
+.adr-tablewrap{overflow-x:auto;border:1px solid var(--r-voile);border-radius:10px}
+.adr-table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:920px}
+.adr-table thead th{background:var(--r-surface);text-align:left;padding:8px 12px;font-family:var(--r-mono);font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--r-attenue);border-bottom:1px solid var(--r-voile);white-space:nowrap;font-weight:600}
+.th-tri{font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;background:none;border:none;cursor:pointer;padding:0}
+.th-tri:hover{color:var(--r-encre)}
+.adr-table td{padding:8px 12px;border-bottom:1px solid var(--r-voile);vertical-align:top;color:var(--r-encre-2)}
+.adr-table tbody tr:hover{background:var(--r-fond)}
+.adr-id{font-family:var(--r-mono);font-weight:700;white-space:nowrap}
+.adr-titre{display:block;font-family:var(--r-texte);font-weight:400;font-size:.72rem;color:var(--r-attenue);margin-top:4px;max-width:230px;white-space:normal}
+.adr-resp{font-size:.76rem;max-width:280px;overflow-wrap:anywhere}
+.adr-muted{color:var(--r-attenue)}
+.adr-bloq{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--r-rouge);margin-right:4px}
+.adr-empty{text-align:center;color:var(--r-attenue);padding:24px;font-style:italic}
+.adr-verdict{display:inline-block;font-size:.7rem;font-weight:700;padding:4px 8px;border-radius:100px;white-space:nowrap}
+.adr-enf{font-family:var(--r-mono);font-size:.68rem}
+.enf-blocking{color:var(--r-rouge-encre);font-weight:700}.enf-required{color:var(--r-ambre-encre)}.enf-advisory{color:var(--r-encre-2)}.enf-recommendation{color:var(--r-attenue)}
+.adr-clink{font-family:var(--r-mono);font-size:.68rem;background:var(--r-voile);border:1px solid var(--r-trait-2);color:var(--r-encre-2);border-radius:5px;padding:0 8px;cursor:pointer}
+mark.adr-hl{background:var(--r-orange-trait);color:var(--r-encre);border-radius:2px}
+.v-ok{background:var(--r-vert-fond);color:var(--r-vert-encre)}.v-part{background:var(--r-ambre-fond);color:var(--r-ambre-encre)}
+.v-ko{background:var(--r-rouge-fond);color:var(--r-rouge-encre)}.v-na,.v-todo{background:var(--r-voile);color:var(--r-encre-2)}
+.adr-warn{background:var(--r-ambre-fond);border:1px solid var(--r-orange-trait);border-radius:8px;padding:12px 16px;margin:12px 0;font-size:.8rem;color:var(--r-ambre-encre)}
+.rem-note{background:var(--r-bleu-fond);border:1px solid var(--r-bleu-trait);border-radius:8px;padding:8px 16px;margin:12px 0;font-size:.78rem;color:var(--r-encre-2)}
+.rem-note code{background:var(--r-voile);padding:0 4px;border-radius:2px}
+.rem-id{font-family:var(--r-mono);font-size:.72rem;color:var(--r-rouge-encre);font-weight:700;white-space:nowrap}
+.rem-verif{color:var(--r-attenue);font-size:.78rem}
+.rem-src{font-family:var(--r-mono);font-size:.68rem;color:var(--r-attenue)}
+.action-tag{font-family:var(--r-mono);font-size:.68rem;letter-spacing:.05em;padding:4px 8px;border-radius:3px;font-weight:600;text-transform:uppercase;white-space:nowrap}
+.action-tag.urgent{background:var(--r-rouge);color:var(--r-surface)}.action-tag.prio{background:var(--r-orange);color:var(--r-surface)}
+.action-tag.quick{background:var(--r-vert-encre);color:var(--r-surface)}.action-tag.norm{background:var(--r-attenue);color:var(--r-surface)}
+.anx-chev{border:none;background:none;cursor:pointer;font-size:.85rem;color:var(--r-attenue);line-height:1;padding:0 4px 0 0;transition:transform var(--dur-1)}
+.anx-chev.open{transform:rotate(90deg);color:var(--r-encre)}
+.anx-badge{display:inline-block;padding:.1rem .5rem;border-radius:10px;font-size:.72rem;font-weight:700}
+.anx-badge.anx-ok{background:var(--r-vert-fond);color:var(--r-vert-encre)}.anx-badge.anx-ko{background:var(--r-rouge-trait);color:var(--r-rouge-encre)}
+.anx-badge.anx-warn{background:var(--r-ambre-trait);color:var(--r-ambre-encre)}.anx-badge.anx-na{background:var(--r-voile);color:var(--r-encre-2)}
+.anx-detail>td{background:var(--r-fond)}
+.anx-dl{display:flex;gap:12px;padding:4px 0;font-size:.82rem}
+.anx-dt{flex:0 0 190px;color:var(--r-attenue);font-weight:600}
+.anx-dd{color:var(--r-encre-2);overflow-wrap:anywhere}
+.anx-table td:nth-child(2),.anx-table td:nth-child(3){font-family:var(--r-mono);font-size:.76rem}
+.dict-pii{color:var(--r-rouge-encre);font-weight:600}
+.ico-pii{fill:currentColor;vertical-align:-1px}
+/* — reprise applicative — */
+.reprise-intro{background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:1.4rem 1.6rem;margin-bottom:2rem}
+.reprise-intro .ri-label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--r-attenue);margin-bottom:.5rem}
+.reprise-intro h3{font-size:1.4rem;font-weight:500;margin-bottom:.6rem}
+.reprise-intro p{font-size:.9rem;color:var(--r-encre-2);line-height:1.65}
+.reprise-legend{display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:1rem;padding-top:.9rem;border-top:1px dashed var(--r-voile);font-size:.78rem;color:var(--r-encre-2)}
+.reprise-legend .legend-item{display:flex;align-items:center;gap:.45rem}
+.vmark{font-family:var(--r-mono);font-weight:700;font-size:.72rem;padding:4px 8px;border-radius:3px}
+.vmark.ok{background:var(--r-vert-fond);color:var(--r-vert-encre)}.vmark.gap{background:var(--r-rouge-fond);color:var(--r-rouge-encre)}
+.vmark.partial{background:var(--r-ambre-fond);color:var(--r-ambre-encre)}.vmark.manual,.vmark.autre{background:var(--r-voile);color:var(--r-encre-2)}
+.id-block{background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:1.25rem 1.4rem;margin-bottom:2rem}
+.id-block h4{font-size:.95rem;font-weight:500;margin-bottom:.4rem}
+.id-block .reprise-section-desc{font-size:.82rem;color:var(--r-attenue);margin-bottom:1rem;line-height:1.6}
+.reprise-list{list-style:none;padding:0;margin:0}
+.reprise-item{padding:.65rem 0 .65rem 1.05rem;position:relative;border-bottom:1px solid var(--r-voile)}
+.reprise-item:last-child{border-bottom:none}
+.reprise-item::before{content:'';position:absolute;left:0;top:1rem;width:5px;height:5px;border-radius:50%;background:var(--r-encre-2);opacity:.65}
+.reprise-item .item-label{font-size:.86rem;color:var(--r-encre);line-height:1.5}
+.reprise-item .item-value{font-size:.83rem;color:var(--r-encre);line-height:1.55;margin-top:.3rem;padding:.45rem .7rem;background:var(--r-surface);border-radius:4px;border-left:1px solid var(--r-trait-2)}
+.reprise-item.gap .item-value{background:var(--r-rouge-fond);border-left-color:var(--r-rouge)}
+.reprise-item.partial .item-value{background:var(--r-ambre-fond);border-left-color:var(--r-orange)}
+.reprise-item.ok .item-value{background:var(--r-vert-fond);border-left-color:var(--r-vert-encre)}
+/* — méthode, manifeste d'écarts, pied — */
+.methode h3{font-size:1.05rem;margin:1.2rem 0 .4rem}
+.methode p{font-size:.86rem;color:var(--r-encre-2);line-height:1.65}
+.methode table{border-collapse:collapse;margin-top:.6rem;font-size:.82rem}
+.methode th,.methode td{border:1px solid var(--r-voile);padding:8px 12px;text-align:left;vertical-align:top}
+.methode th{background:var(--r-fond);font-weight:600}
+footer.ecarts{margin-top:2rem;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:10px;padding:16px;font-size:.8rem}
+footer.ecarts h2{font-size:.95rem;margin:0 0 8px}
+footer.ecarts ul{margin:0;padding-left:16px;max-width:70ch;color:var(--r-encre-2)}
+footer.ecarts li{margin:4px 0}
+.report-footer{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--r-voile);display:flex;flex-direction:column;gap:.8rem;font-size:.78rem;color:var(--r-attenue)}
+.report-footer ul.rf-info{list-style:none;padding:.8rem 1rem;margin:0;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:6px;display:flex;flex-wrap:wrap;gap:.55rem 1.8rem}
+.report-footer ul.rf-info li{position:relative;padding-left:1rem;line-height:1.55;color:var(--r-encre-2)}
+.report-footer ul.rf-info li::before{content:'';position:absolute;left:0;top:.5rem;width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.7}
+.report-footer ul.rf-info li b{color:var(--r-encre);font-weight:600}
+.report-footer .rf-main{display:flex;flex-direction:column;align-items:stretch;gap:.4rem}
+.report-footer .rf-brand{font-family:var(--r-titre);font-weight:700;letter-spacing:.08em;color:var(--r-encre);font-size:.85rem}
+{{CSS_ANNEXES}}
+{{CSS_PARITE_SOMBRE}}
+@media (max-width:900px){.tm-grid{grid-template-columns:1fr}.family-nav{flex-wrap:wrap;overflow-x:visible}.family-tab{flex:1 1 40%;min-width:0}}
+@media (max-width:640px){:root{--gouttiere:1rem}.kpi-grid{grid-template-columns:1fr}.title-block h1{font-size:1.4rem}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media print{
+  .header,.family-nav,.domain-nav,.btn,nav.toc,#diagTooltip,.adr-filterbar,.tm-fbar,.adr-kpis,.theme-toggle,.chemins,.chemins-titre{display:none!important}
+  body{background:var(--r-surface)}
+  .app{padding:0}
+  section.vue{display:block!important;break-before:page}
+  .dom-slot,.dom-slot[hidden]{display:block!important;break-before:page}
+  .section,.schema-page,.note-da,.diagram-wrap{break-inside:avoid}
+  tr[data-tf-hidden],tr[data-q-hidden]{display:table-row!important}
+}
+</style>
+</head>
+<body data-restitution="rapport">
+
+<header class="header">
+  <div class="header-inner">
+    <div class="marque">
+      <span class="brand">{{EN_TETE_SIGLE}}</span>
+      <div class="marque-texte">
+        <p class="marque-titre">{{EN_TETE_TITRE}}</p>
+        <p>{{EN_TETE_SOUS_TITRE}}</p>
+      </div>
+    </div>
+    <div class="header-actions"><button class="btn" type="button" onclick="window.print()">{{LIB_EXPORTER}}</button>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="{{LIB_BASCULE}}" aria-pressed="false">
+      <svg class="icon-moon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+      <svg class="icon-sun" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button></div>
+  </div>
+</header>
+
+<div id="diagTooltip" role="tooltip"><div class="tt-title"></div><ul></ul></div>
+
+<div class="app" data-page="donnees">
+
+  <section class="title-block">
+    <div class="lire" data-mesure-lecture>
+{{BLOC_TITRE}}
+    </div>
+  </section>
+
+{{BANDEAU_GATE}}
+
+{{SYNTHESES}}
+
+{{KPI}}
+
+  <div id="qaPanel" class="qa-panel {{QA_CLASSE}}">{{QA}}</div>
+
+{{CHEMINS}}
+
+{{NAV}}
+
+  <main id="vues">
+{{VUES}}
+  </main>
+
+  <footer class="ecarts"><div id="v-ecarts" class="lire" data-mesure-lecture>
+{{ECARTS}}
+  </div></footer>
+
+  <!-- PLAN DE REMÉDIATION AUTO-PORTÉ (machine-lisible) : le même calcul que remediation-actions.yaml.
+       Extraction sans navigateur : verifier-remediation.mjs. -->
+  <script type="application/json" id="remediation-plan-json">{{JSON_PLAN}}</script>
+  <script type="application/json" id="audit-selftest-data">{{JSON_SELFTEST}}</script>
+
+  <footer class="report-footer">
+{{PIED}}
+    <p class="rf-gabarit">Gabarit : gd-rapport-audit-poc-to-prod · version du gabarit 1.0.0</p>
+  </footer>
+
+</div>
+
+<script>
+/* ==== AuditCore — moteur de la forme POC-to-Prod (gabarit gd-rapport-audit-poc-to-prod) ====================
+   Rend les vues interactives (rapport d'audit par famille et dimension, matrice de traçabilité, toutes les règles,
+   plan de remédiation, reprise applicative, tests, analyses, composants), à l'identique côté serveur (rendu initial
+   écrit dans le fichier par build-rapport) et dans le navigateur (filtres, tri, recherche, détail). Les données
+   ci-dessous sont produites depuis rapport-data.json : rien n'est saisi à la main dans ce fichier. */
+{{DONNEES_JS}}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+}
+/* Libellé de la langue du rapport ; %1, %2… sont remplacés par les arguments suivants. */
+function T(cle) {
+  var s = Object.prototype.hasOwnProperty.call(I18N, cle) ? I18N[cle] : cle;
+  for (var i = 1; i < arguments.length; i++) s = String(s).split('%' + i).join(String(arguments[i]));
+  return s;
+}
+function surligne(texte, q) {
+  var t = escapeHtml(texte == null ? '' : String(texte));
+  if (!q) return t;
+  var motif = String(q).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  try { return t.replace(new RegExp('(' + motif + ')', 'ig'), '<mark class="adr-hl">$1</mark>'); } catch (e) { return t; }
+}
+/* Lit un bloc machine du fichier (<script type="application/json">). Bloc non servi (hôte sans DOM réel : porte de
+   format tierce, rendu côté serveur) : la donnée embarquée dans ce moteur fait foi. Bloc servi mais illisible : null,
+   et l'auto-test le dit — un bloc édité à la main ne passe pas en silence. */
+function lireBloc(id, repli) {
+  if (typeof document === 'undefined' || !document || typeof document.getElementById !== 'function') return repli;
+  var e = document.getElementById(id);
+  var t = e && typeof e.textContent === 'string' ? e.textContent : '';
+  if (!t.trim()) return repli;
+  try { return JSON.parse(t); } catch (err) { return null; }
+}
+function __auditJson(id) { return lireBloc(id, id === 'remediation-plan-json' ? PLAN_EMBARQUE : id === 'audit-selftest-data' ? FAITS_AUTOTEST : null); }
+function idSur(s) { return String(s).replace(/[^\w-]/g, '_'); }
+var ICO_ALERTE = '<svg class="ico-alerte" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 15 14H1L8 1Zm-.8 4.5v4.2h1.6V5.5H7.2Zm0 5.6v1.6h1.6v-1.6H7.2Z"/></svg>';
+var VERDICTS = ['non_conforme', 'partiel', 'a_evaluer', 'conforme', 'sans_objet'];
+var VCLS = { conforme: 'v-ok', partiel: 'v-part', non_conforme: 'v-ko', sans_objet: 'v-na', a_evaluer: 'v-todo' };
+var VKEY = { conforme: 'ok', partiel: 'part', non_conforme: 'ko', sans_objet: 'na', a_evaluer: 'todo' };
+var CRIT_ORDRE = { Fatal: 0, Bloquant: 1, Majeur: 2, Standard: 3 };
+var PRIO_ORDRE = { urgent: 0, prio: 1, quick: 2, norm: 3 };
+var SEV_ORDRE = { Fatal: 0, critique: 0, Bloquant: 1, Majeur: 2, majeur: 2, Standard: 3, mineur: 3 };
+function verdictLib(v) { return T('verdict.' + (v || 'a_evaluer')); }
+function sevClasse(s) { var o = SEV_ORDRE[s]; return o === 0 || o === 1 ? 's-grave' : o === 2 ? 's-majeur' : o === 3 ? 's-mineur' : 's-absente'; }
+
+/* ---------- état ---------- */
+var state = { mode: VUES.length ? VUES[0].mode : 'audit', family: FAMILIES.length ? FAMILIES[0].key : '', domain: ORDERED_DOMAINS.length ? ORDERED_DOMAINS[0] : '' };
+(function () { for (var i = 0; i < FAMILIES.length; i++) if (FAMILIES[i].domains.length) { state.family = FAMILIES[i].key; state.domain = FAMILIES[i].domains[0]; return; } })();
+var ADR_BYID = {}; ADRS.forEach(function (a) { ADR_BYID[a.id] = a; });
+function adrResp(id) {
+  var r = ADR_RESP[id] || {};
+  return { verdict: r.verdict || 'a_evaluer', apportee: r.apportee || '', possible: r.possible || '', motif: r.motif || '', rem_id: r.rem_id || '',
+    priorite: r.priorite || '', verification: r.verification || '', couvre: r.couvre || [], couverte_par: r.couverte_par || '', rem_id_porteuse: r.rem_id_porteuse || '' };
+}
+function adrIsBloquantActionable(a) {
+  var r = adrResp(a.id);
+  return (a.crit === 'Fatal' || a.crit === 'Bloquant') && (r.verdict === 'non_conforme' || r.verdict === 'partiel') && !!(r.rem_id || r.couverte_par);
+}
+function constatsDeRegle(id) {
+  var out = [];
+  ORDERED_DOMAINS.forEach(function (k) { (DOMAINS[k].constats || []).forEach(function (c, i) { if ((c.regles || []).indexOf(id) >= 0) out.push({ dom: k, i: i, c: c }); }); });
+  return out;
+}
+function planParId() { var m = {}; buildRemediationPlan().forEach(function (a) { m[a.id] = a; }); return m; }
+
+/* ================================================================================================
+   VUE « RAPPORT D'AUDIT » : familles → dimensions → panneau (synthèse, matrice de traçabilité, plan).
+   ================================================================================================ */
+function moyenneFamille(f) {
+  var s = f.domains.map(function (d) { return DOMAINS[d]; }).filter(function (d) { return d.applicability !== 'off' && typeof d.score === 'number'; });
+  return s.length ? s.reduce(function (a, d) { return a + d.score; }, 0) / s.length : null;
+}
+function htmlFamilyNav() {
+  return '<div class="family-nav" id="familyNav" role="group" aria-label="' + escapeHtml(T('famille.nav')) + '">' + FAMILIES.map(function (f) {
+    var m = moyenneFamille(f);
+    return '<button type="button" class="family-tab' + (state.family === f.key ? ' active' : '') + '" style="--family-color: var(--fam-' + f.key + ')" data-famille="' + escapeHtml(f.key) + '" aria-pressed="' + (state.family === f.key) + '">'
+      + '<span class="ftab-name"><span class="ftab-dot"></span>' + escapeHtml(f.name) + '</span>'
+      + '<span class="ftab-meta">' + f.domains.length + ' ' + escapeHtml(T('dim.abrege')) + ' · ' + f.domains.join(', ') + '</span>'
+      + '<span class="ftab-avg">' + escapeHtml(m === null ? T('famille.sans_note') : T('famille.moyenne', m.toFixed(1))) + '</span></button>';
+  }).join('') + '</div>';
+}
+function htmlDomainNav(f) {
+  var tabs = f.domains.map(function (did) {
+    var d = DOMAINS[did];
+    var sc = typeof d.score === 'number' ? d.score : 0;
+    return '<button type="button" class="domain-tab' + (state.domain === did ? ' active' : '') + '" data-domaine="' + did + '" aria-pressed="' + (state.domain === did) + '">'
+      + '<span class="dtab-id">' + did + '</span><span>' + escapeHtml(d.name) + '</span><span class="dtab-score s' + sc + '">' + (sc ? sc : '—') + '</span></button>';
+  }).join('');
+  var schema = (f.key === FAMILLE_SCHEMA && ARCHITECTURE_SVG)
+    ? '<button type="button" class="domain-tab schema-tab' + (state.domain === '__schema__' ? ' active' : '') + '" data-domaine="__schema__" aria-pressed="' + (state.domain === '__schema__') + '"><span aria-hidden="true">▦</span><span>' + escapeHtml(T('schema.onglet')) + '</span></button>'
+    : '';
+  return '<div class="domain-nav" data-nav-famille="' + escapeHtml(f.key) + '"' + (state.family === f.key ? '' : ' hidden') + '>' + tabs + schema + '</div>';
+}
+function htmlPills(d) {
+  var sc = typeof d.score === 'number' ? d.score : 0;
+  var crit = d.criticality ? '<span class="crit-pill ' + d.criticality + '">' + escapeHtml(T('crit.libelle', T('crit.' + d.criticality))) + '</span>'
+    : '<span class="crit-pill absente">' + escapeHtml(T('crit.absente')) + '</span>';
+  var gate = d.gate1b ? '<span class="gate-pill ' + d.gate1b + '">' + escapeHtml(T('gate1b.' + d.gate1b)) + '</span>' : '<span class="gate-pill absente">' + escapeHtml(T('gate1b.absente')) + '</span>';
+  var score = d.applicability === 'off' ? '<span class="score-pill s0">' + escapeHtml(T('score.off')) + '</span>'
+    : sc ? '<span class="score-pill s' + sc + '">' + escapeHtml(T('score.libelle', sc, T('score.cran.' + sc))) + '</span>' : '<span class="score-pill s0">' + escapeHtml(T('score.absent')) + '</span>';
+  return '<div class="dh-pills">' + score + crit + gate + '</div>';
+}
+function htmlAuditSummary(d) {
+  var puces = (d.audit_summary_bullets || []).map(function (b) { return '<li>' + b + '</li>'; }).join('');
+  if (!puces) return '';
+  return '<div class="audit-summary lire" data-mesure-lecture><span class="as-label">' + escapeHtml(T('dim.synthese')) + '</span><ul class="as-bullets">' + puces + '</ul></div>';
+}
+function htmlDomainPanel(did) {
+  var d = DOMAINS[did], fam = FAMILIES.filter(function (f) { return f.key === d.familyKey; })[0];
+  var perimetre = d.resume ? '<div class="perimeter-block"><h4 class="pb-label">' + escapeHtml(T(did === ORDERED_DOMAINS[0] ? 'dim.perimetre0' : 'dim.perimetre')) + '</h4><p>' + escapeHtml(d.resume) + '</p></div>' : '';
+  var off = d.applicability === 'off' ? '<div class="dim-off">' + escapeHtml(T('dim.off', d.motif || T('dim.off_sans_motif'))) + '</div>' : '';
+  var note = (d.note_da_bullets || []).length
+    ? '<div class="note-da lire" data-mesure-lecture><p class="nda-titre">' + escapeHtml(T('dim.note_titre')) + '</p><div class="nda-inner"><span class="nda-label">' + escapeHtml(T('dim.note_label')) + '</span><ul>'
+      + d.note_da_bullets.map(function (b) { return '<li>' + escapeHtml(b) + '</li>'; }).join('') + '</ul></div></div>'
+    : '';
+  return '<div class="dom-slot" data-dom="' + did + '" data-famille="' + escapeHtml(d.familyKey) + '"' + (state.domain === did ? '' : ' hidden') + '>'
+    + '<section class="dim" id="' + did + '">'
+    + '<div class="domain-panel" style="--family-color: var(--fam-' + d.familyKey + '); --family-bg: var(--fam-' + d.familyKey + '-fill)">'
+    + '<div class="family-intro lire" data-mesure-lecture><h3>' + escapeHtml(T('famille.titre', fam ? fam.name : d.family)) + '</h3><p>' + escapeHtml(fam ? fam.intro : '') + '</p></div>'
+    + '<div class="domain-header"><div class="lire" data-mesure-lecture><div class="dh-meta">' + did + ' · ' + escapeHtml(d.family) + '</div>'
+    + '<h3 class="dh-titre">' + escapeHtml(d.name) + '</h3>' + htmlPills(d) + off + perimetre + '</div>'
+    + (d.schema_bdd ? DB_SCHEMA_HTML : '')
+    + htmlAuditSummary(d) + '</div>'
+    + (d.schema_bdd && DICTIONNAIRE.length ? '<div class="section"><div class="section-head"><h4>' + escapeHtml(T('dict.titre')) + '</h4><span class="section-num">' + escapeHtml(T('dict.compte', DB_TABLES)) + '</span></div><div id="dictPanel">' + htmlListe(cfgDictionnaire()) + '</div></div>' : '')
+    + '<div class="section"><div class="section-head"><h4>' + escapeHtml(T('tm.titre')) + '</h4><span class="section-hint">' + escapeHtml(T('tm.indice')) + '</span></div>'
+    + '<div id="tm-' + did + '-hote">' + htmlTraceMatrix(did) + '</div></div>'
+    + note
+    + '</div></section></div>';
+}
+function htmlSchemaPanel() {
+  if (!ARCHITECTURE_SVG) return '';
+  var fam = FAMILIES.filter(function (f) { return f.key === FAMILLE_SCHEMA; })[0];
+  return '<div class="dom-slot" data-dom="__schema__" data-famille="' + escapeHtml(FAMILLE_SCHEMA) + '"' + (state.domain === '__schema__' ? '' : ' hidden') + '>'
+    + '<div class="domain-panel" style="--family-color: var(--fam-' + FAMILLE_SCHEMA + '); --family-bg: var(--fam-' + FAMILLE_SCHEMA + '-fill)">'
+    + '<div class="family-intro lire" data-mesure-lecture><h3>' + escapeHtml(T('famille.titre', fam ? fam.name : '')) + '</h3><p>' + escapeHtml(fam ? fam.intro : '') + '</p></div>'
+    + '<div class="schema-page" id="v-schemas"><div class="lire" data-mesure-lecture><div class="sp-eyebrow">' + escapeHtml(T('schema.eyebrow', META.projet)) + '</div>'
+    + '<h3>' + escapeHtml(T('schema.titre')) + '</h3><p class="sp-lead">' + escapeHtml(T('schema.lead')) + '</p></div>'
+    + '<div class="diagram-wrap">' + ARCHITECTURE_SVG + '</div>'
+    + '<p class="diag-caption">' + escapeHtml(T('schema.legende', META.projet, ARCHITECTURE_DATA.nodes.length, ARCHITECTURE_DATA.edges.length)) + '</p>'
+    + '<div class="diag-legend">' + ['purple', 'blue', 'teal', 'coral', 'amber', 'gray'].map(function (s) {
+      return '<span class="leg-item"><span class="leg-swatch ' + s + '"></span><span>' + escapeHtml(T('schema.style.' + s)) + '</span></span>';
+    }).join('') + '</div></div></div></div>';
+}
+function htmlVueAudit() {
+  return htmlFamilyNav() + FAMILIES.map(htmlDomainNav).join('')
+    + '<div id="panel">' + ORDERED_DOMAINS.map(htmlDomainPanel).join('') + htmlSchemaPanel() + '</div>';
+}
+
+/* ---------- matrice de traçabilité : règles × constats × actions, par dimension ---------- */
+var TM = {};
+function tmRegles(dom) { return ADRS.filter(function (a) { return a.daudit === dom; }); }
+function tmConstatsDeRegle(dom, id) { var out = []; (DOMAINS[dom].constats || []).forEach(function (c, i) { if ((c.regles || []).indexOf(id) >= 0) out.push({ i: i, c: c }); }); return out; }
+function tmActionsDeRegle(dom, id) { var out = []; (DOMAINS[dom].plan_action || []).forEach(function (a, i) { if ((a.regles || []).indexOf(id) >= 0) out.push({ i: i, a: a }); }); return out; }
+function tmCouverte(dom, a) {
+  var r = adrResp(a.id);
+  if (r.verdict === 'sans_objet') return true;
+  if (r.verdict === 'conforme') return !!r.apportee || tmConstatsDeRegle(dom, a.id).length > 0;
+  return tmActionsDeRegle(dom, a.id).length > 0 || !!r.rem_id || !!r.couverte_par;
+}
+function tmDims(dom) {
+  var st = TM[dom];
+  if (st.mode === 'constat') return [
+    { cle: 'sev', libelle: T('tm.f.severite'), val: function (r) { return r.c.severite || '—'; }, disp: function (v) { return v; } },
+    { cle: 'preuve', libelle: T('tm.f.preuve'), val: function (r) { return (r.c.preuves || []).length ? 'avec' : 'sans'; }, disp: function (v) { return T('tm.preuve.' + v); } }
+  ];
+  return [
+    { cle: 'crit', libelle: T('tm.f.criticite'), val: function (a) { return a.crit || '—'; }, disp: function (v) { return v === '—' ? v : T('crit.' + v.toLowerCase()); } },
+    { cle: 'enf', libelle: T('tm.f.enforcement'), val: function (a) { return a.enf || '—'; }, disp: function (v) { return v === '—' ? v : T('enf.' + v); }, aide: T('tm.f.enforcement.aide') },
+    { cle: 'verdict', libelle: T('tm.f.verdict'), val: function (a) { return adrResp(a.id).verdict; }, disp: verdictLib },
+    { cle: 'preuve', libelle: T('tm.f.preuve'), val: function (a) { return (tmConstatsDeRegle(dom, a.id).length || adrResp(a.id).apportee) ? 'avec' : 'sans'; }, disp: function (v) { return T('tm.preuve.' + v); }, aide: T('tm.f.preuve.aide') },
+    { cle: 'action', libelle: T('tm.f.action'), val: function (a) { var r = adrResp(a.id); return (tmActionsDeRegle(dom, a.id).length || r.rem_id || r.couverte_par) ? 'avec' : 'sans'; }, disp: function (v) { return T('tm.action.' + v); }, aide: T('tm.f.action.aide') }
+  ];
+}
+function tmToutes(dom) {
+  var st = TM[dom];
+  if (st.mode === 'constat') return (DOMAINS[dom].constats || []).map(function (c, i) { return { i: i, c: c }; });
+  return tmRegles(dom);
+}
+function tmDistinct(dom, d) { var s = {}, out = []; tmToutes(dom).forEach(function (r) { var v = String(d.val(r)); if (!s[v]) { s[v] = 1; out.push(v); } }); return out.sort(); }
+function tmInit(dom) {
+  TM[dom] = { mode: tmRegles(dom).length ? 'regle' : 'constat', q: '', ouvert: null, sort: { col: 'id', dir: 1 }, f: {}, details: {} };
+  if (TM[dom].mode === 'constat') TM[dom].sort = { col: 'sev', dir: 1 };
+  tmDims(dom).forEach(function (d) { TM[dom].f[d.cle] = tmDistinct(dom, d).slice(); });
+}
+function tmPasse(dom, r) {
+  var st = TM[dom], dims = tmDims(dom);
+  for (var i = 0; i < dims.length; i++) if (st.f[dims[i].cle].indexOf(String(dims[i].val(r))) < 0) return false;
+  if (!st.q) return true;
+  var hay;
+  if (st.mode === 'constat') hay = [r.c.titre, r.c.desc, (r.c.preuves || []).map(function (p) { return (p.type || '') + ' ' + (p.desc || '') + ' ' + (p.ref || ''); }).join(' ')].join(' ');
+  else { var x = adrResp(r.id); hay = [r.id, r.titre, r.crit, r.enf, verdictLib(x.verdict), x.apportee, x.possible, x.rem_id, r.synthese].join(' '); }
+  return hay.toLowerCase().indexOf(st.q.toLowerCase()) >= 0;
+}
+function tmLignes(dom) {
+  var st = TM[dom], col = st.sort.col, dir = st.sort.dir;
+  var val = function (r) {
+    if (st.mode === 'constat') return col === 'sev' ? (SEV_ORDRE[r.c.severite] == null ? 9 : SEV_ORDRE[r.c.severite]) : String(r.c.titre || '');
+    if (col === 'crit') return CRIT_ORDRE[r.crit] == null ? 9 : CRIT_ORDRE[r.crit];
+    if (col === 'verdict') return VERDICTS.indexOf(adrResp(r.id).verdict);
+    return r.id;
+  };
+  var cle = function (r) { return st.mode === 'constat' ? r.i : r.id; };
+  return tmToutes(dom).filter(function (r) { return tmPasse(dom, r); })
+    .sort(function (x, y) { var a = val(x), b = val(y); return a < b ? -dir : a > b ? dir : (cle(x) < cle(y) ? -1 : 1); });
+}
+function tmPuceConstat(c) { return '<span class="constat tm-lc" title="' + escapeHtml(c.desc || c.titre) + '"><span class="k">C</span>' + escapeHtml(String(c.titre || '').length > 60 ? String(c.titre).slice(0, 59) + '…' : c.titre) + '</span>'; }
+function tmCellulePreuve(dom, a) {
+  var cs = tmConstatsDeRegle(dom, a.id), r = adrResp(a.id);
+  if (cs.length) return cs.map(function (x) { return tmPuceConstat(x.c); }).join('');
+  if (r.apportee) return '<span class="tm-nolink">' + escapeHtml(T('tm.preuve_regle')) + '</span>';
+  if (r.verdict === 'conforme') return '<span class="tm-warn">' + ICO_ALERTE + escapeHtml(T('tm.aucune_preuve')) + '</span>';
+  return '<span class="tm-nolink">—</span>';
+}
+function tmCelluleAction(dom, a) {
+  var r = adrResp(a.id), as = tmActionsDeRegle(dom, a.id);
+  if (as.length) return as.map(function (x) { return '<span class="tm-lc action" title="' + escapeHtml(x.a.desc || x.a.titre) + '"><span class="k">' + escapeHtml(x.a.id || x.a.tag || '') + '</span>' + escapeHtml(x.a.titre) + '</span>'; }).join('');
+  if (r.couverte_par) return '<span class="tm-lc action" title="' + escapeHtml(T('tm.couverte_tip', r.rem_id_porteuse, r.couverte_par)) + '"><span class="k">' + escapeHtml(r.rem_id_porteuse) + '</span>' + escapeHtml(T('tm.couverte_par', r.couverte_par)) + '</span>';
+  if (r.rem_id) return '<span class="tm-lc action" title="' + escapeHtml(r.possible) + '"><span class="k">' + escapeHtml(r.rem_id) + '</span>' + escapeHtml(String(r.possible || '').length > 60 ? String(r.possible).slice(0, 59) + '…' : (r.possible || T('tm.action_plan'))) + '</span>';
+  if (r.verdict === 'conforme' || r.verdict === 'sans_objet') return '<span class="tm-nolink">' + escapeHtml(T('tm.action_non_requise')) + '</span>';
+  return '<span class="tm-warn">' + ICO_ALERTE + escapeHtml(T('tm.aucune_action')) + '</span>';
+}
+function tmDetailRegle(dom, a) {
+  var r = adrResp(a.id), v = r.verdict, cs = tmConstatsDeRegle(dom, a.id), as = tmActionsDeRegle(dom, a.id);
+  var col1 = '<div class="tm-blk ' + VKEY[v] + '"><div class="tt">' + escapeHtml(a.id + ' — ' + (a.titre || '')) + '</div><ul class="tm-bul">'
+    + '<li><b>' + escapeHtml(T('tm.d.dimension')) + '</b> ' + escapeHtml(a.dom || '—') + '</li>'
+    + '<li><b>' + escapeHtml(T('tm.d.criticite')) + '</b> ' + escapeHtml(a.crit ? T('crit.' + a.crit.toLowerCase()) : '—') + ' · <b>' + escapeHtml(T('tm.d.enforcement')) + '</b> ' + escapeHtml(a.enf ? T('enf.' + a.enf) : '—') + '</li>'
+    + '<li><b>' + escapeHtml(T('tm.d.verdict')) + '</b> ' + escapeHtml(verdictLib(v)) + '</li>'
+    + (a.synthese ? '<li><b>' + escapeHtml(T('tm.d.regle')) + '</b> ' + escapeHtml(a.synthese) + '</li>' : '')
+    + '<li><b>' + escapeHtml(T('tm.d.apportee')) + '</b> ' + escapeHtml(r.apportee || T('tm.non_renseigne')) + '</li>'
+    + (r.motif ? '<li><b>' + escapeHtml(T('tm.d.motif')) + '</b> ' + escapeHtml(r.motif) + '</li>' : '')
+    + (r.possible ? '<li><b>' + escapeHtml(T('tm.d.possible')) + '</b> ' + escapeHtml(r.possible) + '</li>' : '') + '</ul></div>';
+  var col2 = cs.length ? cs.map(function (x) {
+    return '<div class="constat tm-blk"><div class="tt">' + escapeHtml(x.c.titre) + '</div>' + (x.c.desc ? '<div class="ds">' + escapeHtml(x.c.desc) + '</div>' : '')
+      + (x.c.preuves || []).map(function (p) { return '<div class="tm-pv"><span class="type">' + escapeHtml(p.type || T('tm.preuve_type')) + '</span><span class="ref">' + escapeHtml([p.ref, p.desc].filter(Boolean).join(' — ')) + '</span></div>'; }).join('') + '</div>';
+  }).join('') : '<div class="tm-blk todo"><div class="ds">' + escapeHtml(T(v === 'sans_objet' ? 'tm.d.sans_constat_so' : 'tm.d.sans_constat')) + '</div></div>';
+  var col3;
+  if (as.length) col3 = as.map(function (x) { return '<div class="tm-blk part"><div class="tt"><span class="tm-tag ' + escapeHtml(x.a.tag) + '">' + escapeHtml(T('prio.' + x.a.tag)) + '</span> ' + escapeHtml(x.a.titre) + '</div><div class="ds">' + escapeHtml(x.a.desc || '') + '</div></div>'; }).join('');
+  else if (r.rem_id || r.couverte_par) col3 = '<div class="tm-blk todo"><div class="tt">' + escapeHtml(r.couverte_par ? T('tm.couverte_tip', r.rem_id_porteuse, r.couverte_par) : r.rem_id + ' · ' + T('prio.' + (r.priorite || 'norm'))) + '</div>'
+    + (r.possible ? '<div class="ds">' + escapeHtml(r.possible) + '</div>' : '') + (r.verification ? '<div class="ds"><b>' + escapeHtml(T('tm.d.critere')) + '</b> ' + escapeHtml(r.verification) + '</div>' : '') + '</div>';
+  else col3 = '<div class="tm-blk ' + (v === 'conforme' || v === 'sans_objet' ? 'ok' : 'todo') + '"><div class="ds">' + escapeHtml(T(v === 'conforme' || v === 'sans_objet' ? 'tm.action_non_requise' : 'tm.aucune_action')) + '</div></div>';
+  return '<div class="tm-din"><div class="tm-grid"><div class="tm-col"><h5>' + escapeHtml(T('tm.d.col1')) + '</h5>' + col1 + '</div>'
+    + '<div class="tm-col"><h5>' + escapeHtml(T('tm.d.col2', cs.length)) + '</h5>' + col2 + '</div>'
+    + '<div class="tm-col"><h5>' + escapeHtml(T('tm.d.col3')) + '</h5>' + col3 + '</div></div></div>';
+}
+function tmDetailConstat(r) {
+  var c = r.c;
+  var pv = (c.preuves || []).map(function (p) { return '<div class="tm-pv"><span class="type">' + escapeHtml(p.type || T('tm.preuve_type')) + '</span><span class="ref">' + escapeHtml([p.ref, p.desc].filter(Boolean).join(' — ')) + '</span></div>'; }).join('');
+  return '<div class="tm-din"><div class="tm-grid" style="grid-template-columns:1.3fr 1fr"><div class="tm-col"><h5>' + escapeHtml(T('tm.d.constat')) + '</h5><div class="tm-blk"><div class="ds">' + escapeHtml(c.desc || T('tm.non_renseigne')) + '</div></div></div>'
+    + '<div class="tm-col"><h5>' + escapeHtml(T('tm.d.preuves', (c.preuves || []).length)) + '</h5><div class="tm-blk">' + (pv || '<div class="ds tm-nolink">' + escapeHtml(T('tm.aucune_preuve')) + '</div>') + '</div></div></div></div>';
+}
+function tmLigneHtml(dom, r) {
+  var st = TM[dom];
+  if (st.mode === 'constat') {
+    var c = r.c, ouvert = !!st.details[r.i];
+    var pv = (c.preuves || []).length ? c.preuves.map(function (p) { return '<span class="tm-lc"><span class="k">' + escapeHtml(p.type || T('tm.preuve_type')) + '</span>' + escapeHtml(String(p.ref || p.desc || '').slice(0, 60)) + '</span>'; }).join('') : '<span class="tm-nolink">' + escapeHtml(T('tm.aucune_preuve')) + '</span>';
+    return '<tr class="row' + (ouvert ? ' open' : '') + '" tabindex="0" aria-expanded="' + ouvert + '" data-tm="' + dom + '" data-tm-ligne="' + r.i + '"><td><span class="constat tm-t">' + escapeHtml(c.titre) + '</span></td>'
+      + '<td><span class="tm-sev ' + sevClasse(c.severite) + '">' + escapeHtml(c.severite || '—') + '</span></td><td>' + pv + '</td></tr>'
+      + (ouvert ? '<tr class="detail"><td colspan="3">' + tmDetailConstat(r) + '</td></tr>' : '');
+  }
+  var a = r, v = adrResp(a.id).verdict, couverte = tmCouverte(dom, a), o = !!st.details[a.id];
+  var crit = a.crit ? a.crit.toLowerCase() : 'absente';
+  return '<tr class="row' + (o ? ' open' : '') + '" tabindex="0" aria-expanded="' + o + '" data-tm="' + dom + '" data-tm-ligne="' + escapeHtml(a.id) + '"><td><button type="button" class="tm-idc" data-regle="' + escapeHtml(a.id) + '" title="' + escapeHtml(T('tm.ouvrir_regle')) + '">' + escapeHtml(a.id) + '</button><span class="tm-t">' + escapeHtml(a.titre || '') + '</span></td>'
+    + '<td><span class="tm-chip tm-c-' + crit + '">' + escapeHtml(a.crit ? T('crit.' + crit) : '—') + '</span>' + (a.enf ? '<div class="tm-enf">' + escapeHtml(T('enf.' + a.enf)) + '</div>' : '') + '</td>'
+    + '<td><span class="badge v-' + v + '"><span class="tm-dot tm-d-' + VKEY[v] + '"></span>' + escapeHtml(verdictLib(v)) + '</span>' + (couverte ? '' : ' <span class="tm-warn">' + ICO_ALERTE + escapeHtml(T('tm.a_couvrir')) + '</span>') + '</td>'
+    + '<td>' + tmCellulePreuve(dom, a) + '</td><td>' + tmCelluleAction(dom, a) + '</td></tr>'
+    + (o ? '<tr class="detail"><td colspan="5">' + tmDetailRegle(dom, a) + '</td></tr>' : '');
+}
+function tmCorps(dom) { var l = tmLignes(dom); return { html: l.map(function (r) { return tmLigneHtml(dom, r); }).join(''), n: l.length }; }
+function tmTete(dom) {
+  var st = TM[dom];
+  var th = function (col, lib) { var ar = st.sort.col === col ? (st.sort.dir === 1 ? ' ▲' : ' ▼') : ''; return '<th aria-sort="' + (st.sort.col === col ? (st.sort.dir === 1 ? 'ascending' : 'descending') : 'none') + '"><button type="button" class="th-tri" data-tm="' + dom + '" data-tm-tri="' + col + '">' + escapeHtml(lib) + ar + '</button></th>'; };
+  if (st.mode === 'constat') return '<tr>' + th('titre', T('tm.c.constat')) + th('sev', T('tm.c.severite')) + '<th>' + escapeHtml(T('tm.c.preuves')) + '</th></tr>';
+  return '<tr>' + th('id', T('tm.c.regle')) + th('crit', T('tm.c.criticite')) + th('verdict', T('tm.c.verdict')) + '<th>' + escapeHtml(T('tm.c.preuves_liees')) + '</th><th>' + escapeHtml(T('tm.c.action')) + '</th></tr>';
+}
+function tmPilules(dom) {
+  var st = TM[dom], p = function (cls, n, l) { return '<div class="pill ' + cls + '"><span class="n">' + n + '</span><span class="l">' + escapeHtml(l) + '</span></div>'; };
+  if (st.mode === 'constat') {
+    var cs = DOMAINS[dom].constats || [], graves = cs.filter(function (c) { return (SEV_ORDRE[c.severite] == null ? 9 : SEV_ORDRE[c.severite]) <= 2; }).length;
+    return '<div class="tm-cov">' + p('', cs.length, T('tm.p.constats')) + p('part', graves, T('tm.p.graves')) + p('', (DOMAINS[dom].plan_action || []).length, T('tm.p.actions')) + '</div>';
+  }
+  var regles = tmRegles(dom), nb = function (v) { return regles.filter(function (a) { return adrResp(a.id).verdict === v; }).length; };
+  var app = regles.filter(function (a) { return adrResp(a.id).verdict !== 'sans_objet'; }), nc = app.filter(function (a) { return !tmCouverte(dom, a); }).length;
+  return '<div class="tm-cov">' + p('', regles.length, T('tm.p.regles')) + p('ok', nb('conforme'), T('tm.p.conformes')) + p('part', nb('partiel'), T('tm.p.partiels'))
+    + p('part', nb('non_conforme'), T('tm.p.non_conformes')) + p('todo', nb('a_evaluer'), T('tm.p.a_evaluer')) + p('na', nb('sans_objet'), T('tm.p.sans_objet'))
+    + p(nc ? 'part' : 'ok', (app.length - nc) + '/' + app.length, T('tm.p.couvertes')) + '</div>';
+}
+function tmBarre(dom) {
+  var st = TM[dom];
+  var drops = tmDims(dom).map(function (d) {
+    var vals = tmDistinct(dom, d), actifs = st.f[d.cle].length;
+    return '<div class="adr-fdrop' + (st.ouvert === d.cle ? ' open' : '') + '" data-tm-drop="' + dom + '|' + d.cle + '"><button type="button" class="adr-fbtn" data-tm="' + dom + '" data-tm-ouvre="' + d.cle + '" aria-expanded="' + (st.ouvert === d.cle) + '">' + escapeHtml(d.libelle)
+      + ' <span class="adr-fcount"' + (actifs < vals.length ? '' : ' hidden') + '>' + actifs + '/' + vals.length + '</span> <span class="caret" aria-hidden="true">▾</span></button>'
+      + '<div class="adr-fpanel"><div class="adr-factions"><button type="button" data-tm="' + dom + '" data-tm-tous="' + d.cle + '">' + escapeHtml(T('liste.tous')) + '</button><button type="button" data-tm="' + dom + '" data-tm-aucun="' + d.cle + '">' + escapeHtml(T('liste.aucun')) + '</button></div>'
+      + (d.aide ? '<div class="adr-fhelp">' + escapeHtml(d.aide) + '</div>' : '')
+      + vals.map(function (v) { return '<label class="adr-fopt"><input type="checkbox" data-tm="' + dom + '" data-tm-filtre="' + d.cle + '" value="' + escapeHtml(v) + '"' + (st.f[d.cle].indexOf(v) >= 0 ? ' checked' : '') + '> ' + escapeHtml(d.disp(v)) + '</label>'; }).join('')
+      + '</div></div>';
+  }).join('');
+  return '<div class="tm-fbar">' + drops + '<input type="search" class="adr-search" data-tm="' + dom + '" data-tm-q="1" aria-label="' + escapeHtml(T('tm.chercher')) + '" placeholder="' + escapeHtml(T('tm.chercher')) + '" value="' + escapeHtml(st.q) + '">'
+    + '<button type="button" class="adr-reset" data-tm="' + dom + '" data-tm-reset="1">' + escapeHtml(T('liste.reinitialiser')) + '</button></div>';
+}
+function tmPlan(dom) {
+  var as = DOMAINS[dom].plan_action || [];
+  if (!as.length) return '';
+  return '<div class="tm-plan" id="t-plan-' + dom + '"><h5>' + escapeHtml(T('tm.plan_dimension', as.length)) + '</h5>' + as.map(function (a) {
+    return '<div class="tm-blk ' + (a.tag === 'urgent' ? 'ko' : a.tag === 'prio' ? 'part' : 'todo') + '"><div class="tt"><span class="tm-tag ' + escapeHtml(a.tag) + '">' + escapeHtml(T('prio.' + a.tag)) + '</span> '
+      + (a.id ? '<span class="rem-id">' + escapeHtml(a.id) + '</span> ' : '') + escapeHtml(a.titre) + (a.effort ? ' · ' + escapeHtml(a.effort) : '') + '</div>'
+      + (a.desc ? '<div class="ds">' + escapeHtml(a.desc) + '</div>' : '') + (a.verification ? '<div class="ds"><b>' + escapeHtml(T('tm.d.critere')) + '</b> ' + escapeHtml(a.verification) + '</div>' : '') + '</div>';
+  }).join('') + '</div>';
+}
+function tmOrphelins(dom) {
+  if (TM[dom].mode === 'constat') return '';
+  var ids = {}; tmRegles(dom).forEach(function (a) { ids[a.id] = 1; });
+  var seuls = (DOMAINS[dom].constats || []).filter(function (c) { return !(c.regles || []).some(function (id) { return ids[id]; }); });
+  if (!seuls.length) return '';
+  return '<div class="tm-orphelins"><h5>' + escapeHtml(T('tm.orphelins', seuls.length)) + '</h5>' + seuls.map(function (c) {
+    return '<div class="constat tm-blk ' + (SEV_ORDRE[c.severite] <= 1 ? 'ko' : 'part') + '"><div class="tt"><span class="tm-sev ' + sevClasse(c.severite) + '">' + escapeHtml(c.severite || '—') + '</span> ' + escapeHtml(c.titre) + '</div>'
+      + (c.desc ? '<div class="ds">' + escapeHtml(c.desc) + '</div>' : '')
+      + (c.preuves || []).map(function (p) { return '<div class="tm-pv"><span class="type">' + escapeHtml(p.type || T('tm.preuve_type')) + '</span><span class="ref">' + escapeHtml([p.ref, p.desc].filter(Boolean).join(' — ')) + '</span></div>'; }).join('') + '</div>';
+  }).join('') + '</div>';
+}
+function htmlTraceMatrix(dom) {
+  if (!TM[dom]) tmInit(dom);
+  var st = TM[dom], corps = tmCorps(dom), total = tmToutes(dom).length, cols = st.mode === 'constat' ? 3 : 5;
+  var attrs = total >= 8 ? ' data-filterable="off" data-filterable-reason="' + escapeHtml(T('tm.exemption')) + '"' : '';
+  return '<div class="tm" id="tm-' + dom + '-racine">'
+    + '<div class="lire" data-mesure-lecture><p class="tm-intro">' + escapeHtml(T(st.mode === 'regle' ? 'tm.intro.regle' : 'tm.intro.constat')) + '</p></div>'
+    + tmPilules(dom) + (total ? tmBarre(dom) : '')
+    + '<div class="tm-tbl"><div class="tm-count" id="tm-' + dom + '-compte" aria-live="polite">' + escapeHtml(T('liste.compte', corps.n, total)) + '</div>'
+    + '<table class="tm-table" id="tm-' + dom + '-table"' + attrs + ' aria-describedby="leg-mesures"><thead>' + tmTete(dom) + '</thead><tbody>' + corps.html + '</tbody></table>'
+    + '<div class="tm-empty" id="tm-' + dom + '-vide"' + (corps.n ? ' hidden' : '') + '>' + escapeHtml(T(total ? 'liste.vide_filtre' : (st.mode === 'regle' ? 'tm.vide_regles' : 'tm.vide_constats'))) + '</div></div>'
+    + tmOrphelins(dom) + tmPlan(dom)
+    + '<div class="tm-legend"><span><span class="tm-dot tm-d-ok"></span> ' + escapeHtml(verdictLib('conforme')) + '</span><span><span class="tm-dot tm-d-part"></span> ' + escapeHtml(verdictLib('partiel')) + '</span><span><span class="tm-dot tm-d-ko"></span> ' + escapeHtml(verdictLib('non_conforme')) + '</span><span><span class="tm-dot tm-d-todo"></span> ' + escapeHtml(verdictLib('a_evaluer')) + '</span><span><span class="tm-dot tm-d-na"></span> ' + escapeHtml(verdictLib('sans_objet')) + '</span></div>'
+    + (st.mode === 'regle' ? '<div class="tm-note">' + escapeHtml(T('tm.note')) + '</div>' : '')
+    + '</div>';
+}
+
+/* ================================================================================================
+   LISTES : un composant pour « Toutes les règles », le plan, les tests, les analyses, les composants et le
+   dictionnaire des tables. Tuiles cliquables, filtres à cases (Tous / Aucun), recherche surlignée, tri, détail.
+   ================================================================================================ */
+var LISTES = {};
+function listeEtat(cfg) {
+  if (!LISTES[cfg.id]) {
+    LISTES[cfg.id] = { q: '', sort: cfg.tri ? { col: cfg.tri.col, dir: cfg.tri.dir || 1 } : { col: null, dir: 1 }, f: {}, ouvert: null, details: {} };
+    (cfg.filtres || []).forEach(function (f) { LISTES[cfg.id].f[f.cle] = listeDistinct(cfg, f).slice(); });
+  }
+  return LISTES[cfg.id];
+}
+function listeDistinct(cfg, f) {
+  var s = {}, out = [];
+  cfg.lignes.forEach(function (r) { var v = String(f.val(r)); if (!s[v]) { s[v] = 1; out.push(v); } });
+  return out.sort(function (a, b) { var x = f.ordre ? f.ordre(a) : a, y = f.ordre ? f.ordre(b) : b; return x < y ? -1 : x > y ? 1 : 0; });
+}
+function listePasse(cfg, st, r) {
+  var fs = cfg.filtres || [];
+  for (var i = 0; i < fs.length; i++) if (st.f[fs[i].cle].indexOf(String(fs[i].val(r))) < 0) return false;
+  if (!st.q) return true;
+  return String(cfg.recherche(r)).toLowerCase().indexOf(st.q.toLowerCase()) >= 0;
+}
+function listeLignes(cfg, st) {
+  var col = (cfg.colonnes.filter(function (c) { return c.cle === st.sort.col; })[0]) || null;
+  var lignes = cfg.lignes.map(function (r, i) { return { r: r, i: i }; }).filter(function (o) { return listePasse(cfg, st, o.r); });
+  if (col && col.tri) lignes.sort(function (x, y) { var a = col.tri(x.r), b = col.tri(y.r); return a < b ? -st.sort.dir : a > b ? st.sort.dir : x.i - y.i; });
+  return lignes;
+}
+function listeKpiActif(st, k) { if (!k.filtre) return false; var cur = st.f[k.filtre.cle]; return !!cur && cur.length === k.filtre.valeurs.length && k.filtre.valeurs.every(function (v) { return cur.indexOf(v) >= 0; }); }
+function listeKpis(cfg, st) {
+  if (!(cfg.kpis || []).length) return '';
+  return '<div class="adr-kpis" id="' + cfg.id + '-kpis">' + cfg.kpis.map(function (k, i) {
+    var actif = listeKpiActif(st, k);
+    return '<div class="adr-kpi ' + (k.cls || 'v-todo') + (actif ? ' is-active' : '') + '" role="button" tabindex="0" data-liste="' + cfg.id + '" data-liste-kpi="' + i + '" aria-pressed="' + actif + '" title="' + escapeHtml(k.filtre ? T('liste.kpi_filtrer', k.libelle) : T('liste.kpi_tout')) + '">'
+      + '<div class="ak-val">' + k.calc(cfg.lignes) + '</div><div class="ak-lbl">' + escapeHtml(k.libelle) + '</div><div class="ak-hint">' + escapeHtml(T(actif ? 'liste.kpi_actif' : (k.filtre ? 'liste.kpi_cliquer' : 'liste.kpi_reinit'))) + '</div></div>';
+  }).join('') + '</div>';
+}
+function listeBarre(cfg, st) {
+  var drops = (cfg.filtres || []).map(function (f) {
+    var vals = listeDistinct(cfg, f), actifs = st.f[f.cle].length;
+    return '<div class="adr-fdrop' + (st.ouvert === f.cle ? ' open' : '') + '" data-liste-drop="' + cfg.id + '|' + f.cle + '"><button type="button" class="adr-fbtn" data-liste="' + cfg.id + '" data-liste-ouvre="' + f.cle + '" aria-expanded="' + (st.ouvert === f.cle) + '">' + escapeHtml(f.libelle)
+      + ' <span class="adr-fcount"' + (actifs < vals.length ? '' : ' hidden') + '>' + actifs + '/' + vals.length + '</span> <span class="caret" aria-hidden="true">▾</span></button>'
+      + '<div class="adr-fpanel"><div class="adr-factions"><button type="button" data-liste="' + cfg.id + '" data-liste-tous="' + f.cle + '">' + escapeHtml(T('liste.tous')) + '</button><button type="button" data-liste="' + cfg.id + '" data-liste-aucun="' + f.cle + '">' + escapeHtml(T('liste.aucun')) + '</button></div>'
+      + vals.map(function (v) { return '<label class="adr-fopt"><input type="checkbox" data-liste="' + cfg.id + '" data-liste-filtre="' + f.cle + '" value="' + escapeHtml(v) + '"' + (st.f[f.cle].indexOf(v) >= 0 ? ' checked' : '') + '> ' + escapeHtml(f.disp ? f.disp(v) : (v === '' ? T('liste.vide_valeur') : v)) + '</label>'; }).join('')
+      + '</div></div>';
+  }).join('');
+  return '<div class="adr-filterbar">' + drops + '<input type="search" class="adr-search" data-liste="' + cfg.id + '" data-liste-q="1" aria-label="' + escapeHtml(cfg.chercher || T('liste.chercher')) + '" placeholder="' + escapeHtml(cfg.chercher || T('liste.chercher')) + '" value="' + escapeHtml(st.q) + '">'
+    + '<button type="button" class="adr-reset" data-liste="' + cfg.id + '" data-liste-reset="1">' + escapeHtml(T('liste.reinitialiser')) + '</button></div>';
+}
+function listeTete(cfg, st) {
+  return '<tr>' + cfg.colonnes.map(function (c) {
+    var lib = c.libelleHtml || escapeHtml(c.libelle);
+    if (!c.tri) return '<th>' + lib + '</th>';
+    var actif = st.sort.col === c.cle, ar = actif ? (st.sort.dir === 1 ? ' ▲' : ' ▼') : '';
+    return '<th aria-sort="' + (actif ? (st.sort.dir === 1 ? 'ascending' : 'descending') : 'none') + '"><button type="button" class="th-tri" data-liste="' + cfg.id + '" data-liste-tri="' + c.cle + '">' + lib + ar + '</button></th>';
+  }).join('') + '</tr>';
+}
+function listeCorps(cfg, st) {
+  var lignes = listeLignes(cfg, st);
+  var html = lignes.map(function (o) {
+    var ouvert = !!st.details[o.i];
+    var cells = cfg.colonnes.map(function (c, j) {
+      var v = c.cell(o.r, st.q);
+      if (j === 0 && cfg.detail) v = '<button type="button" class="anx-chev' + (ouvert ? ' open' : '') + '" data-liste="' + cfg.id + '" data-liste-detail="' + o.i + '" aria-expanded="' + ouvert + '" aria-label="' + escapeHtml(T('liste.detail')) + '">▸</button>' + v;
+      return '<td>' + v + '</td>';
+    }).join('');
+    var tr = (cfg.ligneNue ? '<tr>' : '<tr class="anx-row">') + cells + '</tr>';
+    if (cfg.detail && ouvert) tr += '<tr class="anx-detail"><td colspan="' + cfg.colonnes.length + '">' + cfg.detail(o.r, st.q) + '</td></tr>';
+    return tr;
+  }).join('');
+  return { html: html, n: lignes.length };
+}
+function htmlListe(cfg) {
+  var st = listeEtat(cfg), corps = listeCorps(cfg, st);
+  var attrs = cfg.lignes.length >= 8 ? ' data-filterable="off" data-filterable-reason="' + escapeHtml(T('liste.exemption')) + '"' : '';
+  return listeKpis(cfg, st) + (cfg.lignes.length ? listeBarre(cfg, st) : '')
+    + '<div class="adr-count" id="' + cfg.id + '-compte" aria-live="polite">' + escapeHtml(T('liste.compte', corps.n, cfg.lignes.length)) + '</div>'
+    + '<div class="adr-tablewrap"><table id="' + cfg.tableId + '" class="adr-table anx-table"' + attrs + ' aria-describedby="leg-mesures"><thead>' + listeTete(cfg, st) + '</thead><tbody>'
+    + (corps.html || '<tr class="anx-row"><td colspan="' + cfg.colonnes.length + '" class="adr-empty">' + escapeHtml(cfg.lignes.length ? T('liste.vide_filtre') : cfg.vide) + '</td></tr>') + '</tbody></table></div>';
+}
+function badgeAnx(v) {
+  var s = String(v || '').toLowerCase(), cls = /passant|conforme|ok|réussi|reussi|pass/.test(s) ? 'anx-ok' : /[ée]chou|bloquant|corriger|fail|ko/.test(s) ? 'anx-ko' : /surveiller|ignor|partiel|warn/.test(s) ? 'anx-warn' : 'anx-na';
+  return '<span class="anx-badge ' + cls + '">' + escapeHtml(v == null || v === '' ? '—' : v) + '</span>';
+}
+function texte(r, cle) { return r[cle] == null || r[cle] === '' ? '—' : String(r[cle]); }
+function detailDl(champs) {
+  return function (r, q) {
+    var dl = champs.filter(function (c) { return r[c[0]] != null && String(r[c[0]]).trim() !== ''; })
+      .map(function (c) { return '<div class="anx-dl"><span class="anx-dt">' + escapeHtml(c[1]) + '</span><span class="anx-dd">' + surligne(r[c[0]], q) + '</span></div>'; }).join('');
+    return dl || '<span class="adr-muted">' + escapeHtml(T('liste.detail_vide')) + '</span>';
+  };
+}
+function filtre(cle, libelle, disp, ordre) { return { cle: cle, libelle: libelle, val: function (r) { return r[cle] == null ? '' : r[cle]; }, disp: disp, ordre: ordre }; }
+
+function cfgRegles() {
+  return {
+    id: 'regles', tableId: 'rtable', lignes: ADRS, vide: T('regles.vide'), chercher: T('regles.chercher'), tri: { col: 'id', dir: 1 },
+    recherche: function (a) { var r = adrResp(a.id); return [a.id, a.titre, a.synthese, a.dom, a.crit, a.enf, verdictLib(r.verdict), r.apportee, r.possible, r.motif, r.rem_id].join(' '); },
+    filtres: [
+      { cle: 'dom', libelle: T('regles.f.dimension'), val: function (a) { return a.dom; } },
+      { cle: 'crit', libelle: T('regles.f.criticite'), val: function (a) { return a.crit || '—'; }, ordre: function (v) { return CRIT_ORDRE[v] == null ? 9 : CRIT_ORDRE[v]; } },
+      { cle: 'enf', libelle: T('regles.f.enforcement'), val: function (a) { return a.enf || '—'; } },
+      { cle: 'verdict', libelle: T('regles.f.verdict'), val: function (a) { return adrResp(a.id).verdict; }, disp: verdictLib, ordre: function (v) { return VERDICTS.indexOf(v); } },
+      { cle: 'bloquant', libelle: T('regles.f.bloquant'), val: function (a) { return adrIsBloquantActionable(a) ? 'oui' : 'non'; }, disp: function (v) { return T('oui_non.' + v); } }
+    ],
+    kpis: [
+      { libelle: T('regles.k.conformes'), cls: 'v-ok', calc: function (l) { return l.filter(function (a) { return adrResp(a.id).verdict === 'conforme'; }).length; }, filtre: { cle: 'verdict', valeurs: ['conforme'] } },
+      { libelle: T('regles.k.partiels'), cls: 'v-part', calc: function (l) { return l.filter(function (a) { return adrResp(a.id).verdict === 'partiel'; }).length; }, filtre: { cle: 'verdict', valeurs: ['partiel'] } },
+      { libelle: T('regles.k.non_conformes'), cls: 'v-ko', calc: function (l) { return l.filter(function (a) { return adrResp(a.id).verdict === 'non_conforme'; }).length; }, filtre: { cle: 'verdict', valeurs: ['non_conforme'] } },
+      { libelle: T('regles.k.bloquantes'), cls: 'v-ko strong', calc: function (l) { return l.filter(adrIsBloquantActionable).length; }, filtre: { cle: 'bloquant', valeurs: ['oui'] } },
+      { libelle: T('regles.k.sans_objet'), cls: 'v-na', calc: function (l) { return l.filter(function (a) { return adrResp(a.id).verdict === 'sans_objet'; }).length; }, filtre: { cle: 'verdict', valeurs: ['sans_objet'] } },
+      { libelle: T('regles.k.a_evaluer'), cls: 'v-todo', calc: function (l) { return l.filter(function (a) { return adrResp(a.id).verdict === 'a_evaluer'; }).length; }, filtre: { cle: 'verdict', valeurs: ['a_evaluer'] } }
+    ],
+    colonnes: [
+      { cle: 'id', libelle: T('regles.c.regle'), tri: function (a) { return a.id; }, cell: function (a, q) { return '<span class="adr-id">' + (adrIsBloquantActionable(a) ? '<span class="adr-bloq" title="' + escapeHtml(T('regles.bloquante_tip')) + '"></span>' : '') + surligne(a.id, q) + '</span>' + (a.titre ? '<span class="adr-titre">' + surligne(a.titre, q) + '</span>' : ''); } },
+      { cle: 'dom', libelle: T('regles.c.dimension'), tri: function (a) { return a.dom; }, cell: function (a, q) { return surligne(a.dom, q); } },
+      { cle: 'crit', libelle: T('regles.c.criticite'), tri: function (a) { return CRIT_ORDRE[a.crit] == null ? 9 : CRIT_ORDRE[a.crit]; }, cell: function (a, q) { return surligne(a.crit ? T('crit.' + a.crit.toLowerCase()) : '—', q); } },
+      { cle: 'enf', libelle: T('regles.c.enforcement'), tri: function (a) { return a.enf || ''; }, cell: function (a, q) { return '<span class="adr-enf enf-' + escapeHtml(a.enf || '') + '">' + surligne(a.enf ? T('enf.' + a.enf) : '—', q) + '</span>'; } },
+      { cle: 'verdict', libelle: T('regles.c.verdict'), tri: function (a) { return VERDICTS.indexOf(adrResp(a.id).verdict); }, cell: function (a, q) { var v = adrResp(a.id).verdict; return '<span class="adr-verdict ' + VCLS[v] + '">' + surligne(verdictLib(v), q) + '</span>'; } },
+      { cle: 'apportee', libelle: T('regles.c.apportee'), cell: function (a, q) { var r = adrResp(a.id); return '<div class="adr-resp">' + surligne(r.apportee || r.motif || '—', q) + '</div>'; } },
+      { cle: 'possible', libelle: T('regles.c.possible'), cell: function (a, q) { var r = adrResp(a.id); return '<div class="adr-resp">' + surligne(r.couverte_par ? T('tm.couverte_tip', r.rem_id_porteuse, r.couverte_par) : (r.possible || '—'), q) + (r.rem_id ? ' <span class="rem-src">' + escapeHtml(r.rem_id) + '</span>' : '') + '</div>'; } },
+      { cle: 'constats', libelle: T('regles.c.constats'), cell: function (a) { var cs = constatsDeRegle(a.id); return cs.length ? cs.map(function (c) { return '<button type="button" class="adr-clink" data-goto="' + c.dom + '">' + c.dom + '</button>'; }).join(' ') : '<span class="adr-muted">—</span>'; } }
+    ]
+  };
+}
+function cfgPlan() {
+  var plan = buildRemediationPlan();
+  return {
+    id: 'plan', tableId: 'remtable', lignes: plan, vide: T('plan.vide'), chercher: T('plan.chercher'), tri: { col: 'priorite', dir: 1 },
+    recherche: function (a) { return [a.id, a.action, a.titre, a.dimension, a.source, (a.couvre || []).join(' '), a.verification, T('prio.' + a.priorite), a.severite].join(' '); },
+    filtres: [
+      { cle: 'priorite', libelle: T('plan.f.priorite'), val: function (a) { return a.priorite || 'norm'; }, disp: function (v) { return T('prio.' + v); }, ordre: function (v) { return PRIO_ORDRE[v] == null ? 9 : PRIO_ORDRE[v]; } },
+      { cle: 'severite', libelle: T('plan.f.criticite'), val: function (a) { return a.severite || '—'; }, ordre: function (v) { return CRIT_ORDRE[v] == null ? 9 : CRIT_ORDRE[v]; } },
+      { cle: 'source', libelle: T('plan.f.source'), val: function (a) { return a.source_type === 'regle' ? 'regle' : 'dimension'; }, disp: function (v) { return T('plan.source.' + v); } },
+      { cle: 'dimension', libelle: T('plan.f.dimension'), val: function (a) { return a.dimension || '—'; } }
+    ],
+    kpis: [
+      { libelle: T('plan.k.actions'), cls: 'v-todo', calc: function (l) { return l.length; } },
+      { libelle: T('prio.urgent'), cls: 'v-ko strong', calc: function (l) { return l.filter(function (a) { return a.priorite === 'urgent'; }).length; }, filtre: { cle: 'priorite', valeurs: ['urgent'] } },
+      { libelle: T('prio.prio'), cls: 'v-ko', calc: function (l) { return l.filter(function (a) { return a.priorite === 'prio'; }).length; }, filtre: { cle: 'priorite', valeurs: ['prio'] } },
+      { libelle: T('prio.quick'), cls: 'v-ok', calc: function (l) { return l.filter(function (a) { return a.priorite === 'quick'; }).length; }, filtre: { cle: 'priorite', valeurs: ['quick'] } },
+      { libelle: T('prio.norm'), cls: 'v-na', calc: function (l) { return l.filter(function (a) { return a.priorite === 'norm'; }).length; }, filtre: { cle: 'priorite', valeurs: ['norm'] } }
+    ],
+    colonnes: [
+      { cle: 'id', libelle: T('plan.c.id'), tri: function (a) { return a.id; }, cell: function (a, q) { return '<span class="rem-id">' + surligne(a.id, q) + '</span>'; } },
+      { cle: 'priorite', libelle: T('plan.c.priorite'), tri: function (a) { return (PRIO_ORDRE[a.priorite] == null ? 9 : PRIO_ORDRE[a.priorite]) * 10 + (CRIT_ORDRE[a.severite] == null ? 9 : CRIT_ORDRE[a.severite]); }, cell: function (a) { return '<span class="action-tag ' + escapeHtml(a.priorite) + '">' + escapeHtml(T('prio.' + a.priorite)) + '</span>' + (a.effort && a.effort !== '—' ? ' <span class="rem-src">' + escapeHtml(a.effort) + '</span>' : ''); } },
+      { cle: 'severite', libelle: T('plan.c.criticite'), tri: function (a) { return CRIT_ORDRE[a.severite] == null ? 9 : CRIT_ORDRE[a.severite]; }, cell: function (a, q) { return surligne(a.severite || '—', q); } },
+      { cle: 'dimension', libelle: T('plan.c.dimension'), tri: function (a) { return a.dimension || '~'; }, cell: function (a) { return a.dimension ? '<button type="button" class="adr-clink" data-goto="' + escapeHtml(a.dimension) + '">' + escapeHtml(a.dimension) + '</button>' : '<span class="adr-muted">' + escapeHtml(T('plan.non_rattachee')) + '</span>'; } },
+      { cle: 'source', libelle: T('plan.c.source'), tri: function (a) { return String(a.source || ''); }, cell: function (a, q) { return '<span class="rem-src">' + surligne(a.source, q) + '</span>' + ((a.couvre || []).length ? ' <span class="rem-verif">' + surligne(T('plan.couvre', a.couvre.join(', ')), q) + '</span>' : ''); } },
+      { cle: 'action', libelle: T('plan.c.action'), cell: function (a, q) { return surligne(a.action, q); } },
+      { cle: 'verification', libelle: T('plan.c.critere'), cell: function (a, q) { return '<span class="rem-verif">' + surligne(a.verification, q) + '</span>'; } }
+    ]
+  };
+}
+function cfgAnnexe(cle) {
+  var lignes = cle === 'tests' ? TESTS : cle === 'analyses' ? ANALYSES : COMPOSANTS;
+  var defs = ANNEXES[cle];
+  return {
+    id: cle, tableId: 't-__' + cle, lignes: lignes, vide: T('anx.vide'), ligneNue: cle === 'composants',
+    tri: { col: defs.colonnes[0][0], dir: 1 },
+    recherche: function (r) { return Object.keys(r).map(function (k) { return r[k]; }).join(' '); },
+    filtres: defs.filtres.map(function (f) { return filtre(f[0], f[1]); }),
+    kpis: defs.kpis.map(function (k) {
+      return { libelle: k[0], cls: k[1], calc: k[2] ? function (l) { return l.filter(function (r) { return String(r[k[2]] == null ? '' : r[k[2]]) === k[3]; }).length; } : function (l) { return l.length; },
+        filtre: k[2] ? { cle: k[2], valeurs: [k[3]] } : null };
+    }),
+    colonnes: defs.colonnes.map(function (c) {
+      return { cle: c[0], libelle: c[1], tri: function (r) { return String(r[c[0]] == null ? '' : r[c[0]]); },
+        cell: c[2] === 'badge' ? function (r) { return badgeAnx(r[c[0]]); } : c[2] === 'brut' ? function (r) { return escapeHtml(texte(r, c[0])); } : function (r, q) { return surligne(texte(r, c[0]), q); } };
+    }),
+    detail: defs.detail.length ? detailDl(defs.detail) : null
+  };
+}
+function cfgDictionnaire() {
+  return {
+    id: 'dictionnaire', tableId: 't-__erd', lignes: DICTIONNAIRE, vide: T('dict.vide'), tri: { col: 'table', dir: 1 },
+    recherche: function (r) { return [r.table, r.colonne, r.type, r.cle, r.note].join(' '); },
+    filtres: [filtre('table', T('dict.c.table')), filtre('pii', T('dict.f.pii'), function (v) { return T('oui_non.' + v); })],
+    kpis: [],
+    colonnes: [
+      { cle: 'table', libelle: T('dict.c.table'), tri: function (r) { return r.table + ' ' + String(1000 + r.ordre); }, cell: function (r, q) { return '<span class="adr-id">' + surligne(r.table, q) + '</span>'; } },
+      { cle: 'colonne', libelle: T('dict.c.colonne'), tri: function (r) { return r.colonne; }, cell: function (r, q) { return '<span class="' + (r.pii === 'oui' ? 'dict-pii' : '') + '">' + surligne(r.colonne, q) + '</span>'; } },
+      { cle: 'type', libelle: T('dict.c.type'), cell: function (r, q) { return surligne(r.type || '—', q); } },
+      { cle: 'cle', libelle: T('dict.c.cle'), cell: function (r, q) { return surligne(r.cle || '—', q); } },
+      { cle: 'pii', libelleHtml: 'PII ' + ICO_PII, cell: function (r) { return r.pii === 'oui' ? '<span class="dict-pii">' + ICO_PII + ' ' + escapeHtml(T('oui_non.oui')) + '</span>' : '<span class="adr-muted">—</span>'; } },
+      { cle: 'note', libelle: T('dict.c.note'), cell: function (r, q) { return surligne(r.note || '', q); } }
+    ]
+  };
+}
+function cfgParId(id) {
+  if (id === 'regles') return cfgRegles();
+  if (id === 'plan') return cfgPlan();
+  if (id === 'dictionnaire') return cfgDictionnaire();
+  return cfgAnnexe(id);
+}
+
+/* ---------- vues ---------- */
+function htmlEnTeteVue(cle) {
+  return '<div class="adr-head lire" data-mesure-lecture><div class="ah-label">' + escapeHtml(T('vue.onglet', T('vue.' + cle + '.titre'))) + '</div><h3>' + escapeHtml(T('vue.' + cle + '.h')) + '</h3><p>' + escapeHtml(T('vue.' + cle + '.intro')) + '</p></div>';
+}
+function htmlVueRegles() {
+  return '<div class="adr-view">' + htmlEnTeteVue('regles') + htmlListe(cfgRegles()) + '</div>';
+}
+function htmlVuePlan() {
+  return '<div class="adr-view">' + htmlEnTeteVue('plan') + '<div class="rem-note lire" data-mesure-lecture>' + escapeHtml(T('plan.note')) + '</div>' + htmlListe(cfgPlan()) + '</div>';
+}
+function htmlVueAnnexe(cle) { return '<div class="adr-view">' + htmlEnTeteVue(cle) + htmlListe(cfgAnnexe(cle)) + '</div>'; }
+function htmlVueReprise() {
+  var marque = function (s) { return '<span class="vmark ' + s + '">' + escapeHtml(T('reprise.marque.' + s)) + '</span>'; };
+  var item = function (it) {
+    return '<li class="reprise-item ' + it.etat + '"><div class="item-label">' + escapeHtml(it.label) + '</div><div class="item-value">' + marque(it.etat) + ' ' + escapeHtml(it.value || T('reprise.non_collecte')) + '</div></li>';
+  };
+  var groupes = REPRISE.groupes.map(function (g) {
+    return '<div class="id-block"><h4>' + escapeHtml(g.titre) + '</h4>' + (g.description ? '<p class="reprise-section-desc">' + escapeHtml(g.description) + '</p>' : '') + '<ul class="reprise-list">' + g.items.map(item).join('') + '</ul></div>';
+  }).join('');
+  return '<div class="lire" data-mesure-lecture><section class="reprise-intro"><div class="ri-label">' + escapeHtml(T('vue.onglet', T('vue.reprise.titre'))) + '</div><h3>' + escapeHtml(T('vue.reprise.h')) + '</h3><p>' + escapeHtml(T('vue.reprise.intro')) + '</p>'
+    + '<div class="reprise-legend">' + ['ok', 'partial', 'gap', 'manual'].map(function (s) { return '<span class="legend-item">' + marque(s) + ' ' + escapeHtml(T('reprise.legende.' + s)) + '</span>'; }).join('') + '</div></section>'
+    + groupes + '</div>';
+}
+
+/* ================================================================================================
+   COMPORTEMENT — navigation, filtres, détail, infobulles. Délégation d'évènements : un rendu neuf n'a
+   jamais à être recâblé.
+   ================================================================================================ */
+function vueDeMode(m) { for (var i = 0; i < VUES.length; i++) if (VUES[i].mode === m) return VUES[i].id; return null; }
+function modeDeVue(id) { for (var i = 0; i < VUES.length; i++) if (VUES[i].id === id) return VUES[i].mode; return null; }
+function montreVue(k){
+  var vues = typeof document !== 'undefined' && document.querySelectorAll ? document.querySelectorAll('section.vue') : [], i;
+  for (i = 0; i < vues.length; i++) { if (vues[i].id === k) vues[i].classList.add('active'); else vues[i].classList.remove('active'); }
+  var ong = typeof document !== 'undefined' && document.querySelectorAll ? document.querySelectorAll('nav.toc a[data-vue]') : [];
+  for (i = 0; i < ong.length; i++) {
+    var actif = ong[i].getAttribute('data-vue') === k;
+    ong[i].setAttribute('aria-selected', String(actif));
+    if (actif) ong[i].classList.add('active'); else ong[i].classList.remove('active');
+  }
+  var m = modeDeVue(k); if (m) state.mode = m;
+  try { if (typeof window !== 'undefined' && window.history && window.history.replaceState) window.history.replaceState(null, '', '#' + k); } catch (e) {}
+  return false;
+}
+function applyMode() {
+  var id = vueDeMode(state.mode);
+  if (id) montreVue(id);
+  if (state.mode === 'audit') render();
+  else if (state.mode === 'adr') renderAdrAll();
+  else if (state.mode === 'remediation') renderRemediation();
+  else if (state.mode === 'reprise') renderReprise();
+  else if (state.mode === 'tests') renderTests();
+  else if (state.mode === 'analyses') renderAnalyses();
+  else if (state.mode === 'composants') renderComposants();
+}
+function ecrire(id, html) { if (typeof document === 'undefined' || !document.getElementById) return; var el = document.getElementById(id); if (el) el.innerHTML = html; }
+function render() { ecrire('panel-hote', htmlVueAudit()); }
+function renderAdrAll() { ecrire('adrPanel', htmlVueRegles()); }
+function renderRemediation() { ecrire('remediationPanel', htmlVuePlan()); }
+function renderReprise() { if (REPRISE.groupes.length) ecrire('reprisePanel', htmlVueReprise()); }
+function renderTests() { if (TESTS.length) ecrire('testsPanel', htmlVueAnnexe('tests')); }
+function renderAnalyses() { if (ANALYSES.length) ecrire('analysesPanel', htmlVueAnnexe('analyses')); }
+function renderComposants() { if (COMPOSANTS.length) ecrire('composantsPanel', htmlVueAnnexe('composants')); }
+function choisirDomaine(did) {
+  if (typeof document === 'undefined' || !document.querySelectorAll) return;
+  if (did !== '__schema__' && !DOMAINS[did]) return;
+  state.domain = did;
+  state.family = did === '__schema__' ? FAMILLE_SCHEMA : DOMAINS[did].familyKey;
+  var i, l = document.querySelectorAll('.dom-slot');
+  for (i = 0; i < l.length; i++) { if (l[i].getAttribute('data-dom') === did) l[i].removeAttribute('hidden'); else l[i].setAttribute('hidden', ''); }
+  l = document.querySelectorAll('.domain-nav');
+  for (i = 0; i < l.length; i++) { if (l[i].getAttribute('data-nav-famille') === state.family) l[i].removeAttribute('hidden'); else l[i].setAttribute('hidden', ''); }
+  l = document.querySelectorAll('.family-tab');
+  for (i = 0; i < l.length; i++) { var fa = l[i].getAttribute('data-famille') === state.family; l[i].classList.toggle('active', fa); l[i].setAttribute('aria-pressed', String(fa)); }
+  l = document.querySelectorAll('.domain-tab');
+  for (i = 0; i < l.length; i++) { var da = l[i].getAttribute('data-domaine') === did; l[i].classList.toggle('active', da); l[i].setAttribute('aria-pressed', String(da)); }
+  try { if (typeof window !== 'undefined' && window.dispatchEvent && typeof Event === 'function') window.dispatchEvent(new Event('resize')); } catch (e) {}
+}
+function gotoDomain(did) { var v = vueDeMode('audit'); if (v) montreVue(v); choisirDomaine(did); var nav = document.getElementById('familyNav'); if (nav && nav.scrollIntoView) nav.scrollIntoView({ block: 'start' }); }
+function choisirFamille(fk) { for (var i = 0; i < FAMILIES.length; i++) if (FAMILIES[i].key === fk && FAMILIES[i].domains.length) { choisirDomaine(FAMILIES[i].domains[0]); return; } }
+/* <thead> et <tbody> restent des balises NUES : la porte de rendu (RL-5) compte les lignes d'un <tbody> nu ; un
+   identifiant posé dessus rendait le contrôle des tableaux longs muet sur cette forme. On les retrouve par la table. */
+function partieDe(idTable, balise) { var t = document.getElementById(idTable); return t && t.querySelector ? t.querySelector(balise) : null; }
+function rafraichirListe(id) {
+  var cfg = cfgParId(id), st = listeEtat(cfg), corps = listeCorps(cfg, st);
+  var tb = partieDe(cfg.tableId, 'tbody');
+  if (tb) tb.innerHTML = corps.html || '<tr class="anx-row"><td colspan="' + cfg.colonnes.length + '" class="adr-empty">' + escapeHtml(cfg.lignes.length ? T('liste.vide_filtre') : cfg.vide) + '</td></tr>';
+  var th = partieDe(cfg.tableId, 'thead'); if (th) th.innerHTML = listeTete(cfg, st);
+  var c = document.getElementById(id + '-compte'); if (c) c.textContent = T('liste.compte', corps.n, cfg.lignes.length);
+  var k = document.getElementById(id + '-kpis'); if (k) k.outerHTML = listeKpis(cfg, st);
+  var drops = document.querySelectorAll('[data-liste-drop^="' + id + '|"]');
+  for (var i = 0; i < drops.length; i++) {
+    var cle = drops[i].getAttribute('data-liste-drop').split('|')[1], f = (cfg.filtres || []).filter(function (x) { return x.cle === cle; })[0];
+    var b = drops[i].querySelector('.adr-fcount'), tot = listeDistinct(cfg, f).length, act = st.f[cle].length;
+    if (b) { b.textContent = act + '/' + tot; if (act < tot) b.removeAttribute('hidden'); else b.setAttribute('hidden', ''); }
+  }
+}
+/* L'état d'une matrice naît au rendu : dans le navigateur, le rendu initial vient du serveur, l'état est donc créé
+   au premier geste. Tout gestionnaire passe par tmEtat. */
+function tmEtat(dom) { if (!TM[dom]) tmInit(dom); return TM[dom]; }
+function rafraichirTm(dom) {
+  tmEtat(dom);
+  var corps = tmCorps(dom), total = tmToutes(dom).length;
+  var tb = partieDe('tm-' + dom + '-table', 'tbody'); if (tb) tb.innerHTML = corps.html;
+  var th = partieDe('tm-' + dom + '-table', 'thead'); if (th) th.innerHTML = tmTete(dom);
+  var c = document.getElementById('tm-' + dom + '-compte'); if (c) c.textContent = T('liste.compte', corps.n, total);
+  var v = document.getElementById('tm-' + dom + '-vide'); if (v) { if (corps.n) v.setAttribute('hidden', ''); else v.removeAttribute('hidden'); }
+  var drops = document.querySelectorAll('[data-tm-drop^="' + dom + '|"]');
+  for (var i = 0; i < drops.length; i++) {
+    var cle = drops[i].getAttribute('data-tm-drop').split('|')[1], d = tmDims(dom).filter(function (x) { return x.cle === cle; })[0];
+    var b = drops[i].querySelector('.adr-fcount'), tot = tmDistinct(dom, d).length, act = TM[dom].f[cle].length;
+    if (b) { b.textContent = act + '/' + tot; if (act < tot) b.removeAttribute('hidden'); else b.setAttribute('hidden', ''); }
+  }
+}
+function fermerMenus(sauf) {
+  var l = document.querySelectorAll('.adr-fdrop.open');
+  for (var i = 0; i < l.length; i++) if (l[i] !== sauf) { l[i].classList.remove('open'); var b = l[i].querySelector('.adr-fbtn'); if (b) b.setAttribute('aria-expanded', 'false'); }
+}
+function surClic(ev) {
+  var t = ev.target && ev.target.closest ? ev.target : null; if (!t) return;
+  var e;
+  if ((e = t.closest('[data-famille]')) && e.classList.contains('family-tab')) { choisirFamille(e.getAttribute('data-famille')); return; }
+  if ((e = t.closest('[data-domaine]'))) { choisirDomaine(e.getAttribute('data-domaine')); return; }
+  if ((e = t.closest('[data-goto]'))) { ev.preventDefault(); gotoDomain(e.getAttribute('data-goto')); return; }
+  if ((e = t.closest('[data-regle]'))) {
+    ev.stopPropagation(); var v = vueDeMode('adr'); if (!v) return;
+    var cfg = cfgRegles(), st = listeEtat(cfg); st.q = e.getAttribute('data-regle'); montreVue(v); renderAdrAll(); return;
+  }
+  if ((e = t.closest('[data-liste-ouvre]'))) {
+    var drop = e.closest('.adr-fdrop'), ouvert = drop.classList.contains('open'); fermerMenus(drop);
+    drop.classList.toggle('open', !ouvert); e.setAttribute('aria-expanded', String(!ouvert)); return;
+  }
+  if ((e = t.closest('[data-tm-ouvre]'))) {
+    var d2 = e.closest('.adr-fdrop'), o2 = d2.classList.contains('open'); fermerMenus(d2);
+    d2.classList.toggle('open', !o2); e.setAttribute('aria-expanded', String(!o2)); return;
+  }
+  var id, cfg2, st2;
+  if ((e = t.closest('[data-liste-tous]')) || (e = t.closest('[data-liste-aucun]'))) {
+    id = e.getAttribute('data-liste'); cfg2 = cfgParId(id); st2 = listeEtat(cfg2);
+    var cle = e.getAttribute('data-liste-tous') || e.getAttribute('data-liste-aucun'), tous = e.hasAttribute('data-liste-tous');
+    st2.f[cle] = tous ? listeDistinct(cfg2, cfg2.filtres.filter(function (f) { return f.cle === cle; })[0]).slice() : [];
+    var cb = e.closest('.adr-fpanel').querySelectorAll('input[data-liste-filtre]'); for (var j = 0; j < cb.length; j++) cb[j].checked = tous;
+    rafraichirListe(id); return;
+  }
+  if ((e = t.closest('[data-tm-tous]')) || (e = t.closest('[data-tm-aucun]'))) {
+    var dom = e.getAttribute('data-tm'), cle2 = e.getAttribute('data-tm-tous') || e.getAttribute('data-tm-aucun'), tous2 = e.hasAttribute('data-tm-tous');
+    tmEtat(dom).f[cle2] = tous2 ? tmDistinct(dom, tmDims(dom).filter(function (x) { return x.cle === cle2; })[0]).slice() : [];
+    var cb2 = e.closest('.adr-fpanel').querySelectorAll('input[data-tm-filtre]'); for (var k = 0; k < cb2.length; k++) cb2[k].checked = tous2;
+    rafraichirTm(dom); return;
+  }
+  if ((e = t.closest('[data-liste-tri]'))) {
+    id = e.getAttribute('data-liste'); cfg2 = cfgParId(id); st2 = listeEtat(cfg2);
+    var c = e.getAttribute('data-liste-tri'); if (st2.sort.col === c) st2.sort.dir *= -1; else { st2.sort.col = c; st2.sort.dir = 1; }
+    rafraichirListe(id); return;
+  }
+  if ((e = t.closest('[data-tm-tri]'))) {
+    var dm = e.getAttribute('data-tm'), col = e.getAttribute('data-tm-tri'), s = tmEtat(dm).sort; if (s.col === col) s.dir *= -1; else { s.col = col; s.dir = 1; }
+    rafraichirTm(dm); return;
+  }
+  if ((e = t.closest('[data-liste-detail]'))) {
+    id = e.getAttribute('data-liste'); cfg2 = cfgParId(id); st2 = listeEtat(cfg2);
+    var n = e.getAttribute('data-liste-detail'); st2.details[n] = !st2.details[n]; rafraichirListe(id); return;
+  }
+  if ((e = t.closest('[data-liste-reset]'))) { id = e.getAttribute('data-liste'); delete LISTES[id]; ecrire(id === 'regles' ? 'adrPanel' : id === 'plan' ? 'remediationPanel' : id === 'dictionnaire' ? 'dictPanel' : id + 'Panel', id === 'regles' ? htmlVueRegles() : id === 'plan' ? htmlVuePlan() : id === 'dictionnaire' ? htmlListe(cfgDictionnaire()) : htmlVueAnnexe(id)); return; }
+  if ((e = t.closest('[data-tm-reset]'))) { var dr = e.getAttribute('data-tm'); tmInit(dr); ecrire('tm-' + dr + '-hote', htmlTraceMatrix(dr)); return; }
+  if ((e = t.closest('[data-liste-kpi]'))) { kpiListe(e); return; }
+  if ((e = t.closest('tr.row[data-tm]'))) {
+    var dd = e.getAttribute('data-tm'), cleL = e.getAttribute('data-tm-ligne'); tmEtat(dd).details[cleL] = !tmEtat(dd).details[cleL]; rafraichirTm(dd); return;
+  }
+  if (!t.closest('.adr-fdrop')) fermerMenus(null);
+}
+function kpiListe(e) {
+  var id = e.getAttribute('data-liste'), cfg = cfgParId(id), st = listeEtat(cfg), k = cfg.kpis[+e.getAttribute('data-liste-kpi')];
+  if (!k.filtre) { delete LISTES[id]; listeEtat(cfg); }
+  else if (listeKpiActif(st, k)) st.f[k.filtre.cle] = listeDistinct(cfg, cfg.filtres.filter(function (f) { return f.cle === k.filtre.cle; })[0]).slice();
+  else st.f[k.filtre.cle] = k.filtre.valeurs.slice();
+  var hote = id === 'regles' ? 'adrPanel' : id === 'plan' ? 'remediationPanel' : id + 'Panel';
+  ecrire(hote, id === 'regles' ? htmlVueRegles() : id === 'plan' ? htmlVuePlan() : htmlVueAnnexe(id));
+}
+function surChangement(ev) {
+  var t = ev.target; if (!t || !t.getAttribute) return;
+  if (t.hasAttribute('data-liste-filtre')) {
+    var id = t.getAttribute('data-liste'), cfg = cfgParId(id), st = listeEtat(cfg), cle = t.getAttribute('data-liste-filtre');
+    var l = st.f[cle].filter(function (v) { return v !== t.value; }); if (t.checked) l.push(t.value); st.f[cle] = l; rafraichirListe(id);
+  } else if (t.hasAttribute('data-tm-filtre')) {
+    var dom = t.getAttribute('data-tm'), c2 = t.getAttribute('data-tm-filtre');
+    var l2 = tmEtat(dom).f[c2].filter(function (v) { return v !== t.value; }); if (t.checked) l2.push(t.value); TM[dom].f[c2] = l2; rafraichirTm(dom);
+  }
+}
+function surSaisie(ev) {
+  var t = ev.target; if (!t || !t.getAttribute) return;
+  if (t.hasAttribute('data-liste-q')) { var id = t.getAttribute('data-liste'), st = listeEtat(cfgParId(id)); st.q = t.value; rafraichirListe(id); }
+  else if (t.hasAttribute('data-tm-q')) { var dom = t.getAttribute('data-tm'); tmEtat(dom).q = t.value; rafraichirTm(dom); }
+}
+function surTouche(ev) {
+  if (ev.key !== 'Enter' && ev.key !== ' ') return;
+  var e = ev.target && ev.target.closest ? ev.target.closest('[data-liste-kpi]') : null;
+  if (e) { ev.preventDefault(); kpiListe(e); return; }
+  var r = ev.target && ev.target.matches && ev.target.matches('tr.row[data-tm]') ? ev.target : null;
+  if (r) { ev.preventDefault(); var dd = r.getAttribute('data-tm'), cle = r.getAttribute('data-tm-ligne'); tmEtat(dd).details[cle] = !tmEtat(dd).details[cle]; rafraichirTm(dd); }
+}
+function cablerInfobulles() {
+  var tip = document.getElementById('diagTooltip'); if (!tip || !tip.querySelector) return;
+  var titre = tip.querySelector('.tt-title'), liste = tip.querySelector('ul');
+  document.addEventListener('mouseover', function (ev) {
+    var t = ev.target && ev.target.closest ? ev.target.closest('.diagram-wrap [data-tip], .kpi-blocklist [data-tip]') : null; if (!t) return;
+    var parts = String(t.getAttribute('data-tip') || '').split('|').map(function (s) { return s.trim(); }).filter(Boolean); if (!parts.length) return;
+    titre.textContent = parts[0]; liste.innerHTML = parts.slice(1).map(function (p) { return '<li>' + escapeHtml(p) + '</li>'; }).join(''); tip.classList.add('visible');
+  });
+  document.addEventListener('mousemove', function (ev) {
+    if (!tip.classList.contains('visible')) return;
+    var tw = tip.offsetWidth || 280, th = tip.offsetHeight || 100, x = ev.clientX + 14, y = ev.clientY + 14;
+    if (x + tw + 8 > window.innerWidth) x = ev.clientX - tw - 14; if (y + th + 8 > window.innerHeight) y = ev.clientY - th - 14;
+    tip.style.left = Math.max(8, x) + 'px'; tip.style.top = Math.max(8, y) + 'px';
+  });
+  document.addEventListener('mouseout', function (ev) { var t = ev.target && ev.target.closest ? ev.target.closest('[data-tip]') : null; if (t) tip.classList.remove('visible'); });
+}
+/* Routeur d'ancres : une ancre vers une vue, une dimension (#D05) ou un élément d'une vue masquée ouvre ce qui la contient. */
+function suivreAncre(id) {
+  if (!id) return false;
+  var cible = document.getElementById(id); if (!cible) return false;
+  var el = cible, slot = null, vue = null;
+  while (el && el.classList) { if (!slot && el.classList.contains('dom-slot')) slot = el; if (el.classList.contains('vue')) { vue = el; break; } el = el.parentNode; }
+  if (!vue) return false;
+  montreVue(vue.id);
+  if (slot) choisirDomaine(slot.getAttribute('data-dom'));
+  if (cible !== vue && cible.scrollIntoView) cible.scrollIntoView({ block: 'start' });
+  return true;
+}
+function renderQaPanel() {
+  var el = typeof document !== 'undefined' && document.getElementById ? document.getElementById('qaPanel') : null; if (!el) return;
+  var res; try { res = auditSelfTest(); } catch (e) { return; }
+  el.innerHTML = htmlQa(res);
+  if (el.classList) { el.classList.remove('qa-ok', 'qa-ko', 'qa-info'); el.classList.add(res.ok ? 'qa-ok' : 'qa-ko'); }
+}
+function htmlQa(res) {
+  var li = function (e) { return '<li><span class="qa-cat">[' + escapeHtml(e.cat) + ']</span> ' + escapeHtml(e.msg) + '</li>'; };
+  if (!res.ok) return '<h4>' + escapeHtml(T('qa.ko', res.erreurs.length)) + '</h4><ul>' + res.erreurs.slice(0, 25).map(li).join('') + '</ul>' + (res.avertissements.length ? '<div>' + escapeHtml(T('qa.avertissements', res.avertissements.length)) + '</div>' : '');
+  return '<h4>' + escapeHtml(T('qa.ok')) + '</h4><div>' + escapeHtml(T('qa.ok_detail', res.nChecks, res.avertissements.length)) + '</div>' + (res.avertissements.length ? '<ul>' + res.avertissements.slice(0, 12).map(li).join('') + '</ul>' : '');
+}
+
+/* ================================================================================================
+   PLAN DE REMÉDIATION AUTO-PORTÉ et AUTO-TEST INTERNE (la porte de rendu hérite de son verdict).
+   ================================================================================================ */
+function buildRemediationPlan() { var p = __auditJson('remediation-plan-json'); return (p && p.actions) || []; }
+function remMeta() { var p = __auditJson('remediation-plan-json'); return (p && p.meta) || {}; }
+{{JS_COHERENCE}}
+function auditSelfTest() {
+  var erreurs = [], avertissements = [];
+  var err = function (cat, msg) { erreurs.push({ cat: cat, msg: msg }); }, avert = function (cat, msg) { avertissements.push({ cat: cat, msg: msg }); };
+  var d = __auditJson('audit-selftest-data'), blocPlan = __auditJson('remediation-plan-json');
+  if (d === null) err('intégrité', T('st.faits_illisibles'));
+  if (blocPlan === null) err('intégrité', T('st.plan_illisible'));
+  else if (JSON.stringify(blocPlan) !== JSON.stringify(PLAN_EMBARQUE)) err('intégrité', T('st.plan_modifie'));
+  d = d || {};
+  var p = buildRemediationPlan();
+  /* 1 · verdict de gate déclaré ↔ dimensions saisies (doctrine AuditCore : nogo, ou cinq bloquants et plus, = NO-GO) */
+  var calc = (d.dimensions_nogo || []).length ? 'NO-GO' : ((d.bloquants || []).length ? 'GO SOUS RÉSERVE' : 'GO');
+  if (d.gate_declare && d.gate_declare !== calc && !((d.bloquants || []).length >= 5 && d.gate_declare === 'NO-GO')) err('cohérence', T('st.gate', d.gate_declare, calc));
+  /* 2 · bloquants recalculés depuis les données embarquées ↔ faits déclarés */
+  var bloq = ORDERED_DOMAINS.filter(function (k) { var x = DOMAINS[k]; return x.applicability !== 'off' && ((typeof x.score === 'number' && x.score <= 2) || x.criticality === 'fatal'); });
+  if (bloq.join(' ') !== (d.bloquants || []).join(' ')) err('cohérence', T('st.bloquants', bloq.join(' ') || '—', (d.bloquants || []).join(' ') || '—'));
+  /* 3 · un critère de clôture par action, une action par règle non conforme */
+  var sans = p.filter(function (a) { return /\{\{/.test(String(a.action) + ' ' + String(a.verification)); });
+  if (sans.length) err('plan', T('st.sans_critere', sans.length, sans.map(function (a) { return a.id; }).join(', ')));
+  (d.regles_non_conformes || []).forEach(function (id) { if (!p.some(function (a) { return a.source === id || (a.couvre || []).indexOf(id) >= 0; })) err('plan', T('st.regle_sans_action', id)); });
+  /* 4 · le plan et la matrice parlent des mêmes actions */
+  var ids = {}; p.forEach(function (a) { if (ids[a.id]) err('plan', T('st.id_double', a.id)); ids[a.id] = 1; });
+  ADRS.forEach(function (a) { var r = adrResp(a.id); if (r.rem_id && !ids[r.rem_id] && p.length) err('plan', T('st.rem_inconnu', a.id, r.rem_id)); });
+  /* 5 · sémantique des inventaires */
+  if ((d.analyses_sans_version || []).length) err('inventaire', T('st.analyses_sans_version', d.analyses_sans_version.length));
+  /* 6 · structure : toutes les dimensions du référentiel, notes entières 1-5 (une dimension hors périmètre n'a pas de note) */
+  if (ORDERED_DOMAINS.length !== NB_DIMENSIONS) err('structure', T('st.nb_dimensions', ORDERED_DOMAINS.length, NB_DIMENSIONS));
+  ORDERED_DOMAINS.forEach(function (k) {
+    var x = DOMAINS[k]; if (!x) { err('structure', T('st.dim_absente', k)); return; }
+    if (x.applicability === 'off') return;
+    if (!(typeof x.score === 'number' && x.score >= 1 && x.score <= 5 && Math.round(x.score) === x.score)) err('structure', T('st.score', k, x.score));
+  });
+  /* 7 · restitution : au moins deux vues */
+  if ((d.vues || []).length < 2) err('restitution', T('st.vues'));
+  /* 8 · exhaustivité : une règle « à évaluer » se motive (doctrine AuditCore), une règle en écart porte sa preuve */
+  ADRS.forEach(function (a) {
+    var r = adrResp(a.id);
+    if (r.verdict === 'a_evaluer') { if (!r.motif) err('exhaustivité', T('st.a_evaluer_sans_motif', a.id)); else avert('exhaustivité', T('st.a_evaluer', a.id)); }
+    if ((r.verdict === 'non_conforme' || r.verdict === 'partiel') && !r.apportee) avert('réponse', T('st.sans_preuve', a.id));
+    if ((r.verdict === 'non_conforme' || r.verdict === 'partiel') && !r.possible && !r.couverte_par) avert('réponse', T('st.sans_possible', a.id));
+  });
+  /* 9 · cohérence du plan (redites, TF-0624 / TF-0625), règles partagées avec le moteur des vues */
+  coherencePlan(p).forEach(function (m) { err('plan', m); });
+  var nChecks = 10;
+  return { ok: erreurs.length === 0, errors: erreurs.map(function (e) { return e.cat + ' : ' + e.msg; }), warnings: avertissements.map(function (e) { return e.cat + ' : ' + e.msg; }),
+    erreurs: erreurs, avertissements: avertissements, finalMode: true, nChecks: nChecks };
+}
+
+/* ================================================================================================
+   INITIALISATION — seulement dans un navigateur. Sans navigateur (porte de rendu, extraction du plan, rendu
+   côté serveur), le moteur expose ses fonctions et ne touche à rien.
+   ================================================================================================ */
+var SANS_NAVIGATEUR = (typeof window === 'undefined' || typeof document === 'undefined' || typeof location === 'undefined'
+  || !document.addEventListener || typeof URLSearchParams === 'undefined');
+if (!SANS_NAVIGATEUR) {
+  document.addEventListener('click', surClic);
+  document.addEventListener('change', surChangement);
+  document.addEventListener('input', surSaisie);
+  document.addEventListener('keydown', surTouche);
+  document.addEventListener('click', function (ev) {
+    var a = ev.target && ev.target.closest ? ev.target.closest('a[href^="#"]') : null; if (!a || a.hasAttribute('data-vue')) return;
+    var h = a.getAttribute('href') || ''; if (h.length > 1 && suivreAncre(decodeURIComponent(h.slice(1)))) ev.preventDefault();
+  });
+  cablerInfobulles();
+  var ancre = (window.location && window.location.hash) || '';
+  if (ancre.length > 1) suivreAncre(decodeURIComponent(ancre.slice(1)));
+  renderQaPanel();
+}
+</script>
+<script>
+{{JS_CANEVAS}}
+</script>
+<script id="theme-bascule">
+(function () {
+  if (typeof document === 'undefined' || typeof document.getElementById !== 'function') return;
+  var bouton = document.getElementById('theme-toggle'); var racine = document.documentElement;
+  if (!bouton || !racine || typeof bouton.setAttribute !== 'function' || typeof racine.getAttribute !== 'function') return;
+  function appliquer(theme) {
+    racine.setAttribute('data-theme', theme);
+    try { window.localStorage.setItem('auditcore-theme', theme); } catch (e) {}
+    var meta = document.querySelector('meta[name="color-scheme"]'); if (meta) meta.setAttribute('content', theme);
+    bouton.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+  }
+  bouton.setAttribute('aria-pressed', racine.getAttribute('data-theme') === 'dark' ? 'true' : 'false');
+  bouton.addEventListener('click', function () { appliquer(racine.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); });
+})();
+</script>
+</body>
+</html>

@@ -24,7 +24,8 @@ const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const TPL_DIR = path.join(ROOT, 'deliverables', 'templates');
 export const REF_FILE = 'gabarits-versions.json';
 // Mêmes périmètre et exclusion déclarée que identite-gabarit.test.mjs : prompts et skill de
-// conformité sont des consignes d'agent, pas des documents remis.
+// conformité sont des consignes d'agent, pas des documents remis. TF-2145 : le gabarit HTML de la forme
+// POC-to-Prod (`*.template.html`) entre au périmètre — versionné en contenu ET en version, comme les autres.
 const HORS_LIVRABLES = /^(prompt-|compliance-skill\.)/;
 const LIGNE_VERSION = /^.*gabarit\s*:\s*gd-[a-z0-9-]+.*version[_ ]du[_ ]gabarit.*$/gim;
 const ID = /gabarit\s*:\s*(gd-[a-z0-9-]+)/i;
@@ -46,7 +47,7 @@ export function lire(fichier) {
 
 export function gabarits(tplDir = TPL_DIR) {
   return fs.readdirSync(tplDir)
-    .filter((f) => /\.template(\.en)?\.md$/.test(f) && !HORS_LIVRABLES.test(f)).sort();
+    .filter((f) => /\.template(\.en)?\.(md|html)$/.test(f) && !HORS_LIVRABLES.test(f)).sort();
 }
 
 /** Liste des écarts (texte), vide si tout est cohérent. */

@@ -11,12 +11,18 @@
 //     de laisser du contenu disparaître en silence ;
 //   • un composant de lecture (KPI, figure, chemins, manifeste d'écarts, filtres de
 //     tableau) se contrôle sur son câblage, pas sur sa présence nominale.
+//
+// v1.7 (TF-2145) — un rendu de la forme POC-to-Prod (rendu par défaut depuis D-171 (a)) passe en plus sa porte de
+// conformité, tools/verifier-forme-rapport.mjs ; le rendu par vues (`build-rapport --forme vues`) n'en déclare pas.
 // Usage: node tools/verifier-rapport-html.mjs <rapport.html>
 import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 import { rel, loadYaml, valeurFichierOuUsage } from './lib.mjs';
 import { trouverRacineDesign, jouerOraclesDesign } from './oracles-design.mjs';
+// TF-2145 : un rendu qui déclare la forme POC-to-Prod (rendu par défaut de build-rapport) passe AUSSI la porte de
+// conformité de cette forme, en plus de tout ce qui suit — jamais à la place.
+import { jugerForme } from './verifier-forme-rapport.mjs';
 // TF-1737 : le check 10 juge aussi la STABILITÉ de la version actuelle, avec le prédicat même du
 // producteur (une seule source, CONTRIBUTING des oracles) — jamais une regex recopiée.
 import { isPrerelease } from '../oracles/maj-versions.mjs';
@@ -309,6 +315,18 @@ for (const m of h.matchAll(/<tr>(?:(?!<\/tr>)[\s\S])*?<\/tr>/g)) {
   }
   if (reco === 'Oui' && actuelle && resolue && cmpVer(actuelle, resolue) < 0)
     errors.push(`composant « ${nom} » : reco actionnable vers une version INFÉRIEURE à l'installée (${actuelle} < ${resolue})`);
+}
+
+// FORME POC-to-Prod (TF-2145, décision humaine D-171 (a)) — le rendu qui déclare la forme (<meta name="auditcore-forme"
+// content="poc-to-prod">) est jugé par sa porte de conformité, `tools/verifier-forme-rapport.mjs` (F0–F16 : dimensions du
+// référentiel, familles, réponses, moteur piloté mode par mode, plan auto-porté intègre, schéma tracé sans traversée ni
+// flèches confondues, bascule de thème, pleine largeur, chiffres). L'auto-test interne n'y est pas rejoué : le check E
+// ci-dessus l'hérite déjà. Tous les contrôles de ce fichier restent joués sur cette forme comme sur l'ancienne.
+if (/<meta name="auditcore-forme" content="poc-to-prod">/.test(h)) {
+  const f = jugerForme(h, { dimensions: dims, heriterAutotest: false });
+  for (const w of f.avertissements) warnings.push(`forme POC-to-Prod [${w.check}] ${w.msg}`);
+  for (const e of f.erreurs) errors.push(`forme POC-to-Prod [${e.check}] ${e.msg}`);
+  if (!f.erreurs.length) checks.push(`forme POC-to-Prod conforme (${f.controles} contrôles F0–F16)`);
 }
 
 // ORACLES DE DESIGN (TF-2139) — en dernier, sur un rapport qui a passé tout le reste.

@@ -16,7 +16,8 @@
 //   rapport, jamais de contenu non tracé » :
 //   P4  le verdict de gate et le nombre de bloquants affichés sont ceux que les données calculent ;
 //   P5  les risques majeurs sont les constats Fatal / Bloquant, jamais « aucun constat » quand il y en a ;
-//   P6  le schéma d'architecture est CELUI du rapport (même rendu `renderArchi`), ou son absence est dite ;
+//   P6  le schéma d'architecture est CELUI du rapport (même rendu `renderSchemaArchitecture`, ports et voies propres —
+//       TF-2145), ou son absence est dite ;
 //   P7  les modes d'activation du plan totalisent le plan de `buildPlan` ;
 //   P8  les contacts nomment l'autorité de décision et le responsable sécurité du tenant.
 // Ce qui n'est pas jugé faute d'entrée est DIT (« non jugé »), jamais compté vert.
@@ -27,7 +28,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { rel, loadJson, loadTenant } from './lib.mjs';
-import { aUnScore, estBloquant, constatsGraves, buildPlan, renderArchi, STR } from './rapport-engine.mjs';
+import { aUnScore, estBloquant, constatsGraves, buildPlan } from './rapport-engine.mjs';
+import { renderSchemaArchitecture } from './schema-architecture.mjs';
 
 const brut = (s) => String(s ?? '').replace(/<[^>]+>/g, ' ').replace(/&[a-z]+;/gi, ' ').replace(/\s+/g, ' ').trim();
 const decode = (s) => String(s ?? '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
@@ -117,7 +119,7 @@ export function jugerPresentation(html, { data = null, cfg = null, index = {} } 
   // P6 — schéma d'architecture
   const archi = sections[2]?.corps ?? '';
   if (data.architecture?.nodes?.length) {
-    const attendu = /<svg viewBox[\s\S]*?<\/svg>/.exec(renderArchi(data.architecture, STR.fr))?.[0];
+    const attendu = /<svg viewBox[\s\S]*?<\/svg>/.exec(renderSchemaArchitecture(data.architecture))?.[0];
     const obtenu = /<svg viewBox[\s\S]*?<\/svg>/.exec(archi)?.[0];
     if (!obtenu) errors.push('P6 : le rapport porte un schéma d\'architecture, la diapositive 3 n\'en porte aucun');
     else if (obtenu !== attendu) errors.push('P6 : le schéma d\'architecture de la diapositive n\'est pas celui du rapport (second schéma divergent)');

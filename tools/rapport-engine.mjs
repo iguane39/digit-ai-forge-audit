@@ -92,7 +92,7 @@ const CRIT_CLASS = { Fatal: 'fatal', Bloquant: 'bloq', Majeur: 'maj', Standard: 
  * perd parmi vingt autres. `couleur` reprend `--accent` du thème déjà généré pour ce tenant (une
  * favicon n'a pas de CSSOM : `var(--accent)` n'y résoudrait rien, la couleur doit être littérale).
  */
-function faviconDataUri(lettre, couleur) {
+export function faviconDataUri(lettre, couleur) {
   const L = (String(lettre || '?').trim().charAt(0) || '?').toUpperCase();
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>`
     + `<rect width='64' height='64' rx='14' fill='${couleur}'/>`
@@ -379,13 +379,13 @@ ${Object.keys(FAMILLES_TEINTE).map(f => `.a-${f} rect{fill:var(--c-${f}-bg);stro
  * des références `var(--c-…)` — et la dérive de la source reste mesurable.
  */
 const JETON_DE_TEINTE = Object.fromEntries(Object.entries(JETONS).map(([k, v]) => [v.toLowerCase(), k]));
-function adapterCanevasCss(css) {
+export function adapterCanevasCss(css) {
   return css
     .replace(/\.db-schema-hote\s*\{[^}]*\}/, '.db-schema-hote { }')
     .replace(/background:#1a1a1a;\s*color:#fff;/g, 'background:var(--txt); color:var(--on-accent);')
     .replace(/color:#fff;/g, 'color:var(--on-accent);');
 }
-function adapterCanevasHtml(html) {
+export function adapterCanevasHtml(html) {
   return html
     .replace(/🔒 ?/g, `${ICO_PII} `)
     .replace(/style="background:(#[0-9a-fA-F]{6})"/g, (m, c) => (JETON_DE_TEINTE[c.toLowerCase()] ? `style="background:var(${JETON_DE_TEINTE[c.toLowerCase()]})"` : m))

@@ -7,7 +7,8 @@
 //
 // AuditCore — build-slides (RAF-003 / M6) : rapport-data.json + tenant → présentation HTML
 // pour l'autorité de décision (navigation clavier ←/→, impression 1 slide/page).
-// Règle conservée : le schéma d'architecture est CELUI du rapport (source unique : `renderArchi`).
+// Règle conservée : le schéma d'architecture est CELUI du rapport (source unique : `renderSchemaArchitecture`,
+// tools/schema-architecture.mjs, depuis TF-2145 — le rendu par défaut du rapport trace ports et voies propres).
 //
 // TF-2142 (RU-8, 04/11/2026) — la présentation suit les HUIT diapositives de `presentation-autorite.template.md`
 // (titre, contexte, schéma d'architecture, verdict Gate, 3 risques majeurs, plan de remédiation, décision
@@ -20,7 +21,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { rel, loadTenant, loadJson, valeurFichierOuUsage } from './lib.mjs';
-import { aUnScore, estBloquant, constatsGraves, buildPlan, renderArchi, ARCHI_CSS, TOKENS_DERIVES_CSS, STR } from './rapport-engine.mjs';
+import { aUnScore, estBloquant, constatsGraves, buildPlan, TOKENS_DERIVES_CSS } from './rapport-engine.mjs';
+import { renderSchemaArchitecture, SCHEMA_CSS } from './schema-architecture.mjs';
 import { titresDuGabarit, gateAttendu, jugerPresentation } from './verifier-presentation.mjs';
 
 const file = process.argv[2];
@@ -71,7 +73,7 @@ const contexte = `<ul>
    <li>Motif de la présentation : ${esc(data.motif ?? 'passage de Gate')}</li></ul>`;
 
 // 3 · Schéma d'architecture — TEL QUEL celui du rapport ; son absence se dit.
-const archi = renderArchi(data.architecture, STR.fr)
+const archi = renderSchemaArchitecture(data.architecture)
   || `<p>Schéma d'architecture non fourni dans les données de l'audit : ${esc(autorite)} ne dispose pas d'un schéma relevé pendant la mission.</p>`;
 
 // 5 · Risques majeurs — constats Fatal puis Bloquant, trois au plus ; le reste est compté, pas tu.
@@ -161,7 +163,7 @@ table{border-collapse:collapse}th,td{border:1px solid var(--line);padding:8px 12
 .t-urgent{background:var(--fatal);color:var(--on-accent);border-color:var(--fatal)}.t-prio{color:var(--maj);border-color:var(--maj)}
 .muted{color:var(--muted)}.nav{position:fixed;bottom:14px;right:18px;color:var(--muted);font-size:12px}
 .archi svg{max-width:100%;max-height:52vh;min-width:0!important}.archi h3{display:none}
-${ARCHI_CSS}
+${SCHEMA_CSS}
 @media print{.slide{display:flex!important;page-break-after:always;height:auto;min-height:90vh}.nav{display:none}}
 </style></head><body><div class="deck">
 ${slides.map(([role, s], i) => `<section class="slide${i ? '' : ' on'}" data-gabarit="${esc(role)}">${s}<div class="muted" style="margin-top:auto">${esc(cfg.tenant.name)} · ${i + 1}/${slides.length}</div></section>`).join('')}

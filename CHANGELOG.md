@@ -6,6 +6,42 @@ sources mis à jour.
 
 ## [Non publié]
 
+### Ajouté
+- **TF-2145 — la forme du rapport d'audit POC-to-Prod devient le rendu par défaut** (05/11/2026, décision humaine
+  D-171 (a) du 04/11/2026 : « Logiquement le format générique de la Factory, ce n'est pas celui généré. ») — gabarit
+  agnostique `deliverables/templates/rapport-audit-poc-to-prod.template.html` (`gd-rapport-audit-poc-to-prod` 1.0.0,
+  suivi par `verifier-gabarits`) : la forme de référence (rapport d'audit POC-to-Prod de Produit-68, 24/09/2026, et son
+  modèle à champs) reprise en STRUCTURE, moteur et style, sans aucune donnée ni marque — en-tête et bascule de thème,
+  bloc titre, bandeau du verdict, cartes de synthèse, KPI et radar, contrôle qualité, bascule des vues (rapport d'audit
+  par famille et dimension avec matrice de traçabilité règles × constats × actions, reprise applicative, toutes les
+  règles, plan de remédiation, tests, analyses, composants, méthode et lecture), plan auto-porté, pleine largeur. Les
+  couleurs passent par une couche sémantique dérivée des jetons du thème du tenant ; la palette sombre est dérivée en
+  littéraux de ces mêmes jetons (oracle-tokens T4, oracle-bascule B-T4) ; libellés en français et en anglais.
+  `tools/rapport-poc-to-prod.mjs` fait la correspondance rapport-data.json → forme (règles et réponses, constats,
+  actions, plan `buildPlan`, reprise, tests, analyses, composants, `db_schema`, `architecture`) et fait rendre les vues
+  par le MOTEUR DU GABARIT, exécuté sans navigateur : le fichier porte son rendu initial complet (lisible sans script,
+  imprimable, jugeable par les portes statiques), de façon déterministe ; ce qui n'a pas de source est déclaré au
+  manifeste d'écarts (introductions de famille calculées, note pour l'autorité absente des données…). Les règles de
+  cohérence du plan (TF-0624 / TF-0625) sont prises à la source dans `rapport-engine.mjs`, jamais recopiées.
+  `tools/schema-architecture.mjs` trace le schéma d'architecture par ports et voies propres (couloirs latéraux pour
+  les liens longs, titres de bande en gouttière, passe de réparation) et le MESURE sur le SVG rendu : 0 flèche qui
+  traverse un nœud non extrémité, 0 paire de flèches confondues sur les fixtures valide et riche et sur une architecture
+  dense de 16 nœuds et 41 flèches ; un rouge construit prouve que la mesure mord. `tools/verifier-forme-rapport.mjs`
+  est la porte de conformité de la forme, agnostique, sur le modèle de la porte de format de la forme de référence
+  (F0–F16 : forme déclarée, champs non remplis, compilation, dimensions du référentiel, familles, réponses, moteur
+  piloté mode par mode, auto-test hérité, contenu écrit, versions, inventaires, plan intègre, schéma mesuré, bascule,
+  pleine largeur, chiffres affichés) ; auto-test à double sens 20/20 ; jouée par `verifier-rapport-html` dès qu'un rendu
+  déclare la forme, et par la CI. Banc `tests/oracles/rapport-forme-poc-to-prod.test.mjs` : 15 tests.
+
+### Changé
+- **TF-2145 — `build-rapport.mjs` rend par défaut la forme POC-to-Prod** ; `--forme vues` rend l'ancien rendu par
+  vues (`rapport-engine.mjs`) pendant la transition — même plan, même `remediation-actions.yaml`, mêmes contrôles
+  évalués ; la CI rend aussi cette forme et la passe à `verifier-rapport-html`. La présentation à l'autorité
+  (`build-slides.mjs`) et la règle P6 de `verifier-presentation.mjs` tracent le schéma par le nouveau module (TF-2142 :
+  pas de second schéma divergent). `verifier-gabarits.mjs` et le contrôle TF-1752 couvrent aussi les gabarits
+  `.template.html`, et TF-1752 joue les deux formes. `rapport-engine.mjs` exporte `faviconDataUri`,
+  `adapterCanevasCss` et `adapterCanevasHtml` (aucun changement de comportement).
+
 ### Corrigé
 - **TF-2139 — le rapport HTML rendu passe les oracles de design de la forge design, et la porte de rendu les
   joue** (04/11/2026, RU-6) — `run-oracles-design` rendait FAIL sur le rapport du moteur : oracle-slop 11

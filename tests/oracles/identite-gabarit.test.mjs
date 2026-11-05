@@ -17,6 +17,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { RAPPORT_GABARIT_ID, RAPPORT_GABARIT_VERSION } from '../../tools/rapport-engine.mjs';
+import { GABARIT_ID, GABARIT_VERSION } from '../../tools/rapport-poc-to-prod.mjs';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const TPL = path.join(ROOT, 'deliverables', 'templates');
@@ -33,7 +34,8 @@ const couple = (texte) => {
 // Les consignes adressées à un agent (prompts, skill de conformité) ne sont pas des documents
 // remis à un lecteur : R-46 ne les vise pas. Exclusion DÉCLARÉE, jamais tacite.
 const HORS_LIVRABLES = /^(prompt-|compliance-skill\.)/;
-const livrables = fs.readdirSync(TPL).filter((f) => /\.template(\.en)?\.md$/.test(f) && !HORS_LIVRABLES.test(f));
+// TF-2145 : le gabarit HTML de la forme POC-to-Prod est un livrable comme les autres (même périmètre que verifier-gabarits).
+const livrables = fs.readdirSync(TPL).filter((f) => /\.template(\.en)?\.(md|html)$/.test(f) && !HORS_LIVRABLES.test(f));
 
 test('TF-1752 — le contrôle mord : un document sans le couple, ou le couple en commentaire seul, est refusé', () => {
   assert.equal(couple('# Rapport\n\nAucun repère.\n'), null);
@@ -67,8 +69,12 @@ test('TF-1752 — le gabarit de la fiche porte le couple que build-fiche émet (
   assert.deepEqual(couple(fs.readFileSync(path.join(TPL, 'fiche-securite.template.md'), 'utf8')), { id, version });
 });
 
-for (const lang of ['fr', 'en']) {
-  test(`TF-1752 — le rapport généré (${lang}) rend son gabarit et sa version`, () => {
+// TF-2145 (décision humaine D-171 (a)) : le rendu PAR DÉFAUT est la forme POC-to-Prod, qui rend le couple de SON gabarit
+// (deliverables/templates/rapport-audit-poc-to-prod.template.html) ; le rendu par vues, gardé derrière `--forme vues`
+// pendant la transition, rend toujours le sien. Les deux sont joués, dans les deux langues.
+const FORMES = [[null, GABARIT_ID, GABARIT_VERSION], ['vues', RAPPORT_GABARIT_ID, RAPPORT_GABARIT_VERSION]];
+for (const lang of ['fr', 'en']) for (const [forme, idAttendu, versionAttendue] of FORMES) {
+  test(`TF-1752 — le rapport généré (${lang}, forme ${forme ?? 'par défaut'}) rend son gabarit et sa version`, () => {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `tf1752-${lang}-`));
     try {
       // La langue du rapport vient du tenant : une copie du tenant d'exemple, langue posée.
@@ -78,12 +84,12 @@ for (const lang of ['fr', 'en']) {
       fs.writeFileSync(ty, fs.readFileSync(ty, 'utf8').replace('language: fr', `language: ${lang}`), 'utf8');
       const out = path.join(tmp, 'rapport.html');
       const r = spawnSync(process.execPath, [path.join(ROOT, 'tools', 'build-rapport.mjs'),
-        path.join(ROOT, 'tests', 'fixtures', 'rapport-data-valid.json'), '--tenant', ty, '--out', out],
+        path.join(ROOT, 'tests', 'fixtures', 'rapport-data-valid.json'), '--tenant', ty, '--out', out, ...(forme ? ['--forme', forme] : [])],
       { encoding: 'utf8', timeout: 60000 });
       assert.equal(r.status, 0, r.stderr);
       const html = fs.readFileSync(out, 'utf8');
       assert.match(html, new RegExp(`<html lang="${lang}"`), 'la langue du tenant n\'a pas été prise');
-      assert.deepEqual(couple(html), { id: RAPPORT_GABARIT_ID, version: RAPPORT_GABARIT_VERSION });
+      assert.deepEqual(couple(html), { id: idAttendu, version: versionAttendue });
     } finally { fs.rmSync(tmp, { recursive: true, force: true }); }
   });
 }

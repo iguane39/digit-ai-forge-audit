@@ -49,6 +49,11 @@
     "version": "1.0.0",
     "empreinte": "b5dfdd7ed2b22315f35008854af2b37216293f50213659783d0a2075682aae5f"
   },
+  "rapport-audit-poc-to-prod.template.html": {
+    "id": "gd-rapport-audit-poc-to-prod",
+    "version": "1.0.0",
+    "empreinte": "1f8ff546f8cacf3018b0656fe943b2ce12535c019f9d1c20dad44774868f5c30"
+  },
   "rapport-audit.template.md": {
     "id": "gd-rapport-audit-auditcore",
     "version": "1.0.0",
