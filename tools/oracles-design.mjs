@@ -27,7 +27,7 @@ const ORACLE = path.join('oracles', 'run-oracles-design.mjs');
 const porteUnOrchestrateur = (racine) => fs.existsSync(path.join(racine, ORACLE));
 
 /**
- * La racine de forge-design. Rend { racine } trouvée, { erreur } si une racine DEMANDÉE (option, variable) est
+ * La racine de forge-design. Rend { racine } trouvée, { racine: null, erreur } si une racine DEMANDÉE (option, variable) est
  * introuvable, { racine: null, motif } si rien n'est demandé et que le voisin est absent.
  */
 export function trouverRacineDesign({ option, env, voisin = path.resolve(ROOT, '..', 'digit-ai-forge-design') } = {}) {
@@ -36,7 +36,7 @@ export function trouverRacineDesign({ option, env, voisin = path.resolve(ROOT, '
     const racine = path.resolve(valeur);
     return porteUnOrchestrateur(racine)
       ? { racine }
-      : { erreur: `racine des oracles de design introuvable (${origine} = ${racine}) : ${ORACLE} n'y est pas` };
+      : { racine: null, erreur: `racine des oracles de design introuvable (${origine} = ${racine}) : ${ORACLE} n'y est pas` };
   }
   if (porteUnOrchestrateur(voisin)) return { racine: voisin };
   return { racine: null, motif: `ni --design-root, ni FORGE_DESIGN_ROOT, et le dépôt voisin digit-ai-forge-design est absent (${voisin}) — `

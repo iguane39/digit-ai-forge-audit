@@ -152,7 +152,13 @@ test('TF-2139 branchement — forge-design introuvable : racine donnée = erreur
   assert.equal(r.status, 2, `racine explicitement donnée et introuvable : exit ${r.status} au lieu de 2 (${r.stderr})`);
   assert.match(r.stderr, /introuvable/);
   // résolution : option > variable d'environnement > dépôt voisin ; rien de trouvé = SKIP motivé (cas d'un runner de CI)
-  assert.equal(lib.trouverRacineDesign({ option: DESIGN, env: undefined, voisin: absent }).racine, designLa ? DESIGN : null);
+  // TF-2178 : le cas SANS dépôt voisin se joue sur tout poste, y compris celui qui l'a (racine donnée vers le vide : null + erreur)
+  const donneeAbsente = lib.trouverRacineDesign({ option: absent, env: undefined, voisin: absent });
+  assert.equal(donneeAbsente.racine, null, 'une racine donnée et introuvable doit rendre racine === null, pas undefined');
+  assert.notEqual(donneeAbsente.erreur, undefined, 'une racine donnée et introuvable doit porter son erreur');
+  // le cas AVEC voisin ne se joue que là où il existe
+  if (designLa) assert.equal(lib.trouverRacineDesign({ option: DESIGN, env: undefined, voisin: absent }).racine, DESIGN);
+  else assert.equal(lib.trouverRacineDesign({ option: DESIGN, env: undefined, voisin: absent }).racine, null, 'sans forge-design, la racine rendue est null');
   const rien = lib.trouverRacineDesign({ option: undefined, env: undefined, voisin: absent });
   assert.equal(rien.racine, null);
   assert.match(rien.motif, /digit-ai-forge-design|FORGE_DESIGN_ROOT/);
