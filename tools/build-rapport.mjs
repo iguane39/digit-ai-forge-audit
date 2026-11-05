@@ -15,6 +15,7 @@ import * as yaml from 'js-yaml';
 import { rel, loadTenant, loadJson, loadYaml, valeurFichierOuUsage } from './lib.mjs';
 import { renderRapport, buildPlan, planToActions, controlesEvalues } from './rapport-engine.mjs';
 import { rendreRapportPocToProd, GABARIT_ID, GABARIT_VERSION } from './rapport-poc-to-prod.mjs';
+import { construireTheme } from './build-theme.mjs';
 
 const FORMES = ['poc-to-prod', 'vues'];
 const file = process.argv[2];
@@ -41,7 +42,13 @@ const tenantAbs = path.resolve(tenantArg);
 const themePath = path.join(tenantDir, 'theme', 'theme.css');
 if (!fs.existsSync(themePath))
   execFileSync(process.execPath, [rel('tools', 'build-theme.mjs'), tenantAbs, '--out', path.join(tenantDir, 'theme')], { stdio: 'ignore' });
-const themeCss = fs.readFileSync(themePath, 'utf-8');
+// TF-2145 : le rendu prend le thème COURANT, calculé par build-theme, jamais un `theme.css` laissé en cache par une
+// version antérieure du générateur (constat de TF-2139 : un cache d'avant le `.brand` en jetons gardait `#1b2733` et
+// `#fff` en dur, et le rapport rendu échouait à oracle-tokens). Le cache existant n'est pas réécrit : un dossier de
+// tenant tenu en lecture seule le reste ; sa péremption est DITE.
+const themeCss = construireTheme(tenantAbs).css;
+if (fs.readFileSync(themePath, 'utf-8').replace(/\r\n/g, '\n') !== themeCss.replace(/\r\n/g, '\n'))
+  console.log(`⚠ thème en cache périmé (${themePath}) : le rendu utilise le thème courant calculé par build-theme, le cache n'est pas réécrit — le régénérer : node tools/build-theme.mjs ${tenantArg}`);
 
 // index des contraintes (métadonnées des règles) depuis la fusion du tenant
 const mergedPath = path.join(tenantDir, 'merged.json');

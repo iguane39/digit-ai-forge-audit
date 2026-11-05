@@ -43,6 +43,15 @@ sources mis à jour.
   `adapterCanevasCss` et `adapterCanevasHtml` (aucun changement de comportement).
 
 ### Corrigé
+- **TF-2145 — le rapport est rendu avec le thème COURANT, jamais avec un `theme.css` périmé laissé en cache**
+  (05/11/2026, constat de TF-2139) — `build-rapport.mjs` relisait `theme/theme.css` dès qu'il existait, sans le comparer
+  au générateur : sur un espace d'audit réel, un cache produit avant le `.brand` en jetons gardait `#1b2733` et `#fff` en
+  dur, et le rapport rendu échouait à oracle-tokens (T1, 2 écarts durs, mesuré le 04/11 ; 9 oracles sur 9 verts avec le
+  thème régénéré). `build-theme.mjs` sépare le calcul (`construireTheme`, sans écriture) de l'écriture (`genererTheme`,
+  inchangé) ; `build-rapport.mjs` rend avec le thème calculé, dans les deux formes, n'écrit le cache que s'il manque
+  (comportement d'avant) et DIT un cache périmé sans le réécrire — un dossier de tenant tenu en lecture seule le reste.
+  Banc : 2 tests à double sens dans `tests/oracles/rapport-forme-poc-to-prod.test.mjs` (rouge rejoué avec l'ancien
+  `build-rapport.mjs` : 0/1).
 - **TF-2139 — le rapport HTML rendu passe les oracles de design de la forge design, et la porte de rendu les
   joue** (04/11/2026, RU-6) — `run-oracles-design` rendait FAIL sur le rapport du moteur : oracle-slop 11
   écarts durs (bandeaux latéraux `border-left` de 3 et 4 px sur `.verdict` et `.constat`, huit accents

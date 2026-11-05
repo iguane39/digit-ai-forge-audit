@@ -222,6 +222,37 @@ test('TF-2145 — le gabarit est agnostique : aucune couleur littérale hors des
   assert.ok(!champs.some((c) => /MARQUE|LOGO|CLIENT/.test(c)), `champ de marque inattendu : ${champs.join(', ')}`);
 });
 
+// ── Le rendu prend le thème COURANT (TF-2145, constat de TF-2139) ──────────────────────────────
+// ROUGE avant correctif : build-rapport relisait un theme/theme.css laissé en cache par une version antérieure de
+// build-theme ; un cache d'avant le `.brand` en jetons faisait échouer le rapport rendu à oracle-tokens.
+test('TF-2145 — un theme.css en cache périmé n\'entre plus dans le rendu (deux formes), et le cache n\'est pas réécrit', () => {
+  const t = path.join(dossier, 'tenant-cache');
+  fs.cpSync(path.join(RACINE, 'config', 'tenants', 'exemple'), t, { recursive: true });
+  fs.mkdirSync(path.join(t, 'theme'), { recursive: true });
+  const perime = "/* cache d'une version antérieure du générateur */\n:root{--bg:#f4f6f9}\n.brand{background:#123456;color:#fff}\n";
+  fs.writeFileSync(path.join(t, 'theme', 'theme.css'), perime, 'utf8');
+  for (const forme of [[], ['--forme', 'vues']]) {
+    const out = path.join(dossier, `cache-${forme.length ? 'vues' : 'poc'}.html`);
+    const r = node([path.join(RACINE, 'tools', 'build-rapport.mjs'), RICHE, '--tenant', path.join(t, 'tenant.yaml'), '--out', out, ...forme]);
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(r.stdout, /thème en cache périmé/, 'la péremption du cache doit être dite');
+    const html = fs.readFileSync(out, 'utf8');
+    assert.doesNotMatch(html, /#123456/, 'le rendu porte encore le thème périmé du cache');
+    assert.match(html, /\.brand\{background:var\(--brand-bg\)/, 'le rendu ne porte pas le thème courant');
+  }
+  assert.equal(fs.readFileSync(path.join(t, 'theme', 'theme.css'), 'utf8'), perime, 'le cache du tenant a été réécrit : un dossier en lecture seule doit le rester');
+});
+
+test('TF-2145 — sans cache, le thème est écrit comme avant et aucune péremption n\'est annoncée', () => {
+  const t = path.join(dossier, 'tenant-sans-cache');
+  fs.cpSync(path.join(RACINE, 'config', 'tenants', 'exemple'), t, { recursive: true });
+  fs.rmSync(path.join(t, 'theme'), { recursive: true, force: true });
+  const r = node([path.join(RACINE, 'tools', 'build-rapport.mjs'), VALIDE, '--tenant', path.join(t, 'tenant.yaml'), '--out', path.join(dossier, 'sans-cache.html')]);
+  assert.equal(r.status, 0, r.stderr);
+  assert.doesNotMatch(r.stdout, /périmé/);
+  assert.ok(fs.existsSync(path.join(t, 'theme', 'theme.css')), 'le thème du tenant n\'est plus écrit quand il manque');
+});
+
 // ── Porte de conformité de la forme ────────────────────────────────────────────────────────────
 test('TF-2145 — verifier-forme-rapport : auto-test à double sens (rendu réel conforme, chaque mutation refusée pour SA règle)', () => {
   const r = node([path.join(RACINE, 'tools', 'verifier-forme-rapport.mjs'), '--self-test']);

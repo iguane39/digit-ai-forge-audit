@@ -87,10 +87,14 @@ export function fontFaceEmbarquee(racine = RACINE) {
   }).join('\n');
 }
 
-/** Génère theme.css + header.html pour un tenant. Retourne {outDir, css, header, domains}. */
-export function genererTheme(file, outArg) {
+/**
+ * Calcule theme.css + header.html d'un tenant SANS RIEN ÉCRIRE. Retourne {tenantDir, css, header, domains}.
+ * TF-2145 : build-rapport rend avec le thème COURANT, calculé ici, et non avec un `theme/theme.css` laissé en cache par
+ * une version antérieure de ce générateur (constat de TF-2139 : un cache d'avant le `.brand` en jetons gardait ses
+ * couleurs en dur, et le rapport rendu échouait à oracle-tokens) ; et un dossier de tenant tenu en lecture seule le reste.
+ */
+export function construireTheme(file) {
   const { cfg, tenantDir, resolveRef } = loadTenant(file);
-  const outDir = outArg ? path.resolve(outArg) : path.join(tenantDir, 'theme');
 
   let colors = { ...(cfg.branding?.colors ?? {}) };
   const typographieExplicite = { ...(cfg.branding?.typography ?? {}) };
@@ -139,6 +143,13 @@ code,pre{font-family:var(--font-mono);}
 </header>
 `;
 
+  return { tenantDir, css, header, domains };
+}
+
+/** Génère theme.css + header.html pour un tenant. Retourne {outDir, css, header, domains}. */
+export function genererTheme(file, outArg) {
+  const { tenantDir, css, header, domains } = construireTheme(file);
+  const outDir = outArg ? path.resolve(outArg) : path.join(tenantDir, 'theme');
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(path.join(outDir, 'theme.css'), css, 'utf-8');
   fs.writeFileSync(path.join(outDir, 'header.html'), header, 'utf-8');
