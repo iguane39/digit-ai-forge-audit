@@ -318,15 +318,15 @@ for (const m of h.matchAll(/<tr>(?:(?!<\/tr>)[\s\S])*?<\/tr>/g)) {
 }
 
 // FORME POC-to-Prod (TF-2145, décision humaine D-171 (a)) — le rendu qui déclare la forme (<meta name="auditcore-forme"
-// content="poc-to-prod">) est jugé par sa porte de conformité, `tools/verifier-forme-rapport.mjs` (F0–F16 : dimensions du
+// content="poc-to-prod">) est jugé par sa porte de conformité, `tools/verifier-forme-rapport.mjs` (F0–F17 : dimensions du
 // référentiel, familles, réponses, moteur piloté mode par mode, plan auto-porté intègre, schéma tracé sans traversée ni
-// flèches confondues, bascule de thème, pleine largeur, chiffres). L'auto-test interne n'y est pas rejoué : le check E
+// flèches confondues, bascule de thème, pleine largeur, chiffres, repli en cartes). L'auto-test interne n'y est pas rejoué : le check E
 // ci-dessus l'hérite déjà. Tous les contrôles de ce fichier restent joués sur cette forme comme sur l'ancienne.
 if (/<meta name="auditcore-forme" content="poc-to-prod">/.test(h)) {
   const f = jugerForme(h, { dimensions: dims, heriterAutotest: false });
   for (const w of f.avertissements) warnings.push(`forme POC-to-Prod [${w.check}] ${w.msg}`);
   for (const e of f.erreurs) errors.push(`forme POC-to-Prod [${e.check}] ${e.msg}`);
-  if (!f.erreurs.length) checks.push(`forme POC-to-Prod conforme (${f.controles} contrôles F0–F16)`);
+  if (!f.erreurs.length) checks.push(`forme POC-to-Prod conforme (${f.controles} contrôles F0–F17)`);
 }
 
 // ORACLES DE DESIGN (TF-2139) — en dernier, sur un rapport qui a passé tout le reste.

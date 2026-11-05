@@ -51,8 +51,8 @@
   },
   "rapport-audit-poc-to-prod.template.html": {
     "id": "gd-rapport-audit-poc-to-prod",
-    "version": "1.0.0",
-    "empreinte": "1f8ff546f8cacf3018b0656fe943b2ce12535c019f9d1c20dad44774868f5c30"
+    "version": "1.0.1",
+    "empreinte": "d54282a1100fcd7e9bea9c9e004bac24bb7aa2153358b664ddb58823b1689227"
   },
   "rapport-audit.template.md": {
     "id": "gd-rapport-audit-auditcore",

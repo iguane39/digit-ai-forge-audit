@@ -151,14 +151,22 @@ test('tableau long sans filtres → exit 1 (RL-5 : au-delà de 8 lignes, tri et 
   assert.match(r.stderr, /sans data-filterable/);
 });
 
+// La cellule porte l'étiquette de sa colonne (data-label du repli en cartes, TF-2145) : la mutation la tolère, et
+// prouve qu'elle a eu lieu — une mutation sans effet rendrait le sens vert vacant.
+const versionActuelle = (h, nouvelle) => {
+  const m = h.replace(/(<td[^>]*>)2\.4\.0(<\/td><td[^>]*>)2\.6\.1(<\/td>)/, (_, a, b, c) => a + '2.4.0' + b + nouvelle + c);
+  assert.notEqual(m, h, 'la ligne de composant 2.4.0 / 2.6.1 doit exister dans le rendu');
+  return m;
+};
+
 test('TF-1737 — version actuelle = pré-version (PEP 440 .devN) → exit 1 (le check 10 juge aussi la stabilité)', () => {
-  const r = variante('preversion', (h) => h.replace('<td>2.4.0</td><td>2.6.1</td>', '<td>2.4.0</td><td>3.0.dev5</td>'));
+  const r = variante('preversion', (h) => versionActuelle(h, '3.0.dev5'));
   assert.equal(r.status, 1, 'une pré-version recommandée doit être refusée : ' + r.stdout);
   assert.match(r.stderr, /pré-version/);
 });
 
 test('TF-1737 — même composant, version actuelle stable → diffusable (le sens vert du même cas)', () => {
-  const r = variante('stable', (h) => h.replace('<td>2.4.0</td><td>2.6.1</td>', '<td>2.4.0</td><td>3.0.1</td>'));
+  const r = variante('stable', (h) => versionActuelle(h, '3.0.1'));
   assert.equal(r.status, 0, r.stderr);
 });
 

@@ -58,6 +58,7 @@ html{font-size:15px}
 body{font-family:var(--r-texte);background:var(--r-surface);color:var(--r-encre);line-height:1.55;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4{font-family:var(--r-titre);font-weight:500;line-height:1.25}
 code,.mono{font-family:var(--r-mono);font-size:.85em}
+code{overflow-wrap:break-word}
 a{color:var(--r-bleu-encre)}
 input[type="text"],input[type="search"]{background:var(--r-surface);color:var(--r-encre);border:1px solid var(--r-trait-2)}
 input::placeholder{color:var(--r-attenue)}
@@ -85,22 +86,22 @@ input::placeholder{color:var(--r-attenue)}
 .title-block .meta{display:flex;flex-wrap:wrap;gap:1.5rem;font-size:.85rem;color:var(--r-attenue);margin-top:1.2rem}
 .title-block .meta strong{color:var(--r-encre);font-weight:500}
 /* — bandeau du verdict — */
-.gate-banner{display:flex;align-items:center;gap:1rem;padding:1rem 1.4rem;border-radius:8px;margin-bottom:2rem;border:1px solid}
-.gate-banner .verdict{flex:0 0 auto}
+.gate-banner{display:flex;flex-wrap:wrap;align-items:center;gap:1rem;padding:1rem 1.4rem;border-radius:8px;margin-bottom:2rem;border:1px solid}
+.gate-banner .verdict{flex:0 1 auto;min-width:0}
 .gate-banner .gb-label{font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
 .gate-banner .gb-verdict{font-family:var(--r-titre);font-size:1.55rem;font-weight:600;line-height:1.1}
 .gate-banner .gb-chiffres{font-size:.78rem;opacity:.9;margin-top:4px}
-.gate-banner .gb-desc{font-size:.86rem;line-height:1.55;flex:1}
+.gate-banner .gb-desc{font-size:.86rem;line-height:1.55;flex:1 1 16rem;min-width:0}
 .gate-banner.nogo{background:var(--r-rouge-trait);border-color:var(--r-rouge);color:var(--r-rouge-encre)}
 .gate-banner.reserve{background:var(--r-ambre-trait);border-color:var(--r-orange);color:var(--r-ambre-encre)}
 .gate-banner.go{background:var(--r-vert-trait);border-color:var(--r-vert-encre);color:var(--r-vert-encre)}
 .gate{font:inherit;color:inherit}
 /* — cartes de synthèse : tableau clé/texte rendu en grille de cartes — */
 .summary-grid{width:100%;margin-bottom:2rem;border-collapse:separate}
-.summary-grid thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.summary-grid thead,.summary-grid thead th{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .summary-grid tbody{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem}
-.summary-grid tr{display:block;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:1.1rem 1.25rem;border-top:3px solid var(--card-color,var(--r-encre))}
-.summary-grid th{display:inline-block;font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--r-attenue);margin-bottom:.55rem;font-weight:500;text-align:left}
+.summary-grid tbody tr{display:block;background:var(--r-surface);border:1px solid var(--r-voile);border-radius:8px;padding:1.1rem 1.25rem;border-top:3px solid var(--card-color,var(--r-encre))}
+.summary-grid tbody th{display:inline-block;font-family:var(--r-mono);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--r-attenue);margin-bottom:.55rem;font-weight:500;text-align:left}
 .summary-grid td{display:block;font-size:.85rem;color:var(--r-encre-2);line-height:1.6}
 .summary-grid .sc-title{font-size:1rem;font-weight:500;margin-bottom:.5rem;color:var(--r-encre)}
 .summary-grid ul.sc-bullets{list-style:none;padding:0;margin:.4rem 0 0;display:flex;flex-direction:column;gap:.35rem}
@@ -226,6 +227,9 @@ section.vue{display:none}section.vue.active{display:block}
 .schema-page .sp-lead{font-size:.9rem;color:var(--r-encre-2);line-height:1.6;margin-bottom:1.2rem}
 .diagram-wrap{background:var(--schema-fond);border:1px solid var(--r-voile);border-radius:10px;padding:28px 20px;overflow-x:auto;margin-bottom:.9rem}
 .diagram-wrap svg{display:block;margin:0 auto;max-width:100%;height:auto;max-height:85vh}
+/* le schéma se réduit à son cadre (la présentation garde son plancher de 900 px) : sous ~1 000 px, défiler de côté
+   ferait déborder l'écran (V1 du socle) ; le détail d'une boîte reste lisible par son infobulle */
+.diagram-wrap .schema-archi{min-width:0}
 .diagram-wrap [data-tip]{cursor:help}
 .diag-caption{font-size:.78rem;color:var(--r-attenue);font-style:italic;text-align:center;margin-bottom:1rem}
 .diag-legend{display:flex;flex-wrap:wrap;gap:.7rem 1.1rem;padding:.85rem 1rem;background:var(--r-fond);border:1px solid var(--r-voile);border-radius:8px;font-size:.78rem}
@@ -286,6 +290,8 @@ section.vue{display:none}section.vue.active{display:block}
 .tm-table tr.detail>td{background:var(--r-fond);padding:0;cursor:default}
 .tm-din{padding:16px 20px 8px;border-top:1px solid var(--tm-line)}
 .tm-grid{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:16px}
+.tm-grid.tm-grid-2{grid-template-columns:1.3fr 1fr}
+.tm-grid>*{min-width:0}
 .tm-col h5{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--tm-teal);margin:0 0 8px;font-family:var(--r-titre)}
 .tm-blk{background:var(--tm-card);border:1px solid var(--tm-line);border-left:1px solid var(--tm-teal);border-radius:8px;padding:12px;margin-bottom:8px}
 .tm-blk.ok{border-left-color:var(--tm-ok)}.tm-blk.part{border-left-color:var(--tm-part)}.tm-blk.na{border-left-color:var(--tm-na)}.tm-blk.todo{border-left-color:var(--tm-todo)}.tm-blk.ko{border-left-color:var(--tm-ko)}
@@ -336,8 +342,8 @@ section.vue{display:none}section.vue.active{display:block}
 .adr-kpi.is-active{box-shadow:0 0 0 2px var(--r-sarcelle) inset}
 @media (hover:hover){.adr-kpi:hover{box-shadow:0 2px 8px var(--r-ombre)}}
 .adr-tablewrap{overflow-x:auto;border:1px solid var(--r-voile);border-radius:10px}
-.adr-table{width:100%;border-collapse:collapse;font-size:.8rem;min-width:920px}
-.adr-table thead th{background:var(--r-surface);text-align:left;padding:8px 12px;font-family:var(--r-mono);font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--r-attenue);border-bottom:1px solid var(--r-voile);white-space:nowrap;font-weight:600}
+.adr-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.adr-table thead th{background:var(--r-surface);text-align:left;padding:8px 12px;font-family:var(--r-mono);font-size:.66rem;letter-spacing:.05em;text-transform:uppercase;color:var(--r-attenue);border-bottom:1px solid var(--r-voile);font-weight:600;vertical-align:bottom}
 .th-tri{font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;background:none;border:none;cursor:pointer;padding:0}
 .th-tri:hover{color:var(--r-encre)}
 .adr-table td{padding:8px 12px;border-bottom:1px solid var(--r-voile);vertical-align:top;color:var(--r-encre-2)}
@@ -417,8 +423,30 @@ footer.ecarts li{margin:4px 0}
 .report-footer .rf-brand{font-family:var(--r-titre);font-weight:700;letter-spacing:.08em;color:var(--r-encre);font-size:.85rem}
 {{CSS_ANNEXES}}
 {{CSS_PARITE_SOMBRE}}
-@media (max-width:900px){.tm-grid{grid-template-columns:1fr}.family-nav{flex-wrap:wrap;overflow-x:visible}.family-tab{flex:1 1 40%;min-width:0}}
+@media (max-width:900px){.tm-grid,.tm-grid.tm-grid-2{grid-template-columns:1fr}.family-nav{flex-wrap:wrap;overflow-x:visible}.family-tab{flex:1 1 40%;min-width:0}}
 @media (max-width:640px){:root{--gouttiere:1rem}.kpi-grid{grid-template-columns:1fr}.title-block h1{font-size:1.4rem}}
+/* — repli en cartes (socle de page, composants §6) : un tableau large déborde de l'écran même dans un conteneur
+     défilant. Sous 900 px, les listes (sept à neuf colonnes) et la matrice de traçabilité (cinq) : chaque cellule dit
+     sa colonne (data-label), les boutons de tri restent en barre au-dessus des cartes. L'impression garde les tableaux. — */
+@media screen and (max-width:900px){
+  .adr-table,.adr-table thead,.adr-table tbody,.adr-table tr,.adr-table td{display:block;width:100%}
+  .adr-table thead tr{display:flex;flex-wrap:wrap;gap:4px 16px;padding:8px 12px;border-bottom:1px solid var(--r-voile)}
+  .adr-table thead th{display:block;width:auto;padding:4px 0;border:0;white-space:normal}
+  .adr-table thead th:not([aria-sort]){display:none}
+  .adr-table tbody tr{border-bottom:1px solid var(--r-voile);padding:8px 0}
+  .adr-table td{border-bottom:0;padding:4px 12px}
+  .adr-titre,.adr-resp{max-width:none}
+  .adr-table td[data-label]::before{content:attr(data-label);display:block;font-family:var(--r-mono);font-size:.62rem;letter-spacing:.05em;text-transform:uppercase;color:var(--r-attenue);margin-bottom:4px}
+  .tm-table,.tm-table thead,.tm-table tbody,.tm-table tr,.tm-table td{display:block;width:100%}
+  .tm-table thead tr{display:flex;flex-wrap:wrap;gap:4px 16px;padding:8px 12px;background:var(--r-voile);border-bottom:1px solid var(--tm-line)}
+  .tm-table thead th{display:block;width:auto;padding:4px 0;border:0;white-space:normal}
+  .tm-table thead th:not([aria-sort]){display:none}
+  .tm-table tbody tr.row{padding:8px 0}
+  .tm-table td{padding:4px 12px}
+  .tm-t{max-width:none}
+  .tm-table .tm-enf{display:table}
+  .tm-table td[data-label]::before{content:attr(data-label);display:block;font-family:var(--r-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--tm-ink2);margin-bottom:4px}
+}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media print{
   .header,.family-nav,.domain-nav,.btn,nav.toc,#diagTooltip,.adr-filterbar,.tm-fbar,.adr-kpis,.theme-toggle,.chemins,.chemins-titre{display:none!important}
@@ -487,7 +515,7 @@ footer.ecarts li{margin:4px 0}
 
   <footer class="report-footer">
 {{PIED}}
-    <p class="rf-gabarit">Gabarit : gd-rapport-audit-poc-to-prod · version du gabarit 1.0.0</p>
+    <p class="rf-gabarit">Gabarit : gd-rapport-audit-poc-to-prod · version du gabarit 1.0.1</p>
   </footer>
 
 </div>
@@ -739,24 +767,26 @@ function tmDetailRegle(dom, a) {
 function tmDetailConstat(r) {
   var c = r.c;
   var pv = (c.preuves || []).map(function (p) { return '<div class="tm-pv"><span class="type">' + escapeHtml(p.type || T('tm.preuve_type')) + '</span><span class="ref">' + escapeHtml([p.ref, p.desc].filter(Boolean).join(' — ')) + '</span></div>'; }).join('');
-  return '<div class="tm-din"><div class="tm-grid" style="grid-template-columns:1.3fr 1fr"><div class="tm-col"><h5>' + escapeHtml(T('tm.d.constat')) + '</h5><div class="tm-blk"><div class="ds">' + escapeHtml(c.desc || T('tm.non_renseigne')) + '</div></div></div>'
+  return '<div class="tm-din"><div class="tm-grid tm-grid-2"><div class="tm-col"><h5>' + escapeHtml(T('tm.d.constat')) + '</h5><div class="tm-blk"><div class="ds">' + escapeHtml(c.desc || T('tm.non_renseigne')) + '</div></div></div>'
     + '<div class="tm-col"><h5>' + escapeHtml(T('tm.d.preuves', (c.preuves || []).length)) + '</h5><div class="tm-blk">' + (pv || '<div class="ds tm-nolink">' + escapeHtml(T('tm.aucune_preuve')) + '</div>') + '</div></div></div></div>';
 }
+/* Cellule qui dit sa colonne : le repli en cartes (sous 900 px) l'affiche au-dessus de la valeur. */
+function tdEtiquete(libelle) { return '<td data-label="' + escapeHtml(libelle || '') + '">'; }
 function tmLigneHtml(dom, r) {
   var st = TM[dom];
   if (st.mode === 'constat') {
     var c = r.c, ouvert = !!st.details[r.i];
     var pv = (c.preuves || []).length ? c.preuves.map(function (p) { return '<span class="tm-lc"><span class="k">' + escapeHtml(p.type || T('tm.preuve_type')) + '</span>' + escapeHtml(String(p.ref || p.desc || '').slice(0, 60)) + '</span>'; }).join('') : '<span class="tm-nolink">' + escapeHtml(T('tm.aucune_preuve')) + '</span>';
-    return '<tr class="row' + (ouvert ? ' open' : '') + '" tabindex="0" aria-expanded="' + ouvert + '" data-tm="' + dom + '" data-tm-ligne="' + r.i + '"><td><span class="constat tm-t">' + escapeHtml(c.titre) + '</span></td>'
-      + '<td><span class="tm-sev ' + sevClasse(c.severite) + '">' + escapeHtml(c.severite || '—') + '</span></td><td>' + pv + '</td></tr>'
+    return '<tr class="row' + (ouvert ? ' open' : '') + '" tabindex="0" aria-expanded="' + ouvert + '" data-tm="' + dom + '" data-tm-ligne="' + r.i + '">' + tdEtiquete(T('tm.c.constat')) + '<span class="constat tm-t">' + escapeHtml(c.titre) + '</span></td>'
+      + tdEtiquete(T('tm.c.severite')) + '<span class="tm-sev ' + sevClasse(c.severite) + '">' + escapeHtml(c.severite || '—') + '</span></td>' + tdEtiquete(T('tm.c.preuves')) + pv + '</td></tr>'
       + (ouvert ? '<tr class="detail"><td colspan="3">' + tmDetailConstat(r) + '</td></tr>' : '');
   }
   var a = r, v = adrResp(a.id).verdict, couverte = tmCouverte(dom, a), o = !!st.details[a.id];
   var crit = a.crit ? a.crit.toLowerCase() : 'absente';
-  return '<tr class="row' + (o ? ' open' : '') + '" tabindex="0" aria-expanded="' + o + '" data-tm="' + dom + '" data-tm-ligne="' + escapeHtml(a.id) + '"><td><button type="button" class="tm-idc" data-regle="' + escapeHtml(a.id) + '" title="' + escapeHtml(T('tm.ouvrir_regle')) + '">' + escapeHtml(a.id) + '</button><span class="tm-t">' + escapeHtml(a.titre || '') + '</span></td>'
-    + '<td><span class="tm-chip tm-c-' + crit + '">' + escapeHtml(a.crit ? T('crit.' + crit) : '—') + '</span>' + (a.enf ? '<div class="tm-enf">' + escapeHtml(T('enf.' + a.enf)) + '</div>' : '') + '</td>'
-    + '<td><span class="badge v-' + v + '"><span class="tm-dot tm-d-' + VKEY[v] + '"></span>' + escapeHtml(verdictLib(v)) + '</span>' + (couverte ? '' : ' <span class="tm-warn">' + ICO_ALERTE + escapeHtml(T('tm.a_couvrir')) + '</span>') + '</td>'
-    + '<td>' + tmCellulePreuve(dom, a) + '</td><td>' + tmCelluleAction(dom, a) + '</td></tr>'
+  return '<tr class="row' + (o ? ' open' : '') + '" tabindex="0" aria-expanded="' + o + '" data-tm="' + dom + '" data-tm-ligne="' + escapeHtml(a.id) + '">' + tdEtiquete(T('tm.c.regle')) + '<button type="button" class="tm-idc" data-regle="' + escapeHtml(a.id) + '" title="' + escapeHtml(T('tm.ouvrir_regle')) + '">' + escapeHtml(a.id) + '</button><span class="tm-t">' + escapeHtml(a.titre || '') + '</span></td>'
+    + tdEtiquete(T('tm.c.criticite')) + '<span class="tm-chip tm-c-' + crit + '">' + escapeHtml(a.crit ? T('crit.' + crit) : '—') + '</span>' + (a.enf ? '<div class="tm-enf">' + escapeHtml(T('enf.' + a.enf)) + '</div>' : '') + '</td>'
+    + tdEtiquete(T('tm.c.verdict')) + '<span class="badge v-' + v + '"><span class="tm-dot tm-d-' + VKEY[v] + '"></span>' + escapeHtml(verdictLib(v)) + '</span>' + (couverte ? '' : ' <span class="tm-warn">' + ICO_ALERTE + escapeHtml(T('tm.a_couvrir')) + '</span>') + '</td>'
+    + tdEtiquete(T('tm.c.preuves_liees')) + tmCellulePreuve(dom, a) + '</td>' + tdEtiquete(T('tm.c.action')) + tmCelluleAction(dom, a) + '</td></tr>'
     + (o ? '<tr class="detail"><td colspan="5">' + tmDetailRegle(dom, a) + '</td></tr>' : '');
 }
 function tmCorps(dom) { var l = tmLignes(dom); return { html: l.map(function (r) { return tmLigneHtml(dom, r); }).join(''), n: l.length }; }
@@ -893,7 +923,7 @@ function listeCorps(cfg, st) {
     var cells = cfg.colonnes.map(function (c, j) {
       var v = c.cell(o.r, st.q);
       if (j === 0 && cfg.detail) v = '<button type="button" class="anx-chev' + (ouvert ? ' open' : '') + '" data-liste="' + cfg.id + '" data-liste-detail="' + o.i + '" aria-expanded="' + ouvert + '" aria-label="' + escapeHtml(T('liste.detail')) + '">▸</button>' + v;
-      return '<td>' + v + '</td>';
+      return tdEtiquete(c.libelle) + v + '</td>';
     }).join('');
     var tr = (cfg.ligneNue ? '<tr>' : '<tr class="anx-row">') + cells + '</tr>';
     if (cfg.detail && ouvert) tr += '<tr class="anx-detail"><td colspan="' + cfg.colonnes.length + '">' + cfg.detail(o.r, st.q) + '</td></tr>';
@@ -1013,7 +1043,7 @@ function cfgDictionnaire() {
       { cle: 'colonne', libelle: T('dict.c.colonne'), tri: function (r) { return r.colonne; }, cell: function (r, q) { return '<span class="' + (r.pii === 'oui' ? 'dict-pii' : '') + '">' + surligne(r.colonne, q) + '</span>'; } },
       { cle: 'type', libelle: T('dict.c.type'), cell: function (r, q) { return surligne(r.type || '—', q); } },
       { cle: 'cle', libelle: T('dict.c.cle'), cell: function (r, q) { return surligne(r.cle || '—', q); } },
-      { cle: 'pii', libelleHtml: 'PII ' + ICO_PII, cell: function (r) { return r.pii === 'oui' ? '<span class="dict-pii">' + ICO_PII + ' ' + escapeHtml(T('oui_non.oui')) + '</span>' : '<span class="adr-muted">—</span>'; } },
+      { cle: 'pii', libelle: 'PII', libelleHtml: 'PII ' + ICO_PII, cell: function (r) { return r.pii === 'oui' ? '<span class="dict-pii">' + ICO_PII + ' ' + escapeHtml(T('oui_non.oui')) + '</span>' : '<span class="adr-muted">—</span>'; } },
       { cle: 'note', libelle: T('dict.c.note'), cell: function (r, q) { return surligne(r.note || '', q); } }
     ]
   };

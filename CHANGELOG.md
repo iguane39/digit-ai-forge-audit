@@ -52,6 +52,22 @@ sources mis à jour.
   (comportement d'avant) et DIT un cache périmé sans le réécrire — un dossier de tenant tenu en lecture seule le reste.
   Banc : 2 tests à double sens dans `tests/oracles/rapport-forme-poc-to-prod.test.mjs` (rouge rejoué avec l'ancien
   `build-rapport.mjs` : 0/1).
+- **TF-2145 — la forme POC-to-Prod tient l'écran de 390 à 3 840 px, et sa porte le juge (F17)** (05/11/2026) — mesuré
+  sur un rendu d'audit réel (référentiel complet, 185 règles) par `render_page.py` du socle de page, aux six largeurs, thèmes
+  clair et sombre : FAIL, deux familles bloquantes. V15 à chaque largeur : l'en-tête masqué des cartes de synthèse
+  gardait des `th` de la taille de leur texte, posés sur les cartes ; ils prennent la boîte d'1 px du masquage. V1 à
+  390 px : bandeau du verdict sans retour à la ligne, chemin de fichier insécable, matrice de traçabilité de 748 px.
+  Le bandeau passe à la ligne, un `code` se coupe, et sous 900 px la matrice et les listes se replient en cartes (socle
+  de page, composants §6) : chaque cellule porte `data-label`, le nom de sa colonne, et les boutons de tri restent en
+  barre. La liste perd son plancher de 920 px et ses en-têtes passent à la ligne ; dans le rapport, le schéma
+  d'architecture se réduit à son cadre (la présentation garde son plancher). Après : `render_page` PASS aux six
+  largeurs dans les deux thèmes, 0 bloquant (les avertissements V4 du canevas vendoré sont inchangés) ; une sonde de
+  session hors dépôt, sur chaque vue et chaque dimension ouverte à 390, 768, 901, 1 280 et 1 920 px, relève 0
+  débordement, 0 en-tête posé, 0 erreur JS. Gabarit 1.0.1. `verifier-forme-rapport.mjs` gagne F17 (cellule sans
+  `data-label`, règle de repli absente), avec deux mutations rouges : auto-test 22/22. Le bandeau dit « N actions au
+  plan de remédiation » au lieu de « N plan de remédiation », et « Verdict prononcé par : … ». Banc
+  `verifier-rapport-html.test.mjs` : la mutation TF-1737 de la ligne de composant tolère l'étiquette de cellule et
+  prouve qu'elle a eu lieu ; l'assertion est inchangée.
 - **TF-2139 — le rapport HTML rendu passe les oracles de design de la forge design, et la porte de rendu les
   joue** (04/11/2026, RU-6) — `run-oracles-design` rendait FAIL sur le rapport du moteur : oracle-slop 11
   écarts durs (bandeaux latéraux `border-left` de 3 et 4 px sur `.verdict` et `.constat`, huit accents

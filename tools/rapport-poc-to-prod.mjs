@@ -238,7 +238,7 @@ const FIXES = {
     meta: { projet: 'Projet', version: 'Version auditée', date: "Date d'audit", rapport: 'Version rapport', auditeur: 'Auditeur', llm: "Moteur d'audit (LLM)", env: 'Environnement' },
     gb_label: 'Verdict gate 1b', gb_nogo: "Le périmètre n'est pas industrialisable en l'état : au moins une dimension rend un refus, ou cinq dimensions ou plus sont bloquantes. Le plan d'action consolidé, urgences en tête, doit être exécuté avant une nouvelle présentation à l'autorité de décision.",
     gb_reserve: "Industrialisation possible sous réserve de lever les bloquants identifiés ; le plan de remédiation donne l'ordre de traitement.", gb_go: 'Industrialisation possible : aucune dimension bloquante.',
-    gb_prononce: 'Verdict prononcé par %1.', carte: 'Carte', texte: 'Texte',
+    gb_prononce: 'Verdict prononcé par : %1.', gb_actions: '%1 actions au plan de remédiation', carte: 'Carte', texte: 'Texte',
     kpi_gate: ['Statut gate 1b', 'Verdict de la porte décisionnelle pour ce périmètre.', 'Calculé : %1 — lecture du verdict et de sa règle en vue Méthode et lecture.'],
     radar_q: 'Comment la maturité se répartit-elle entre les familles de dimensions ?', radar_note: 'Moyenne des scores des dimensions notées de chaque famille, sur 5.',
     chemins_titre: 'Par où commencer, selon qui vous êtes',
@@ -293,7 +293,7 @@ const FIXES = {
     meta: { projet: 'Project', version: 'Audited version', date: 'Audit date', rapport: 'Report version', auditeur: 'Auditor', llm: 'Audit engine (LLM)', env: 'Environment' },
     gb_label: 'Gate 1b verdict', gb_nogo: 'The scope cannot be industrialised as is: at least one dimension returns a refusal, or five dimensions or more block. The consolidated action plan, urgent items first, must be carried out before a new presentation to the decision authority.',
     gb_reserve: 'Industrialisation possible once the blockers identified are lifted; the remediation plan gives the processing order.', gb_go: 'Industrialisation possible: no blocking dimension.',
-    gb_prononce: 'Verdict pronounced by %1.', carte: 'Card', texte: 'Text',
+    gb_prononce: 'Verdict pronounced by: %1.', gb_actions: '%1 remediation plan actions', carte: 'Card', texte: 'Text',
     kpi_gate: ['Gate 1b status', 'Verdict of the decision gate for this scope.', 'Computed: %1 — reading of the verdict and its rule in the Method & reading view.'],
     radar_q: 'How is maturity spread across the families of dimensions?', radar_note: 'Average score of the scored dimensions of each family, out of 5.',
     chemins_titre: 'Where to start, depending on who you are',
@@ -780,7 +780,7 @@ export function rendreRapportPocToProd(data, { tenant, dimensions, families, the
       <p class="subtitle">${esc(fmt(F.sous_titre, projet, coreVersion, dims.length, D.FAMILIES.length, regles.length))}</p>
       <div class="meta">${metaTitre.map(([k, v]) => `<span><strong>${esc(k)}</strong> · ${esc(v)}</span>`).join('')}</div>`;
   const bandeau = `  <div class="gate-banner ${gateCle} lire" id="gateBanner" data-mesure-lecture>
-    <div class="verdict"><p class="gb-label">${esc(F.gb_label)}</p><p class="gb-verdict"><span class="gate ${gateClasse}" title="${esc(Rz.t.gate)}">${esc(c.gate)}</span></p><p class="gb-chiffres">— ${c.bloquants.length} ${esc(L.bloquants.toLowerCase())}, ${nbNC} ${esc(L.regles.toLowerCase())} ${esc(L.nc)}, ${c.plan.length} ${esc(L.rem.toLowerCase())}.</p></div>
+    <div class="verdict"><p class="gb-label">${esc(F.gb_label)}</p><p class="gb-verdict"><span class="gate ${gateClasse}" title="${esc(Rz.t.gate)}">${esc(c.gate)}</span></p><p class="gb-chiffres">— ${c.bloquants.length} ${esc(L.bloquants.toLowerCase())}, ${nbNC} ${esc(L.regles.toLowerCase())} ${esc(L.nc)}, ${esc(fmt(F.gb_actions, c.plan.length))}.</p></div>
     <div class="gb-desc">${esc(c.gate === 'NO-GO' ? F.gb_nogo : c.gate === 'GO' ? F.gb_go : F.gb_reserve)}${data.gate?.prononce_par ? ' ' + esc(fmt(F.gb_prononce, data.gate.prononce_par)) : ''}</div>
   </div>`;
   const syn = data.syntheses && typeof data.syntheses === 'object' ? Object.entries(data.syntheses) : [];

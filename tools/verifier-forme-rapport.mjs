@@ -34,6 +34,8 @@
 //   F14 bascule de thème : bouton en en-tête, script qui mute data-theme et le mémorise, bloc sombre déclaré
 //   F15 pleine largeur : .app déclarée page de données, conteneurs de lecture présents, aucune largeur maximale sur .app
 //   F16 chiffres : bloquants, score global, verdict et nombre de règles affichés = ceux que les données embarquées donnent
+//   F17 repli en cartes : la matrice et les listes se replient sous 900 px (règle td[data-label]::before), et chaque
+//       cellule de données y porte le nom de sa colonne (data-label) — sans lui, la carte aligne des valeurs sans nom
 //
 // Usage : node tools/verifier-forme-rapport.mjs <rapport.html> | --self-test
 // Exit : 0 conforme · 1 non conforme · 2 usage / lecture.
@@ -255,6 +257,22 @@ export function jugerForme(html, { dimensions = dimensionsDuReferentiel(), herit
   if (!/class="[^"]*\blire\b[^"]*" data-mesure-lecture/.test(html)) fail('F15', 'aucun conteneur de lecture (.lire[data-mesure-lecture]) : la prose n\'est plus tenue en largeur');
   const regleApp = /\.app\{([^}]*)\}/.exec(html)?.[1] ?? '';
   if (/max-width\s*:\s*(?!none)[^;]+/.test(regleApp)) fail('F15', `.app porte une largeur maximale (« ${/max-width\s*:\s*([^;]+)/.exec(regleApp)[1]} ») : la forme est pleine largeur`);
+  // F17 · repli en cartes (socle de page, composants §6) : un tableau large déborde de l'écran même dans un conteneur
+  // défilant ; replié, chaque cellule dit sa colonne. Corps statique seulement : le moteur porte les mêmes fragments.
+  const tablesRepli = [...statique.matchAll(/<table\b[^>]*class="[^"]*\b(?:tm-table|adr-table)\b[^"]*"[^>]*>[\s\S]*?<\/table>/g)].map((m) => m[0]);
+  let sansEtiquette = 0, exempleTable = '';
+  for (const t of tablesRepli) {
+    const corps = /<tbody>([\s\S]*?)<\/tbody>/.exec(t)?.[1] ?? '';
+    for (const td of corps.matchAll(/<td\b([^>]*)>/g)) {
+      if (/\bcolspan=/.test(td[1]) || /\bdata-label="[^"]+"/.test(td[1])) continue;
+      sansEtiquette++;
+      if (!exempleTable) exempleTable = /\bid="([^"]*)"/.exec(t)?.[1] ?? '?';
+    }
+  }
+  if (sansEtiquette) fail('F17', `${sansEtiquette} cellule(s) de données sans data-label (ex. : table #${exempleTable}) : repliée en carte sous 900 px, la valeur perd le nom de sa colonne`);
+  for (const cls of ['tm-table', 'adr-table'])
+    if (tablesRepli.some((t) => new RegExp(`class="[^"]*\\b${cls}\\b`).test(t)) && !new RegExp(`\\.${cls} td\\[data-label\\]::before\\{content:attr\\(data-label\\)`).test(html))
+      fail('F17', `aucune règle de repli en cartes pour .${cls} (td[data-label]::before) : sous 900 px, ses tableaux débordent de l'écran`);
 
   // F7, F8, F9 · le moteur exécuté
   if (scripts.length && !erreurs.some((e) => e.check === 'F3')) {
@@ -273,7 +291,7 @@ export function jugerForme(html, { dimensions = dimensionsDuReferentiel(), herit
     for (const el of r.magasin.values()) for (const m of String(el._h ?? '').match(/\{\{[\s\S]*?\}\}/g) ?? []) { n++; ex.add(m); }
     if (n) fail('F9', `${n} champ(s) {{…}} dans le contenu écrit par le moteur — ex. : ${[...ex].slice(0, 3).join(' · ')}`);
   }
-  return { erreurs, avertissements, controles: 17 };
+  return { erreurs, avertissements, controles: 18 };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -298,7 +316,15 @@ export const MUTATIONS = [
   ['F14', 'bascule de thème retirée', (h) => h.replace(/<button id="theme-toggle"[\s\S]*?<\/button>/, '')],
   ['F15', 'pleine largeur retirée', (h) => h.replace('<div class="app" data-page="donnees">', '<div class="app">')],
   ['F16', 'KPI bloquants faux', (h) => h.replace(/(class="k-valeur" aria-describedby="kr-bloq">)(?:<span class="kv-alerte">)?(\d+)/, (m, a, n) => `${a}${Number(n) + 3}`)],
+  ['F17', 'cellules de la matrice sans nom de colonne', (h) => sansEtiquettes(h)],
+  ['F17', 'règle de repli en cartes retirée', (h) => h.replace(/td\[data-label\]::before\{content:attr\(data-label\)/g, 'td[data-label]::before{content:none')],
 ];
+/** Retire les data-label de la première matrice rendue qui en porte (corps statique : l'identifiant y est numéroté). */
+function sansEtiquettes(h) {
+  for (const t of h.matchAll(/<table class="tm-table" id="tm-D\d+-table"[\s\S]*?<\/table>/g))
+    if (/ data-label="/.test(t[0])) return h.replace(t[0], t[0].replace(/ data-label="[^"]*"/g, ''));
+  return h;
+}
 /** Les règles d'AVERTISSEMENT ont aussi leurs deux sens : la mutation doit lever l'avertissement, sans erreur ajoutée. */
 export const MUTATIONS_AVERTISSEMENT = [
   ['F10', 'version actuelle estimée au lieu de résolue', (h) => h.replace(/"version_actuelle":"[^"]*"/g, '"version_actuelle":"2.x"')],
@@ -371,7 +397,7 @@ function principal(argv) {
     console.error(`\n✖ forme POC-to-Prod NON conforme (${r.erreurs.length} anomalie(s)) — ${path.basename(file)}`);
     return 1;
   }
-  console.log(`✔ forme POC-to-Prod conforme — ${r.controles} contrôles (F0–F16)${r.avertissements.length ? `, ${r.avertissements.length} avertissement(s)` : ''} — ${path.basename(file)}`);
+  console.log(`✔ forme POC-to-Prod conforme — ${r.controles} contrôles (F0–F17)${r.avertissements.length ? `, ${r.avertissements.length} avertissement(s)` : ''} — ${path.basename(file)}`);
   return 0;
 }
 
