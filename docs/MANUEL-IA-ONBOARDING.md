@@ -52,6 +52,25 @@ language, domains labels/couleurs, roles, environments, sources, enforcement.bin
 = `["<Nom exact de l'entreprise>"]`). Vérifier que `adr.aliases` reste vide (sauf remap legacy propre au client). Ne PAS toucher :
 `schema_version`, `dimensions.pack`, la liste des 9 codes de domaines.
 
+### 2 bis · Le client publie-t-il déjà son standard d'audit ? (TF-2144)
+
+Avant de fabriquer quoi que ce soit : chercher si le client **publie son propre standard d'audit** — prompt, modèle de
+rapport, tenant, porte exécutable (conventions client du produit, projet commun du client). Le désigner est le travail de la
+session qui mobilise la forge ; AuditCore ne le découvre pas.
+
+- **Il existe** : son tenant fait foi — **ne jamais en fabriquer un** quand le client en publie un (un audit complet a été refait
+  deux fois, sur un tenant fabriqué, avec le standard du client ignoré). Le tenant déclare sa porte :
+  ```yaml
+  standard_client:
+    porte: <chemin du script de la porte, relatif au dossier du tenant>
+    arguments: ["{rapport}"]        # optionnel ; {rapport} = le rapport HTML jugé
+  ```
+  La porte est alors **exigée avant toute diffusion** : `node tools/verifier-standard-client.mjs <rapport.html> --tenant
+  <tenant.yaml>` (ou `verifier-rapport-html.mjs … --tenant <tenant.yaml>`). Code 0 = conforme ; un refus de la porte rend le
+  rapport non diffusable, quoi qu'en disent les portes d'AuditCore.
+- **Il n'existe pas** : ne rien déclarer. Les portes le disent (« aucun standard client déclaré ») : un rapport n'est jamais
+  présenté comme jugé par un standard client qu'on n'a pas cherché.
+
 ## 3 · Charte graphique → DESIGN.md
 
 Créer `$TENANT_DIR/DESIGN.md` au format frontmatter (modèle :

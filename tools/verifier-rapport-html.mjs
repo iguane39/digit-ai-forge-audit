@@ -18,8 +18,9 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
-import { rel, loadYaml, valeurFichierOuUsage } from './lib.mjs';
+import { rel, loadYaml, loadTenant, valeurFichierOuUsage } from './lib.mjs';
 import { trouverRacineDesign, jouerOraclesDesign } from './oracles-design.mjs';
+import { porteDuStandard, jouerPorteDuStandard, messageNonConforme } from './standard-client.mjs';
 // TF-2145 : un rendu qui déclare la forme POC-to-Prod (rendu par défaut de build-rapport) passe AUSSI la porte de
 // conformité de cette forme, en plus de tout ce qui suit — jamais à la place.
 import { jugerForme } from './verifier-forme-rapport.mjs';
@@ -27,7 +28,7 @@ import { jugerForme } from './verifier-forme-rapport.mjs';
 // producteur (une seule source, CONTRIBUTING des oracles) — jamais une regex recopiée.
 import { isPrerelease } from '../oracles/maj-versions.mjs';
 
-const USAGE = 'Usage: node tools/verifier-rapport-html.mjs <rapport.html> [--design-root <forge-design>] [--sans-oracles-design]';
+const USAGE = 'Usage: node tools/verifier-rapport-html.mjs <rapport.html> [--design-root <forge-design>] [--sans-oracles-design] [--tenant <tenant.yaml>]';
 const file = process.argv[2];
 if (!file || file.startsWith('-')) { console.error(USAGE); process.exit(2); }
 // TF-2139 (RU-6) — ORACLES DE DESIGN. Le rapport rendu est aussi jugé par `run-oracles-design` de la forge design
@@ -38,6 +39,10 @@ if (!file || file.startsWith('-')) { console.error(USAGE); process.exit(2); }
 // `--sans-oracles-design` est le refus explicite, dit de la même façon ; il ne rend jamais le rapport « jugé ».
 const designRoot = valeurFichierOuUsage(process.argv, '--design-root', USAGE);
 const sansDesign = process.argv.includes('--sans-oracles-design');
+// TF-2144 — STANDARD PUBLIÉ PAR LE CLIENT. Avec `--tenant`, si le tenant déclare la porte du standard du client
+// (`standard_client.porte`), elle est EXIGÉE : un rapport qu'elle refuse n'est pas diffusable, quoi qu'en disent les portes
+// d'AuditCore (tools/standard-client.mjs). Sans déclaration, le gate le DIT (« NON JUGÉ ») : il ne se tait pas.
+const tenantArg = valeurFichierOuUsage(process.argv, '--tenant', USAGE);
 const racineDesign = sansDesign ? { racine: null, motif: 'option --sans-oracles-design' }
   : trouverRacineDesign({ option: designRoot, env: process.env.FORGE_DESIGN_ROOT });
 if (racineDesign.erreur) { console.error(`ERREUR: ${racineDesign.erreur}`); process.exit(2); }
@@ -338,6 +343,22 @@ if (!errors.length) {
     for (const a of d.avertissements) console.error(`NON JUGÉ: oracles de design — ${a}`);
     for (const e of d.erreurs) errors.push(`oracles de design : ${e}`);
     if (d.verdict === 'PASS') checks.push('oracles de design PASS (run-oracles-design)');
+  }
+}
+
+// STANDARD DU CLIENT (TF-2144) — après les portes d'AuditCore, sur un rapport qui les a passées (comme les oracles de design).
+if (tenantArg !== undefined && !errors.length) {
+  let standard;
+  try { const t = loadTenant(tenantArg); standard = porteDuStandard({ cfg: t.cfg, tenantDir: t.tenantDir }); }
+  catch (e) { console.error(`ERREUR: ${e.message}`); process.exit(2); }
+  if (!standard.declaree) {
+    console.error("NON JUGÉ: standard publié par le client — aucun standard_client déclaré au tenant ; le rapport n'est jugé que par les portes d'AuditCore.");
+  } else {
+    let v;
+    try { v = jouerPorteDuStandard(standard, file); } catch (e) { console.error(`ERREUR: ${e.message}`); process.exit(2); }
+    for (const l of v.sortie) console.error(`  | ${l}`);
+    if (v.conforme) checks.push('porte du standard du client conforme');
+    else errors.push(messageNonConforme(standard, v));
   }
 }
 

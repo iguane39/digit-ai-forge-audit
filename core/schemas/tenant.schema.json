@@ -288,6 +288,24 @@
         }
       }
     },
+    "standard_client": {
+      "type": "object",
+      "description": "TF-2144 — standard d'audit PUBLIÉ par le client (prompt, modèle, tenant, porte) quand il existe. La porte est EXIGÉE avant toute diffusion (tools/verifier-standard-client.mjs, option --tenant de verifier-rapport-html) ; absent = aucun standard déclaré, et les portes le disent.",
+      "required": ["porte"],
+      "additionalProperties": false,
+      "properties": {
+        "porte": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Script de la porte du client, relatif au dossier du tenant (ou absolu). Joué par `node <porte> <arguments>` : code 0 = conforme."
+        },
+        "arguments": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Arguments passés à la porte ; `{rapport}` est remplacé par le rapport HTML jugé. Défaut : [\"{rapport}\"]."
+        }
+      }
+    },
     "build_provenance": {
       "type": "object",
       "description": "ECR-07 — LLM ayant construit / durci le pack de contraintes du tenant. Jamais inféré : déclaré ou absent.",

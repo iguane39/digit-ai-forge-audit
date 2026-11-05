@@ -88,3 +88,7 @@ if (nonProjetees.length)
   console.log(`⚠ ${nonProjetees.length} action(s) hors YAML (dimension non rattachée, visibles au plan HTML) : ${nonProjetees.map(a => a.source).join(', ')}`);
 console.log('  rappel gate machine : node tools/verifier-rapport.mjs <rapport-data.json> (exit 0 avant diffusion)');
 console.log('  porte de clôture    : node tools/verifier-remediation.mjs <rapport.html> --status <suivi.json>');
+// TF-2144 : le standard publié par le client, quand il existe, est une porte de plus — exigée, jamais passée sous silence.
+console.log(cfg.standard_client?.porte
+  ? `  porte du client     : node tools/verifier-standard-client.mjs ${out} --tenant ${tenantArg} (déclarée au tenant, EXIGÉE avant diffusion)`
+  : '  porte du client     : aucun standard_client déclaré au tenant — si le client publie son standard d\'audit (projet commun, conventions client), le déclarer avant diffusion (tools/standard-client.mjs)');

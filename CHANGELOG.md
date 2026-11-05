@@ -7,6 +7,19 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-2144 — la mobilisation d'AuditCore exige la porte du standard publié par le client quand il existe** (05/11/2026,
+  RT-44 du retour Produit-84 du 04/11/2026, moitié forge-audit ; la moitié pilot est le routage) — un audit complet avait été
+  rendu deux fois par le moteur générique, avec un tenant fabriqué, alors que le client publiait son standard (prompt,
+  modèle, tenant, porte) ; sa porte, jouée ensuite en une commande, a refusé (5 anomalies bloquantes) ce que les deux portes
+  de ce dépôt déclaraient diffusable. Le tenant peut désormais DÉCLARER ce standard (`standard_client.porte`, option
+  `arguments` avec `{rapport}`, schéma `core/schemas/tenant.schema.json`) ; `tools/verifier-standard-client.mjs` et l'option
+  `--tenant` de `verifier-rapport-html.mjs` jouent cette porte (`node <porte> <rapport>`, code 0 = conforme) et rendent le
+  rapport NON diffusable si elle le refuse (relais de sa sortie, borne de 40 lignes dite) ; une porte déclarée introuvable
+  est une erreur (2), jamais un « sans objet » ; sans déclaration, la sortie le DIT (« aucun standard client déclaré »),
+  et `build-rapport` le rappelle à chaque rendu. `docs/MANUEL-IA-ONBOARDING.md`, étape 2 bis : chercher le standard du
+  client avant de fabriquer un tenant. Banc `tests/oracles/standard-client.test.mjs` : 12 tests, 12 rouges sur le dépôt
+  d'avant (worktree à cbe658e), 12 verts après. Les portes du banc sont des fixtures écrites par le banc ; la vraie porte
+  d'un client n'est pas dans ce dépôt, et le contrat d'appel `node <porte> <rapport.html>` n'est pas vérifié sur elle.
 - **TF-2145 — la forme du rapport d'audit POC-to-Prod devient le rendu par défaut** (05/11/2026, décision humaine
   D-171 (a) du 04/11/2026 : « Logiquement le format générique de la Factory, ce n'est pas celui généré. ») — gabarit
   agnostique `deliverables/templates/rapport-audit-poc-to-prod.template.html` (`gd-rapport-audit-poc-to-prod` 1.0.0,
