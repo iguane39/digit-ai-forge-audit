@@ -12,6 +12,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { ROOT, rel, loadTenant, loadJson, loadYaml, valeurDossierOuUsage } from './lib.mjs';
 import { createZip } from './ziplib.mjs';
+import { coherenceJs, lireGabarit } from './rapport-poc-to-prod.mjs';
 
 const tenantYaml = process.argv[2];
 const USAGE = 'Usage: node tools/build-kit.mjs <tenant.yaml> [--kind audit|compliance|both] [--out <dir>]';
@@ -106,15 +107,45 @@ const initStandalone = [
   "console.log(`✔ espace d'audit ${T} initialisé: ${target}`);",
 ].join('\n');
 
-// ── 3ter. Moteur de rendu de rapport AUTONOME (M5) — source du moteur inliné + config bakée
-// Le moteur importe l'asset VENDORÉ des filtres de tableau. Le kit est un fichier unique :
-// on inline l'asset AVANT le moteur et on retire l'import — sans quoi le standalone
-// tomberait sur un module introuvable chez le client.
-const filtresSrc = fs.readFileSync(rel('tools', 'table-filters.mjs'), 'utf-8')
-  .replace(/^export const TABLE_FILTERS_JS/m, 'const TABLE_FILTERS_JS');
-const engineSrc = fs.readFileSync(rel('tools', 'rapport-engine.mjs'), 'utf-8')
-  .replace(/^import \{ TABLE_FILTERS_JS \} from '\.\/table-filters\.mjs';\r?\n/m, '')
-  .replace(/^export function renderRapport/m, 'function renderRapport');
+// ── 3ter. Moteur de rendu de rapport AUTONOME (M5) — modules inlinés + config bakée
+// TF-2169 : le kit rend la MÊME forme que `build-rapport` (POC-to-Prod, `rendreRapportPocToProd`), pas l'ancien rendu par
+// vues. Cette forme repose sur cinq modules de tools/ qui s'importent entre eux et sur deux lectures de fichier (le
+// gabarit HTML, le bloc de cohérence du plan lu dans le moteur). Le kit est un fichier unique : `empaquetage` inline les
+// modules DANS L'ORDRE de leurs dépendances, chacun dans sa fonction (aucune collision de noms entre modules), et le
+// gabarit comme le bloc de cohérence partent en constantes. Tout motif attendu qui manque dans une source LÈVE : une
+// source qui change sans que le bundler suive casse la fabrication du kit, jamais le kit chez le client.
+const MODULES_AUTONOME = ['table-filters.mjs', 'canevas-modele-donnees.mjs', 'rapport-engine.mjs', 'schema-architecture.mjs', 'rapport-poc-to-prod.mjs'];
+const LECTURES_REMPLACEES = {
+  'rapport-poc-to-prod.mjs': [
+    ["fs.readFileSync(fichier, 'utf8')", 'GABARIT_EMBARQUE'],
+    ["fs.readFileSync(MOTEUR_LEGACY, 'utf8')", 'MOTEUR_EMBARQUE'],
+  ],
+};
+const identifiantModule = (nom) => '__m_' + nom.replace(/\.mjs$/, '').replace(/[^A-Za-z0-9]/g, '_');
+function empaquetage(noms) {
+  const importsNode = new Set(["import fs from 'node:fs';"]);
+  const blocs = noms.map((nom) => {
+    let src = fs.readFileSync(rel('tools', nom), 'utf-8').replace(/\r\n/g, '\n');
+    for (const [motif, remplacement] of LECTURES_REMPLACEES[nom] ?? []) {
+      if (!src.includes(motif)) throw new Error(`build-kit : ${nom} ne contient plus « ${motif} » — adapter LECTURES_REMPLACEES (le rendu autonome ne lit aucun fichier)`);
+      src = src.split(motif).join(remplacement);
+    }
+    const liaisons = [];
+    src = src.replace(/^import\s+([\s\S]*?)\s+from\s+'([^']+)';\n/gm, (_, nommes, source) => {
+      if (source.startsWith('node:')) { importsNode.add(`import ${nommes} from '${source}';`); return ''; }
+      const voisin = path.basename(source);
+      if (!noms.includes(voisin)) throw new Error(`build-kit : ${nom} importe ${source}, que le rendu autonome n'embarque pas`);
+      liaisons.push(`const ${nommes.replace(/\s+as\s+/g, ': ')} = ${identifiantModule(voisin)};`);
+      return '';
+    });
+    const exportes = [...src.matchAll(/^export\s+(?:async\s+)?(?:const|let|var|function\*?|class)\s+([A-Za-z0-9_$]+)/gm)].map((m) => m[1]);
+    src = src.replace(/^export\s+(?=(?:async\s+)?(?:const|let|var|function|class)\b)/gm, '');
+    if (/^(?:import|export)\s/m.test(src)) throw new Error(`build-kit : ${nom} porte une forme d'import ou d'export que le bundler ne traite pas`);
+    return `const ${identifiantModule(nom)} = (() => {\n${liaisons.join('\n')}\n${src}\nreturn { ${exportes.join(', ')} };\n})();`;
+  });
+  return { importsNode: [...importsNode], blocs };
+}
+const empaquete = empaquetage(MODULES_AUTONOME);
 const kitLang = cfg.tenant.language === 'en' ? 'en' : 'fr';
 const dimsPack = loadYaml(rel('core', 'dimensions', 'dimensions.yaml'));
 const relabelKit = cfg.dimensions?.relabel ?? {};
@@ -128,9 +159,12 @@ const rapportStandalone = [
   `// Rendu de rapport AUTONOME — généré par AuditCore build-kit pour « ${tenant} » (core ${cfg.core_version}).`,
   '// Usage: node build-rapport-standalone.mjs <rapport-data.json> [--out <fichier.html>]',
   '// Gate machine AVANT diffusion : node verifier-rapport-standalone.mjs <rapport-data.json>',
-  "import fs from 'node:fs';",
-  filtresSrc,
-  engineSrc,
+  ...empaquete.importsNode,
+  // TF-2169 : le gabarit HTML de la forme POC-to-Prod et le bloc de cohérence du plan, lus dans le dépôt À LA FABRICATION.
+  `const GABARIT_EMBARQUE=${JSON.stringify(lireGabarit().texte)};`,
+  `const MOTEUR_EMBARQUE=${JSON.stringify(coherenceJs() + 'function auditSelfTest(')};`,
+  ...empaquete.blocs,
+  'const { rendreRapportPocToProd } = __m_rapport_poc_to_prod;',
   `const TENANT=${JSON.stringify(tenant)}, CORE=${JSON.stringify(String(cfg.core_version))}, SHORT=${JSON.stringify(cfg.tenant.short_code)};`,
   `const DIMS=${JSON.stringify(bakedDims)}, FAMS=${JSON.stringify(bakedFams)}, LANG=${JSON.stringify(kitLang)};`,
   `const THEME=${JSON.stringify(themeCssKit)};`,
@@ -138,7 +172,7 @@ const rapportStandalone = [
   "const file=process.argv[2];",
   "if(!file){console.error('Usage: node build-rapport-standalone.mjs <rapport-data.json> [--out <fichier.html>]');process.exit(2);}",
   "const data=JSON.parse(fs.readFileSync(file,'utf-8')); data._constraints_index=CIDX; data._short_code=SHORT;",
-  'const html=renderRapport(data,{tenant:TENANT,dimensions:DIMS,families:FAMS,themeCss:THEME,coreVersion:CORE,lang:LANG});',
+  'const html=rendreRapportPocToProd(data,{tenant:TENANT,dimensions:DIMS,families:FAMS,themeCss:THEME,coreVersion:CORE,lang:LANG}).html;',
   // TF-2131 : la valeur de --out est un fichier, jamais une autre option (`--out --dry-run` écrivait un fichier nommé
   // « --dry-run »). Règle de `valeurFichierOuUsage` (tools/lib.mjs) recopiée dans l'autonome : le kit est autoportant.
   "const oi=process.argv.indexOf('--out'); const ov=oi>-1?process.argv[oi+1]:undefined;",

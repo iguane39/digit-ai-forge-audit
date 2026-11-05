@@ -144,7 +144,7 @@ if (!/id="t-__syntheses"/.test(h) || !['fonctionnelle', 'technique', 'audit'].ev
 const sectionDim = (id) => (h.match(new RegExp(`<section class="dim" id="${id}">([\\s\\S]*?)</section>`)) ?? [])[1] ?? '';
 if (!/<\/h4>\s*<p>[^<]{10,}/.test(sectionDim('D00')))
   errors.push('gabarit rapport-audit : périmètre D00 non rédigé dans le rendu (la section D00 ne porte aucun résumé)');
-if (!/aria-label="Schéma d'architecture"/.test(h)) errors.push('gabarit rapport-audit : schéma d\'architecture absent du rendu');
+if (!/<svg [^>]*data-schema="architecture"/.test(h)) errors.push('gabarit rapport-audit : schéma d\'architecture absent du rendu');
 if (!h.includes('id="v-donnees"')) errors.push('gabarit rapport-audit : vue « Données analysées » (tests / analyses / composants) absente du rendu');
 const sansPlan = [...h.matchAll(/<section class="dim" id="(D\d{2})">([\s\S]*?)<\/section>/g)]
   .filter(([, id, corps]) => /class="constat |class="badge v-(non_conforme|partiel)"/.test(corps) && !corps.includes(`id="t-plan-${id}"`))

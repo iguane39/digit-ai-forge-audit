@@ -95,7 +95,7 @@ test('TF-2145 — une donnée sans architecture ni base : pas d\'onglet de sché
   delete d.architecture; delete d.db_schema;
   const { r, html } = rendre('sans-schemas', ecrire('sans-schemas', d));
   assert.equal(r.status, 0, r.stderr);
-  assert.doesNotMatch(html, /aria-label="Schéma d'architecture"/);
+  assert.doesNotMatch(html, /data-schema="architecture"/);
   assert.match(html, /Schéma d&#39;architecture absent des données|Schéma d'architecture absent des données/);
   assert.match(html, /Schéma de base de données absent des données/);
 });
@@ -265,7 +265,7 @@ test('TF-2145 — verifier-rapport-html joue la porte de la forme : un schéma q
   const ok = node([path.join(RACINE, 'tools', 'verifier-rapport-html.mjs'), out, '--sans-oracles-design']);
   assert.equal(ok.status, 0, ok.stderr);
   assert.match(ok.stdout, /forme POC-to-Prod conforme/);
-  const svg = /<svg viewBox="[^"]*"[^>]*aria-label="Schéma d'architecture"[\s\S]*?<\/svg>/.exec(html)[0];
+  const svg = /<svg viewBox="[^"]*"[^>]*data-schema="architecture"[\s\S]*?<\/svg>/.exec(html)[0];
   const premiere = /<polyline\b[^>]*points="([^"]*)"/.exec(svg)[1];
   const noeud = /<g class="a-[a-z]+" id="arch-n-(db|obs)"[^>]*>[\s\S]*?<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/.exec(svg);
   const cx = Number(noeud[2]) + Number(noeud[4]) / 2, cy = Number(noeud[3]) + Number(noeud[5]) / 2;

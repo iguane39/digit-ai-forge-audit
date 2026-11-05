@@ -392,7 +392,10 @@ export function mesurerRoutageSvg(svg) {
 // RENDU SVG.
 // ─────────────────────────────────────────────────────────────────────────────
 /**
- * Le schéma, en SVG autonome. Classes partagées avec la feuille `SCHEMA_CSS` (palette `--c-*` dérivée des jetons du
+ * Le schéma, en SVG autonome. MARQUEUR DES PORTES (TF-2169) : l'attribut `data-schema="architecture"`, indépendant de la
+ * langue du rendu. Le libellé accessible (`ariaLabel`) suit la langue ; les portes ne s'y fient plus (le rendu anglais
+ * portait « Schéma d'architecture » parce que la porte exigeait ce libellé).
+ * Classes partagées avec la feuille `SCHEMA_CSS` (palette `--c-*` dérivée des jetons du
  * tenant, TF-2139). Chaque flèche déclare, en PAIRE, les éléments dont sa boîte englobante recouvre la boîte sans que
  * son tracé les touche (`data-overlap-ok`, socle digit-ai-page-html, TF-1146) : une boîte de flèche coudée recouvre des
  * nœuds qu'elle ne traverse pas. Une flèche qui traverse vraiment un nœud n'est PAS déclarée.
@@ -435,7 +438,7 @@ export function renderSchemaArchitecture(arch, { ariaLabel = "Schéma d'architec
     return `<g class="a-${n.style}" id="arch-n-${idSur(n.id)}"${tip(n.tip || [n.label, n.sub, n.meta].filter(Boolean).join(' | '))}><title>${esc(titre)}</title>`
       + `<rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="8"/>${lignes.join('')}</g>`;
   }).join('');
-  return `<svg viewBox="0 0 ${s.largeur} ${s.hauteur}" xmlns="http://www.w3.org/2000/svg" class="schema-archi" role="img" aria-label="${esc(ariaLabel)}">`
+  return `<svg viewBox="0 0 ${s.largeur} ${s.hauteur}" xmlns="http://www.w3.org/2000/svg" class="schema-archi" role="img" data-schema="architecture" aria-label="${esc(ariaLabel)}">`
     + (desc ? `<desc>${esc(desc)}</desc>` : '')
     + '<defs><marker id="aArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="a-marker"/></marker>'
     + '<marker id="aArrCoral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="a-marker coral"/></marker></defs>'

@@ -122,6 +122,7 @@ node tools/build-rapport.mjs <rapport-data.json> --tenant config/tenants/exemple
 #   deliverables/templates/rapport-audit-poc-to-prod.template.html ; forme de référence : le rapport d'audit
 #   POC-to-Prod de Produit-68 (24/09/2026). `--forme vues` rend l'ancien rendu par vues (transition).
 #   Porte de la forme : node tools/verifier-forme-rapport.mjs <rapport.html> (aussi jouée par verifier-rapport-html)
+#   Le kit d'audit livre un rendu autonome (build-rapport-standalone.mjs) de la MÊME forme par défaut (TF-2169).
 #   --kind compliance : la part du PROJET AUDITÉ (contraintes fusionnées, banc, vérificateur AUTONOME,
 #                       fiche sécurité, thème) · --kind audit : la part de l'équipe qui conduit l'audit
 #   indice de version auto (a, b, c… par jour) · zip natif sans dépendance (tools/ziplib.mjs)

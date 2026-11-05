@@ -517,7 +517,7 @@ export function renderArchi(arch, L = STR.fr) {
     return `<path d="${d}" class="a-e${e.style === 'dashed' ? ' dashed' : ''}${e.style === 'coral' ? ' coral' : ''}" marker-end="url(#aArr)">${e.label ? `<title>${esc(e.label)}</title>` : ''}</path>`;
   };
   return `<h3>${L.archi}</h3>
-  <div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="min-width:900px" role="img" aria-label="Schéma d'architecture">
+  <div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" style="min-width:900px" role="img" data-schema="architecture" aria-label="Schéma d'architecture">
     <defs><marker id="aArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0 L10,5 L0,10 z" class="a-marker"/></marker></defs>
     ${bandes.map((b, bi) => `<text x="16" y="${34 + bi * BH}" class="erd-band">${esc(b.label)}</text>`).join('')}
     ${(arch.edges ?? []).map(edge).join('')}${arch.nodes.map(node).join('')}

@@ -688,10 +688,12 @@ export function rendreRapportPocToProd(data, { tenant, dimensions, families, the
     vues: VUES.map((v) => v.id),
   };
 
-  // Schémas : rendus ici, une fois (le moteur les insère tels quels). Le schéma d'architecture ne dépend QUE de la
-  // donnée — options par défaut, aucune variante de langue — pour que la présentation à l'autorité (build-slides, P6
-  // de verifier-presentation) porte le même SVG, octet pour octet (TF-2142, « pas de second schéma divergent »).
-  const ARCHITECTURE_SVG = D.ARCHITECTURE_DATA ? renderSchemaArchitecture(data.architecture) : '';
+  // Schémas : rendus ici, une fois (le moteur les insère tels quels). Le tracé du schéma d'architecture ne dépend QUE de
+  // la donnée, pour que la présentation à l'autorité (build-slides, P6 de verifier-presentation) porte le même SVG
+  // (TF-2142, « pas de second schéma divergent »). Seul son libellé accessible suit la langue du rendu (TF-2169) : en
+  // français il vaut le défaut de renderSchemaArchitecture, donc la présentation (en français) reste octet pour octet
+  // celle du rapport ; les portes reconnaissent le schéma à son marqueur `data-schema`, pas à ce libellé.
+  const ARCHITECTURE_SVG = D.ARCHITECTURE_DATA ? renderSchemaArchitecture(data.architecture, { ariaLabel: I18N['schema.titre'] }) : '';
   const DB_SCHEMA_HTML = D.DB_SCHEMA_DATA
     ? `<div class="db-schema-hote"><div id="dbSchemaMount" data-rognage-assume="mise a l echelle par fitSchema : la hauteur du conteneur suit le facteur applique, aucun contenu n est masque"><div class="db-scaler">${adapterCanevasHtml(renderDbSchema(adapterDbSchema(D.DB_SCHEMA_DATA)))}</div></div>${adapterCanevasHtml(renderDbLegend())}</div>`
     : '';

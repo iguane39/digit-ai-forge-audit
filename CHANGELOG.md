@@ -43,6 +43,20 @@ sources mis à jour.
   `adapterCanevasCss` et `adapterCanevasHtml` (aucun changement de comportement).
 
 ### Corrigé
+- **TF-2169 — le kit autonome rend la forme par défaut, et le marqueur du schéma ne dépend plus de la langue** (05/11/2026,
+  RU-10 du retour Produit-84, suite de TF-2145 et de TF-2131) — après 28aa645, `build-rapport-standalone.mjs` (kit d'audit)
+  rendait encore l'ancien rendu par vues et importait `./canevas-modele-donnees.mjs`, que le kit ne livre pas :
+  `ERR_MODULE_NOT_FOUND` hors du dépôt (masqué par un banc qui copiait ce voisin à côté de l'autonome). `tools/build-kit.mjs`
+  empaquette désormais les cinq modules de la forme POC-to-Prod dans un fichier unique, chacun dans sa fonction, avec le
+  gabarit HTML et le bloc de cohérence du plan en constantes ; un motif attendu qui manque dans une source LÈVE à la
+  fabrication du kit. L'autonome, extrait SEUL hors du dépôt, rend le même fichier que `build-rapport`, octet pour octet
+  (français et anglais), et ce fichier passe `verifier-rapport-html` et `verifier-forme-rapport`. Le schéma d'architecture
+  porte `data-schema="architecture"`, que les portes lisent (`verifier-rapport-html`, F13 et mutations de
+  `verifier-forme-rapport`) ; son `aria-label` suit la langue du rendu (« Architecture diagram » en anglais) au lieu
+  d'être exigé en français par la porte. Le rendu par vues porte le même marqueur. Banc
+  `tests/oracles/kit-rapport-autonome.test.mjs` : 4 tests, 4 rouges avant correctif, 4 verts après (dont une fixture rouge :
+  un schéma sans marqueur est refusé par les deux portes ; une verte : seul le libellé change de langue). Le banc
+  `outils-option-fichier` ne copie plus le voisin à côté de l'autonome.
 - **TF-2145 — le rapport est rendu avec le thème COURANT, jamais avec un `theme.css` périmé laissé en cache**
   (05/11/2026, constat de TF-2139) — `build-rapport.mjs` relisait `theme/theme.css` dès qu'il existait, sans le comparer
   au générateur : sur un espace d'audit réel, un cache produit avant le `.brand` en jetons gardait `#1b2733` et `#fff` en

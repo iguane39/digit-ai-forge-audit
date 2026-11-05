@@ -165,9 +165,8 @@ test('TF-2131 — le rendu de rapport autonome du kit refuse « --out --dry-run 
     assert.ok(source, 'le kit ne livre pas build-rapport-standalone.mjs');
     const script = path.join(sortie, 'build-rapport-standalone.mjs');
     fs.writeFileSync(script, source);
-    // CONSTAT HORS PÉRIMÈTRE (TF-2131) : l'autonome importe './canevas-modele-donnees.mjs', que le kit ne livre pas — hors du dépôt
-    // il lève ERR_MODULE_NOT_FOUND avant même de lire ses arguments. Le voisin est donc fourni ici pour juger la règle d'option.
-    fs.copyFileSync(tool('canevas-modele-donnees.mjs'), path.join(sortie, 'canevas-modele-donnees.mjs'));
+    // TF-2169 : l'autonome embarque ses modules (il importait './canevas-modele-donnees.mjs', que le kit ne livre pas, et
+    // levait ERR_MODULE_NOT_FOUND hors du dépôt — le banc le masquait en copiant ce voisin). Il est joué ici SEUL.
     for (const valeur of ['--dry-run', '-x']) {
       const { r, cwd, contenu } = jouer(script, DATA, '--out', valeur);
       try {

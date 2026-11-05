@@ -220,8 +220,8 @@ export function jugerForme(html, { dimensions = dimensionsDuReferentiel(), herit
     // F13 · schéma d'architecture
     const nNoeuds = (D.ARCHITECTURE_DATA?.nodes ?? []).length;
     if (nNoeuds) {
-      const svg = /<svg viewBox="[^"]*"[^>]*aria-label="Schéma d'architecture"[\s\S]*?<\/svg>/.exec(html)?.[0];
-      if (!svg) fail('F13', 'la donnée porte une architecture, le rendu ne porte aucun schéma (aria-label « Schéma d\'architecture »)');
+      const svg = /<svg viewBox="[^"]*"[^>]*data-schema="architecture"[\s\S]*?<\/svg>/.exec(html)?.[0];
+      if (!svg) fail('F13', 'la donnée porte une architecture, le rendu ne porte aucun schéma (marqueur data-schema="architecture")');
       else {
         const m = mesurerRoutageSvg(svg);
         if (m.noeuds !== nNoeuds) fail('F13', `${m.noeuds} nœud(s) dessiné(s) pour ${nNoeuds} dans la donnée`);
@@ -331,7 +331,7 @@ export const MUTATIONS_AVERTISSEMENT = [
 ];
 /** Fait passer la première flèche du schéma à travers un nœud qui n'est pas son extrémité. */
 function traverser(h) {
-  const svg = /<svg viewBox="[^"]*"[^>]*aria-label="Schéma d'architecture"[\s\S]*?<\/svg>/.exec(h)?.[0];
+  const svg = /<svg viewBox="[^"]*"[^>]*data-schema="architecture"[\s\S]*?<\/svg>/.exec(h)?.[0];
   if (!svg) return h;
   const noeuds = [...svg.matchAll(/<g\b[^>]*id="arch-n-([^"]+)"[^>]*>[\s\S]*?<rect x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)];
   const fl = /<polyline\b[^>]*data-de="([^"]*)"[^>]*data-vers="([^"]*)" points="([^"]*)"/.exec(svg);
@@ -343,7 +343,7 @@ function traverser(h) {
 }
 /** Copie le tracé de la première flèche sur la seconde (deux flèches distinctes confondues). */
 function confondre(h) {
-  const svg = /<svg viewBox="[^"]*"[^>]*aria-label="Schéma d'architecture"[\s\S]*?<\/svg>/.exec(h)?.[0];
+  const svg = /<svg viewBox="[^"]*"[^>]*data-schema="architecture"[\s\S]*?<\/svg>/.exec(h)?.[0];
   if (!svg) return h;
   const p = [...svg.matchAll(/<polyline\b[^>]*points="([^"]*)"/g)];
   if (p.length < 2) return h;
