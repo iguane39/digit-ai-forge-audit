@@ -93,7 +93,7 @@ export function renderDbSchema(data) {
     const p = pos[t.id];
     const rows = t.columns.map(c => {
       const badges = (c.k ? `<span class="dbf-badge b-${c.k.toLowerCase()}">${c.k}</span>` : '') + (c.nn ? `<span class="dbf-badge b-nn">NN</span>` : '');
-      return `<div class="dbf-row"><span class="dbf-name${c.pii ? ' pii' : ''}">${c.pii ? '🔒 ' : ''}${esc(c.n)}</span><span class="dbf-type">${esc(c.t)}</span>${badges}</div>`;
+      return `<div class="dbf-row"><span class="dbf-name${c.pii ? ' pii' : ''}">${c.pii ? '<svg class="ic-pii" aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> ' : ''}${esc(c.n)}</span><span class="dbf-type">${esc(c.t)}</span>${badges}</div>`;
     }).join('');
     const tip = t.tip || `${t.name} — ${t.role} | ${t.columns.length} colonnes | ${DB_CLASS[t.style] || 'Interne'}`;
     return `<div class="db-card s-${t.style}" style="left:${p.x}px;top:${p.y}px;width:${p.w}px" data-tip="${esc(tip)}"><div class="db-card-head">${esc(t.name)}<span class="db-role">${esc(t.role)}</span></div>${rows}</div>`;
@@ -146,7 +146,7 @@ export function renderDbLegend() {
   return `<div class="db-legend">`
     + `<span class="lg">${sw('--c-gray-fg')}Référentiel</span>`
     + `<span class="lg">${sw('--c-blue-fg')}Transactionnel</span>`
-    + `<span class="lg">${sw('--c-coral-fg')}🔒 Contient des données personnelles</span>`
+    + `<span class="lg">${sw('--c-coral-fg')}<svg class="ic-pii" aria-hidden="true" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Contient des données personnelles</span>`
     + `<span class="lg"><span class="sw" style="border:1px dashed var(--c-gray-stroke);background:var(--bg)"></span>Table externe / autre schéma</span>`
     + `<span class="lg">${line(false, '--c-blue-fg')}FK contrainte</span>`
     + `<span class="lg">${line(true, '--c-amber-fg')}Référence logique (pas de FK)</span>`

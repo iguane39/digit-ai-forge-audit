@@ -6,6 +6,15 @@ sources mis à jour.
 
 ## [Non publié]
 
+### Changé
+- **Re-vendorage du canevas « modèle de données » sur digit-ai-forge-agents 3254b81** (06/11/2026, suite du constat de dérive
+  levé pendant la campagne du 06/11/2026) — la source (`digit-ai-schemas/assets/template-modele-donnees.html`) a changé le
+  06/11/2026 (TF-2263) et `verifier-heritage` rendait DÉRIVE (empreinte enregistrée `88780574c41e…`, calculée `575b1f3ffca3…`).
+  Diff 49611f7→3254b81 relu en entier : seule la part vendorée change, l'emoji « 🔒 » de `renderDbSchema` et de `renderDbLegend`
+  devient l'icône SVG `ic-pii` du canevas ; le thème clair par défaut, la bascule de thème, les jetons de focus et la police de
+  marque déclarée sont hors de ce que le module reprend. `tools/canevas-modele-donnees.mjs` mis à jour, `HERITAGE.json` aussi
+  (empreinte, octets normalisés, `source_version`, date, delta déclaré). Recette : 17 étapes sur 17 vertes.
+
 ### Ajouté
 - **TF-2231 — les profils contrôlent Always Use HTTPS et la MFA des membres d'organisation, et l'écart accepté d'un réglage classé
   décision s'écrit : pas d'écart nu** (06/11/2026, décision humaine D-178 (a) du 06/11/2026 ; spécification : étude « Sécurité par
