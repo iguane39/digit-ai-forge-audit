@@ -71,6 +71,10 @@ qualification ni le confinement.
 Le profil ne fixe aucun seuil propre : le nombre d'approbations, le délai de correction par
 sévérité ou la liste des contrôles requis se jugent contre la baseline du tenant.
 
+## Réglages du registre des réglages sûrs par défaut (1.1.0, TF-2231)
+
+Trois bindings revendiquent des réglages du registre du pilot (`reglage_registre`) : CTL-D02-03 (alertes Dependabot, classées « défaut »), CTL-D03-02 (protection des secrets à la poussée d'un dépôt privé, classée « décision ») et CTL-D09-06 (protection de la branche principale, classée « décision »). Pour un réglage classé décision, l'evidence exige l'écart accepté écrit : option retenue, motif, décideur et date, sinon l'écart est nu. `node tools/verifier-reglages-plateforme.mjs` juge cette couverture.
+
 ## Sources (lues le 2026-10-29)
 
 - G1 — https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets

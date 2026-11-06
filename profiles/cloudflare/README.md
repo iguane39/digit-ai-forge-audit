@@ -24,7 +24,7 @@ n'est pas lu, le verdict d'un contrôle jugé sur le seul code plafonne à « pa
 | Contrôle | Objet | Sources |
 |---|---|---|
 | CTL-D02-10 | Mode SSL/TLS « Full (strict) » constaté sur chaque zone proxifiée | C1, C2, C20 |
-| CTL-D02-06 | HSTS de la zone et fichier `_headers`, avec la limite des réponses produites par un Worker | C3, C4, C5, C20 |
+| CTL-D02-06 | Always Use HTTPS et HSTS de la zone, fichier `_headers`, avec la limite des réponses produites par un Worker | C3, C4, C5, C20, C23 |
 | CTL-D02-01 | Règles personnalisées du WAF (phase `http_request_firewall_custom`), aucune ressource de Firewall Rules | C6, C7, C8, C9, C21 |
 | CTL-D02-04 | Turnstile sur les formulaires publics, jeton validé côté serveur par Siteverify | C10, C11 |
 | CTL-D03-01 | Access devant la préproduction et les URL de prévisualisation | C12, C13, C14 |
@@ -56,6 +56,10 @@ le statut de proxy décide de la voie d'exposition (CTL-D02-14).
 Le profil ne fixe aucun seuil propre : la durée de HSTS, le contenu d'une politique de sécurité de
 contenu ou la durée de vie d'un jeton se jugent contre la baseline de durcissement du tenant.
 
+## Réglages du registre des réglages sûrs par défaut (1.1.0, TF-2231)
+
+Le binding de CTL-D02-06 revendique deux réglages classés « défaut » au registre du pilot (`reglage_registre`) : Always Use HTTPS (valeur attendue `on`, lecture `settings/always_use_https`) et HSTS. Un écart sur un réglage défaut rouvre un retour vers la forge qui crée ; il ne s'accepte pas. `node tools/verifier-reglages-plateforme.mjs` juge cette couverture.
+
 ## Sources (lues le 2026-10-28)
 
 - C1 — https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/
@@ -80,6 +84,7 @@ contenu ou la durée de vie d'un jeton se jugent contre la baseline de durcissem
 - C20 — https://developers.cloudflare.com/api/resources/zones/subresources/settings/methods/get/
 - C21 — https://developers.cloudflare.com/api/resources/rulesets/subresources/phases/methods/get/
 - C22 — https://developers.cloudflare.com/api/resources/dns/subresources/records/methods/list/
+- C23 — https://developers.cloudflare.com/ssl/edge-certificates/additional-options/always-use-https/ (lue le 2026-11-06, TF-2231)
 
 ## Garantie
 

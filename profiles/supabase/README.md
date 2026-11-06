@@ -31,7 +31,7 @@ pas lu, le verdict d'un contrôle jugé sur ce seul fichier plafonne à « parti
 | CTL-D02-10 | `enable_signup`, `minimum_password_length`, `enable_confirmations` déclarés et justifiés | S10 |
 | CTL-D16-09 | Plan, PITR ou export `db dump` planifié, test de restauration | S5, S1 |
 | CTL-D02-14 | `network-restrictions get` et `ssl-enforcement get`, sorties archivées | S6, S7 |
-| CTL-D03-01 | MFA activée (TOTP, téléphone) et exigée par une politique RLS restrictive `aal2` | S11, S13, S20, S21 |
+| CTL-D03-01 | MFA activée (TOTP, téléphone) et exigée par une politique RLS restrictive `aal2` ; MFA des membres de l'organisation, écart accepté écrit | S11, S13, S20, S21, S24 |
 | CTL-D02-05 | `jwt_expiry` déclaré et justifié, rotation des jetons de rafraîchissement, durée de session | S12, S20, S21 |
 | CTL-D02-04 | Limites de débit d'Auth constatées et justifiées (`[auth.rate_limit]`, `rate_limit_*`) | S13, S20, S21 |
 | CTL-D01-12 | `verify_jwt = false` des Edge Functions : registre de dérogations, vérification de remplacement | S14, S15, S21, S22 |
@@ -66,6 +66,10 @@ Le profil ne fixe aucun seuil propre. La longueur minimale de mot de passe, par 
 contre la baseline de durcissement du tenant ; à défaut, une valeur restée au défaut du gabarit
 `supabase init` sans justification écrite est un écart.
 
+## Réglages du registre des réglages sûrs par défaut (1.3.0, TF-2231)
+
+Trois bindings revendiquent des réglages du registre du pilot (`reglage_registre`) : CTL-D02-14 (TLS imposé et restriction des adresses, classés « défaut »), CTL-D03-01 (double vérification des membres de l'organisation, classée « décision ») et CTL-D16-09 (restauration à la minute, classée « décision »). Pour un réglage classé décision, l'evidence exige l'écart accepté écrit : option retenue, motif, décideur et date, sinon l'écart est nu. `node tools/verifier-reglages-plateforme.mjs` juge cette couverture, et `--ecarts` juge les réglages lus par un audit.
+
 ## Sources (S1 à S10 lues le 2026-10-16)
 
 - S1 — https://supabase.com/docs/reference/cli/introduction
@@ -94,6 +98,7 @@ Ajoutées en 1.1.0 (lues le 2026-10-28) :
 - S21 — https://api.supabase.com/api/v1-json (spécification OpenAPI de l'API de gestion)
 - S22 — https://supabase.com/docs/guides/functions/auth
 - S23 — https://supabase.com/docs/guides/local-development/managing-config
+- S24 — https://supabase.com/docs/guides/platform/mfa/org-mfa-enforcement (lue le 2026-11-06, TF-2231)
 
 ## Garantie
 

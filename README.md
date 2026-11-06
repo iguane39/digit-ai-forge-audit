@@ -114,6 +114,10 @@ node tools/importer-doctrine.mjs <ref-donnees.json> --ecart <ecart.json>   # (re
 #   d'écrire un pack qui porterait encore un nom interdit. Ce qui ne s'apparie pas sort dans
 #   core/dimensions/doctrine-ecarts.md, avec son motif — rien n'y est deviné.
 node tools/verifier-referentiel.mjs                                        # juge du référentiel (PASS/FAIL, exit 0/1)
+node tools/verifier-reglages-plateforme.mjs [--registre <fichier>]           # profils × registre des réglages sûrs par défaut du pilot (TF-2231)
+#   `--ecarts <fichier>` : les réglages LUS par un audit ; un réglage classé « décision » non conforme sans écart accepté écrit
+#   (option, motif, décideur, date) est un écart nu, un réglage classé « défaut » non conforme ne s'accepte pas. Sans --registre :
+#   references/REGLAGES-SURS-PAR-DEFAUT.json du pilot ; absent, « non jugé ». Recette : copie de fixture, jamais le fichier du pilot.
 #   RÈGLE UNIQUE : une dimension APPLICABLE sans thème, sans preuve ET sans livrable rend le
 #   référentiel incomplet — elle est NOMMÉE. Non enregistré en CI à ce jour (voir doctrine-ecarts.md).
 node tools/build-catalogue.mjs config/tenants/exemple/tenant.yaml           # catalogue ADR navigable (M7)

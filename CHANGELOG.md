@@ -7,6 +7,26 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-2231 — les profils contrôlent Always Use HTTPS et la MFA des membres d'organisation, et l'écart accepté d'un réglage classé
+  décision s'écrit : pas d'écart nu** (06/11/2026, décision humaine D-178 (a) du 06/11/2026 ; spécification : étude « Sécurité par
+  défaut de bout en bout » du 06/11/2026, sections 3 à 5 et son registre JSON de 9 réglages) — l'audit relisait déjà le TLS imposé, la
+  protection à la poussée, Dependabot, la branche protégée et HSTS, mais aucun contrôle ne portait Always Use HTTPS, CTL-D03-01 ne
+  visait que la MFA des utilisateurs de l'application, et un réglage que le porteur avait choisi de ne pas poser ressortait comme
+  un écart sans histoire. Profil cloudflare 1.1.0 : le binding de CTL-D02-06 lit `settings/always_use_https` (attendu `on`, source
+  C23) ; profil supabase 1.3.0 : le binding de CTL-D03-01 lit `mfa_enabled` de chaque membre de l'organisation et demande la capture de
+  l'obligation (source S24, lue le 06/11/2026 : offres Pro, Team et Enterprise, aucune route d'API pour poser ni lire l'obligation) ;
+  profil github 1.1.0. Chaque binding qui instancie un réglage du registre le dit (`reglage_registre`, champ facultatif : l'URL
+  de source de l'entrée), et l'`evidence` de ceux que le registre classe « décision » (MFA d'organisation, restauration à la minute,
+  protection à la poussée, branche protégée) exige l'écart accepté écrit : option retenue, motif, décideur, date. Nouveau
+  `tools/verifier-reglages-plateforme.mjs` : RG1 (registre bien formé), RG2 (chaque entrée dont la plateforme a un profil est
+  revendiquée par un binding), RG3 (la clause de l'écart accepté dans l'`evidence` d'un réglage décision) ; en mode `--ecarts`,
+  RG4 (le réglage lu existe au registre), RG5 (un réglage décision non conforme sans écart accepté complet est un écart nu), RG6 (un
+  réglage défaut non conforme ne s'accepte pas : il rouvre un retour vers la forge qui crée). Le registre se lit au chemin du pilot
+  (`references/REGLAGES-SURS-PAR-DEFAUT.json` sous `$FORGE_ROOT/digit-ai-factory`, sinon le parent de ce dépôt) ; la recette porte une
+  COPIE (`tests/fixtures/reglages-sures-par-defaut.json`, identique à l'étude) et ne dépend pas du fichier réel. Sans registre, le
+  mode profils dit « non jugé » (0), le mode écarts sort 2. Ce que l'outil ne juge pas : la fidélité de la commande d'un binding à
+  `cmd_lire`, l'état d'une plateforme (aucun appel réseau), la sincérité d'un motif. Banc `tests/oracles/reglages-plateforme.test.mjs`
+  (17 tests, nommé à la CI, plus l'auto-test à 13 cas et deux étapes du workflow) : 6 rouges sur les profils d'avant, tous verts après.
 - **TF-2261 — `build-rapport --copie-output <dossier>` dépose le rendu et ses compagnons dans output/ du produit, range
   l'indice précédent sous old/, et un contrôle refuse un output/ en retard sur l'espace d'audit** (06/11/2026, RT-52 du retour
   Produit-84 du 06/11/2026) — le 05/11/2026 à 11:47, le rapport 20261104b était rendu sous l'espace d'audit seulement, et
