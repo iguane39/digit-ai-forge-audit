@@ -28,8 +28,8 @@ const clone = (o) => JSON.parse(JSON.stringify(o));
 const fixture = (nom) => JSON.parse(fs.readFileSync(path.join(RACINE, 'tests', 'fixtures', nom), 'utf8'));
 
 /**
- * Un rapport COMPLET au sens du gabarit, construit ici à partir de la fixture valide : gate prononcé, trois
- * cartes de synthèse, périmètre D00, architecture, matière de la vue « Données analysées », et un plan
+ * Un rapport COMPLET au sens du gabarit, construit ici à partir de la fixture valide : gate prononcé, les six
+ * cartes de synthèse (TF-2262), périmètre D00, architecture, matière de la vue « Données analysées », et un plan
  * d'action non vide pour chaque dimension qui porte un écart (D05 : règle non conforme CTL-D05-01).
  */
 function complet() {
@@ -39,6 +39,10 @@ function complet() {
     fonctionnelle: 'Application de suivi de commandes pour les équipes logistiques ; trois profils d\'utilisateurs.',
     technique: 'Service web et base relationnelle, déployés en conteneurs sur un seul environnement.',
     audit: 'Audit conduit le 10/08/2026 : deux scans automatisés, revue statique et inspections manuelles.',
+    // TF-2262 : la forme POC-to-Prod déclare 6 cartes ; un rapport complet les porte toutes
+    audit_bloque: 'Aucune dimension ne bloque la mise en production à ce stade.',
+    audit_commencer: 'Commencer par le plan de remédiation, actions urgentes en premier.',
+    audit_limites: 'Audit sans accès à la production : les constats portent sur le code et la configuration.',
   };
   d.dimensions = d.dimensions.map((x) => (x.id === 'D00'
     ? { ...x, resume: 'Périmètre : suivi des commandes ; hors périmètre : facturation. Valeur métier : délai de préparation.' } : x));

@@ -7,6 +7,18 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-2262 — la forme POC-to-Prod déclare ses 6 cartes de synthèse, et sa porte refuse une carte hors liste ou une carte du
+  modèle absente** (06/11/2026, RT-53 du retour Produit-84 du 06/11/2026) — le 05/11/2026 à 11:47, `verifier-forme-rapport`
+  rendait « forme POC-to-Prod conforme (F0–F17) » sur un rapport à 17 cartes de synthèse alors que le modèle en porte 6, et le
+  moteur affichait la clé de donnée brute (« fonctionnelle ») au lieu de l'étiquette du modèle. `tools/rapport-poc-to-prod.mjs`
+  exporte `CARTES_SYNTHESE` (clé, étiquette française et anglaise, dans l'ordre du modèle : Synthèse Fonctionnelle, Synthèse
+  Technique, Synthèse Audit, Audit · Ce qui bloque, Audit · Par où commencer, Audit · Limites de l'audit) ; le moteur affiche
+  l'étiquette et porte la clé en `data-carte` ; la règle F18 de `tools/verifier-forme-rapport.mjs` (19 contrôles, F0–F18) lit
+  cette liste et refuse, chacune nommée, une carte hors liste et une carte du modèle absente. Les clés des trois cartes
+  `audit_bloque`, `audit_commencer`, `audit_limites` sont posées ici : le retour nomme les étiquettes, pas les clés (à confirmer
+  chez le produit). Les fixtures `rapport-data-valid.json` et `rapport-data-riche.json` portent les 6 cartes. Banc
+  `tests/oracles/rapport-forme-poc-to-prod.test.mjs` : 5 tests TF-2262 et 1 test TF-2145 mis à jour rouges sur le dépôt d'avant
+  (copie de `b03baaf`), verts après ; l'auto-test de la porte compte 2 mutations F18 de plus.
 - **TF-2144 — la mobilisation d'AuditCore exige la porte du standard publié par le client quand il existe** (05/11/2026,
   RT-44 du retour Produit-84 du 04/11/2026, moitié forge-audit ; la moitié pilot est le routage) — un audit complet avait été
   rendu deux fois par le moteur générique, avec un tenant fabriqué, alors que le client publiait son standard (prompt,

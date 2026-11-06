@@ -144,7 +144,7 @@ else if (manifeste.length < 20) errors.push("RL-10 : manifeste d'écarts vide");
 // tests/analyses/composants, sans plan d'action pour une dimension en écart. Une absence déclarée reste une
 // absence : le gate la refuse, bloc par bloc. Le contrôle de DONNÉES (verifier-rapport.mjs) juge la source ;
 // celui-ci juge ce qui sera LU — un HTML rendu par un moteur ancien, ou édité, passe par ici.
-if (!/id="t-__syntheses"/.test(h) || !['fonctionnelle', 'technique', 'audit'].every(k => new RegExp(`<th>${k}</th>`, 'i').test(h)))
+if (!/id="t-__syntheses"/.test(h) || !['fonctionnelle', 'technique', 'audit'].every(k => new RegExp(`<th>${k}</th>|data-carte="${k}"`, 'i').test(h)))
   errors.push('gabarit rapport-audit : cartes de synthèse absentes du rendu (fonctionnelle, technique, audit)');
 const sectionDim = (id) => (h.match(new RegExp(`<section class="dim" id="${id}">([\\s\\S]*?)</section>`)) ?? [])[1] ?? '';
 if (!/<\/h4>\s*<p>[^<]{10,}/.test(sectionDim('D00')))
@@ -323,7 +323,7 @@ for (const m of h.matchAll(/<tr>(?:(?!<\/tr>)[\s\S])*?<\/tr>/g)) {
 }
 
 // FORME POC-to-Prod (TF-2145, décision humaine D-171 (a)) — le rendu qui déclare la forme (<meta name="auditcore-forme"
-// content="poc-to-prod">) est jugé par sa porte de conformité, `tools/verifier-forme-rapport.mjs` (F0–F17 : dimensions du
+// content="poc-to-prod">) est jugé par sa porte de conformité, `tools/verifier-forme-rapport.mjs` (F0–F18 : dimensions du
 // référentiel, familles, réponses, moteur piloté mode par mode, plan auto-porté intègre, schéma tracé sans traversée ni
 // flèches confondues, bascule de thème, pleine largeur, chiffres, repli en cartes). L'auto-test interne n'y est pas rejoué : le check E
 // ci-dessus l'hérite déjà. Tous les contrôles de ce fichier restent joués sur cette forme comme sur l'ancienne.
@@ -331,7 +331,7 @@ if (/<meta name="auditcore-forme" content="poc-to-prod">/.test(h)) {
   const f = jugerForme(h, { dimensions: dims, heriterAutotest: false });
   for (const w of f.avertissements) warnings.push(`forme POC-to-Prod [${w.check}] ${w.msg}`);
   for (const e of f.erreurs) errors.push(`forme POC-to-Prod [${e.check}] ${e.msg}`);
-  if (!f.erreurs.length) checks.push(`forme POC-to-Prod conforme (${f.controles} contrôles F0–F17)`);
+  if (!f.erreurs.length) checks.push(`forme POC-to-Prod conforme (${f.controles} contrôles F0–F18)`);
 }
 
 // ORACLES DE DESIGN (TF-2139) — en dernier, sur un rapport qui a passé tout le reste.

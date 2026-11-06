@@ -21,7 +21,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calculerSchema, mesurerRoutage, mesurerRoutageSvg, renderSchemaArchitecture } from '../../tools/schema-architecture.mjs';
-import { LIBELLES, construireDonnees, cssSombre, jetonsDuTheme, phrases, GABARIT_FICHIER } from '../../tools/rapport-poc-to-prod.mjs';
+import { LIBELLES, CARTES_SYNTHESE, construireDonnees, cssSombre, jetonsDuTheme, phrases, GABARIT_FICHIER } from '../../tools/rapport-poc-to-prod.mjs';
 import { buildPlan } from '../../tools/rapport-engine.mjs';
 import { loadYaml } from '../../tools/lib.mjs';
 
@@ -105,7 +105,8 @@ test('TF-2145 — les cartes de synthèse reprennent le texte rédigé sans le r
   const { html } = rendre('syntheses', RICHE);
   const d = fixture('rapport-data-riche.json');
   for (const [k, v] of Object.entries(d.syntheses)) {
-    assert.match(html, new RegExp(`<th>${k}</th>`), `carte « ${k} » absente`);
+    // TF-2262 : l'étiquette est celle du modèle ; la clé de donnée vit dans data-carte
+    assert.match(html, new RegExp(`data-carte="${k}"><th>[^<]+</th>`), `carte « ${k} » absente`);
     for (const p of phrases(v)) assert.ok(html.includes(p.replace(/'/g, '&#39;')) || html.includes(p), `phrase de la carte « ${k} » absente ou réécrite : ${p}`);
   }
 });
@@ -274,4 +275,59 @@ test('TF-2145 — verifier-rapport-html joue la porte de la forme : un schéma q
   const ko = node([path.join(RACINE, 'tools', 'verifier-rapport-html.mjs'), casse, '--sans-oracles-design']);
   assert.equal(ko.status, 1, 'une flèche qui traverse un nœud doit rendre le rapport non diffusable');
   assert.match(ko.stderr, /forme POC-to-Prod \[F13\]/);
+});
+
+// ── TF-2262 (RT-53, Produit-84) : la forme déclare ses 6 cartes de synthèse ───────────────────────
+// ROUGE avant correctif : un rapport à 17 cartes de synthèse sortait « forme POC-to-Prod conforme (F0–F17) », et l'étiquette
+// d'une carte était la clé de donnée brute (« fonctionnelle »), jamais « Synthèse Fonctionnelle » comme le modèle.
+const TOUTES_LES_CARTES = ['fonctionnelle', 'technique', 'audit', 'audit_bloque', 'audit_commencer', 'audit_limites'];
+const forme = (fichier) => node([path.join(RACINE, 'tools', 'verifier-forme-rapport.mjs'), fichier]);
+
+test('TF-2262 — la forme déclare 6 cartes, chacune avec son étiquette dans les deux langues', () => {
+  assert.deepEqual(CARTES_SYNTHESE.map((c) => c.cle), TOUTES_LES_CARTES);
+  for (const c of CARTES_SYNTHESE) assert.ok(c.fr && c.en && c.fr !== c.cle && c.en !== c.cle, `carte « ${c.cle} » : étiquette absente dans une langue`);
+});
+
+test('TF-2262 — le moteur affiche l\'étiquette du modèle (« Synthèse Fonctionnelle »), la clé de donnée reste dans data-carte', () => {
+  const { r, out, html } = rendre('cartes-etiquettes', RICHE);
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(html, /<tr class="summary-card sc-fonc" data-carte="fonctionnelle"><th>Synthèse Fonctionnelle<\/th>/);
+  assert.match(html, /<th>Synthèse Technique<\/th>/);
+  assert.match(html, /<th>Audit · Par où commencer<\/th>/);
+  assert.doesNotMatch(html, /<th>fonctionnelle<\/th>/, 'la clé de donnée ne doit plus servir d\'étiquette');
+  assert.equal([...html.matchAll(/data-carte="/g)].length, 6);
+  const ok = forme(out);
+  assert.equal(ok.status, 0, ok.stderr);
+  assert.match(ok.stdout, /F0–F18/);
+});
+
+test('TF-2262 — la porte de forme REFUSE une carte hors liste (17 cartes) et NOMME les cartes en trop', () => {
+  const d = fixture('rapport-data-riche.json');
+  for (let i = 1; i <= 11; i++) d.syntheses[`carte_${i}`] = `Texte de la carte ${i}.`;
+  const { r, out } = rendre('cartes-17', ecrire('cartes-17', d));
+  assert.equal(r.status, 0, r.stderr);
+  const ko = forme(out);
+  assert.equal(ko.status, 1, 'un rapport à 17 cartes doit être refusé par la porte de forme');
+  assert.match(ko.stderr, /\[F18\] 11 carte\(s\) de synthèse hors de la liste de la forme \(6 déclarées\) — carte_1, carte_2/);
+});
+
+test('TF-2262 — la porte de forme REFUSE une carte du modèle absente, et chaque carte du modèle est exigée', () => {
+  for (const cle of TOUTES_LES_CARTES) {
+    const d = fixture('rapport-data-riche.json');
+    delete d.syntheses[cle];
+    const { r, out } = rendre(`carte-sans-${cle}`, ecrire(`carte-sans-${cle}`, d));
+    assert.equal(r.status, 0, r.stderr);
+    const ko = forme(out);
+    assert.equal(ko.status, 1, `sans la carte « ${cle} », la forme doit être refusée`);
+    assert.match(ko.stderr, new RegExp(`\\[F18\\] 1 carte\\(s\\) de synthèse du modèle absente\\(s\\) du rendu — ${cle}`));
+  }
+});
+
+test('TF-2262 — verifier-rapport-html relaie le refus F18 : un rapport à carte en trop n\'est pas diffusable', () => {
+  const d = fixture('rapport-data-riche.json');
+  d.syntheses.carte_en_trop = 'Une carte que la forme ne déclare pas.';
+  const { out } = rendre('cartes-relais', ecrire('cartes-relais', d));
+  const ko = node([path.join(RACINE, 'tools', 'verifier-rapport-html.mjs'), out, '--sans-oracles-design']);
+  assert.equal(ko.status, 1, ko.stdout);
+  assert.match(ko.stderr, /forme POC-to-Prod \[F18\]/);
 });

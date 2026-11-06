@@ -36,6 +36,8 @@
 //   F16 chiffres : bloquants, score global, verdict et nombre de règles affichés = ceux que les données embarquées donnent
 //   F17 repli en cartes : la matrice et les listes se replient sous 900 px (règle td[data-label]::before), et chaque
 //       cellule de données y porte le nom de sa colonne (data-label) — sans lui, la carte aligne des valeurs sans nom
+//   F18 cartes de synthèse : exactement les 6 que la forme déclare (CARTES_SYNTHESE, rapport-poc-to-prod.mjs, TF-2262) —
+//       une carte hors liste ou une carte du modèle absente est refusée
 //
 // Usage : node tools/verifier-forme-rapport.mjs <rapport.html> | --self-test
 // Exit : 0 conforme · 1 non conforme · 2 usage / lecture.
@@ -48,6 +50,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { TextEncoder } from 'node:util';
 import { rel, loadYaml } from './lib.mjs';
 import { mesurerRoutageSvg } from './schema-architecture.mjs';
+import { CARTES_SYNTHESE } from './rapport-poc-to-prod.mjs';
 import { STATUTS_VERSION_NA } from '../oracles/maj-versions.mjs';
 
 const CRIT = ['fatal', 'bloquant', 'majeur', 'standard'];
@@ -274,6 +277,15 @@ export function jugerForme(html, { dimensions = dimensionsDuReferentiel(), herit
     if (tablesRepli.some((t) => new RegExp(`class="[^"]*\\b${cls}\\b`).test(t)) && !new RegExp(`\\.${cls} td\\[data-label\\]::before\\{content:attr\\(data-label\\)`).test(html))
       fail('F17', `aucune règle de repli en cartes pour .${cls} (td[data-label]::before) : sous 900 px, ses tableaux débordent de l'écran`);
 
+  // F18 · cartes de synthèse (TF-2262, RT-53) : la forme déclare ses cartes, le rendu n'en porte ni plus ni moins. Corps
+  // statique seulement : le tableau des synthèses est écrit par le générateur, la clé de chaque carte est son `data-carte`.
+  const cartesRendues = [...statique.matchAll(/<tr class="summary-card[^"]*" data-carte="([^"]*)"/g)].map((m) => m[1]);
+  const cartesDeclarees = CARTES_SYNTHESE.map((c) => c.cle);
+  const horsListe = cartesRendues.filter((k) => !cartesDeclarees.includes(k));
+  const absentes = cartesDeclarees.filter((k) => !cartesRendues.includes(k));
+  if (horsListe.length) fail('F18', `${horsListe.length} carte(s) de synthèse hors de la liste de la forme (${cartesDeclarees.length} déclarées) — ${horsListe.slice(0, 6).join(', ')}${horsListe.length > 6 ? ', …' : ''}`);
+  if (absentes.length) fail('F18', `${absentes.length} carte(s) de synthèse du modèle absente(s) du rendu — ${absentes.join(', ')}`);
+
   // F7, F8, F9 · le moteur exécuté
   if (scripts.length && !erreurs.some((e) => e.check === 'F3')) {
     const r = executerMoteur(html, scripts);
@@ -291,7 +303,7 @@ export function jugerForme(html, { dimensions = dimensionsDuReferentiel(), herit
     for (const el of r.magasin.values()) for (const m of String(el._h ?? '').match(/\{\{[\s\S]*?\}\}/g) ?? []) { n++; ex.add(m); }
     if (n) fail('F9', `${n} champ(s) {{…}} dans le contenu écrit par le moteur — ex. : ${[...ex].slice(0, 3).join(' · ')}`);
   }
-  return { erreurs, avertissements, controles: 18 };
+  return { erreurs, avertissements, controles: 19 };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -317,6 +329,8 @@ export const MUTATIONS = [
   ['F15', 'pleine largeur retirée', (h) => h.replace('<div class="app" data-page="donnees">', '<div class="app">')],
   ['F16', 'KPI bloquants faux', (h) => h.replace(/(class="k-valeur" aria-describedby="kr-bloq">)(?:<span class="kv-alerte">)?(\d+)/, (m, a, n) => `${a}${Number(n) + 3}`)],
   ['F17', 'cellules de la matrice sans nom de colonne', (h) => sansEtiquettes(h)],
+  ['F18', 'carte de synthèse hors de la liste de la forme', (h) => h.replace(/<tr class="summary-card[^"]*" data-carte="audit_limites">/, '<tr class="summary-card" data-carte="carte_en_trop">')],
+  ['F18', 'carte de synthèse du modèle absente', (h) => h.replace(/<tr class="summary-card[^"]*" data-carte="audit_bloque">[\s\S]*?<\/tr>/, '')],
   ['F17', 'règle de repli en cartes retirée', (h) => h.replace(/td\[data-label\]::before\{content:attr\(data-label\)/g, 'td[data-label]::before{content:none')],
 ];
 /** Retire les data-label de la première matrice rendue qui en porte (corps statique : l'identifiant y est numéroté). */
@@ -397,7 +411,7 @@ function principal(argv) {
     console.error(`\n✖ forme POC-to-Prod NON conforme (${r.erreurs.length} anomalie(s)) — ${path.basename(file)}`);
     return 1;
   }
-  console.log(`✔ forme POC-to-Prod conforme — ${r.controles} contrôles (F0–F17)${r.avertissements.length ? `, ${r.avertissements.length} avertissement(s)` : ''} — ${path.basename(file)}`);
+  console.log(`✔ forme POC-to-Prod conforme — ${r.controles} contrôles (F0–F18)${r.avertissements.length ? `, ${r.avertissements.length} avertissement(s)` : ''} — ${path.basename(file)}`);
   return 0;
 }
 

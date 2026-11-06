@@ -259,7 +259,10 @@
   "syntheses": {
     "fonctionnelle": "Application de suivi de commandes pour les équipes logistiques ; trois profils d'utilisateurs.",
     "technique": "Service web et base relationnelle, déployés en conteneurs sur un seul environnement.",
-    "audit": "Audit conduit le 10/08/2026 : deux scans automatisés, revue statique et inspections manuelles."
+    "audit": "Audit conduit le 10/08/2026 : deux scans automatisés, revue statique et inspections manuelles.",
+    "audit_bloque": "Aucune dimension ne bloque la mise en production à ce stade ; les écarts relevés se corrigent sans reprise d'architecture.",
+    "audit_commencer": "Commencer par le plan de remédiation, actions urgentes d'abord ; le lecteur technique ouvre la vue des règles.",
+    "audit_limites": "Audit sans accès à la production : les constats portent sur le code, la configuration et l'environnement de recette."
   },
   "architecture": {
     "bandes": [

@@ -58,6 +58,21 @@ export function phrases(texte) {
   return String(texte ?? '').trim().split(/(?<=[.!?;])\s+(?=[A-ZÀ-ÖØ-Þ0-9«“"(])/u).map((s) => s.trim()).filter(Boolean);
 }
 
+/**
+ * TF-2262 (RT-53, Produit-84) — les 6 cartes de synthèse que DÉCLARE la forme POC-to-Prod, dans l'ordre du modèle. Une carte
+ * porte sa clé de donnée (`syntheses.<cle>`) et son étiquette dans chaque langue. La porte de forme (verifier-forme-rapport,
+ * F18) lit cette liste : une carte hors liste ou une carte du modèle absente rend le rapport non conforme. Les clés
+ * `audit_bloque`, `audit_commencer` et `audit_limites` sont posées ici (le retour nomme les étiquettes du modèle, pas les clés).
+ */
+export const CARTES_SYNTHESE = [
+  { cle: 'fonctionnelle', fr: 'Synthèse Fonctionnelle', en: 'Functional Summary' },
+  { cle: 'technique', fr: 'Synthèse Technique', en: 'Technical Summary' },
+  { cle: 'audit', fr: 'Synthèse Audit', en: 'Audit Summary' },
+  { cle: 'audit_bloque', fr: 'Audit · Ce qui bloque', en: 'Audit · What blocks' },
+  { cle: 'audit_commencer', fr: 'Audit · Par où commencer', en: 'Audit · Where to start' },
+  { cle: 'audit_limites', fr: "Audit · Limites de l'audit", en: 'Audit · Limits of the audit' },
+];
+
 // ─────────────────────────────────────────────────────────────────────────────
 // LIBELLÉS — moteur (I18N, injecté dans le fichier) et parties statiques. Français et anglais, mêmes clés.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -786,12 +801,13 @@ export function rendreRapportPocToProd(data, { tenant, dimensions, families, the
     <div class="gb-desc">${esc(c.gate === 'NO-GO' ? F.gb_nogo : c.gate === 'GO' ? F.gb_go : F.gb_reserve)}${data.gate?.prononce_par ? ' ' + esc(fmt(F.gb_prononce, data.gate.prononce_par)) : ''}</div>
   </div>`;
   const syn = data.syntheses && typeof data.syntheses === 'object' ? Object.entries(data.syntheses) : [];
+  const etiquetteCarte = (k) => CARTES_SYNTHESE.find((c) => c.cle === k)?.[lang] ?? k;
   const classeCarte = (k) => (/fonc|func/i.test(k) ? 'sc-fonc' : /tech/i.test(k) ? 'sc-tech' : /audit/i.test(k) ? 'sc-audit' : '');
   const syntheses = syn.length ? `  <table id="t-__syntheses" class="summary-grid"${syn.length >= 8 ? ` data-filterable="off" data-filterable-reason="${esc(Rz.exempt_syntheses)}"` : ''}><thead><tr><th>${esc(F.carte)}</th><th>${esc(F.texte)}</th></tr></thead><tbody>${syn.map(([k, v]) => {
     const ph = phrases(typeof v === 'string' ? v : JSON.stringify(v));
     const titre = ph.length > 1 ? ph[0] : '';
     const puces = ph.length > 1 ? ph.slice(1) : ph;
-    return `<tr class="summary-card ${classeCarte(k)}"><th>${esc(k)}</th><td>${titre ? `<div class="sc-title">${esc(titre)}</div>` : ''}<ul class="sc-bullets">${puces.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></td></tr>`;
+    return `<tr class="summary-card ${classeCarte(k)}" data-carte="${esc(k)}"><th>${esc(etiquetteCarte(k))}</th><td>${titre ? `<div class="sc-title">${esc(titre)}</div>` : ''}<ul class="sc-bullets">${puces.map((p) => `<li>${esc(p)}</li>`).join('')}</ul></td></tr>`;
   }).join('')}</tbody></table>` : '';
   // L'article reste `class="kpi"` exact et la valeur `class="k-valeur" aria-describedby=…` sans autre attribut : la porte
   // de rendu (RL-3) et les bancs lisent ces formes. L'état (refus, réserve, alerte) vit dans un élément intérieur.
