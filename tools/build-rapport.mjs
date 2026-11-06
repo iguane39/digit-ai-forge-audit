@@ -2,6 +2,12 @@
 // AuditCore — build-rapport (M5 v1) : rapport-data.json + tenant → rapport HTML autonome thémé.
 // Recommandé : passer le gate machine d'abord (verifier-rapport). Usage :
 //   node tools/build-rapport.mjs <rapport-data.json> --tenant <tenant.yaml> [--out <fichier.html>] [--forme poc-to-prod|vues]
+//                                [--copie-output <dossier>]
+//
+// TF-2261 (RT-52, Produit-84) — `--copie-output <dossier>` dépose le rendu et ses compagnons (.remediation-actions.yaml,
+// .controles-evalues.json) dans ce dossier, en pratique output/05-audits/ du produit, et range sous `old/` les indices
+// précédents de la même famille (tools/copie-output.mjs). Rien n'est écrasé : un fichier de même nom et de contenu
+// différent fait refuser le dépôt (sortie 1). Le contrôle d'un output/ en retard : `node tools/copie-output.mjs --verifier`.
 //
 // TF-2145 (décision humaine D-171 (a) du 04/11/2026) — LA FORME PAR DÉFAUT est celle du rapport d'audit POC-to-Prod
 // (gabarit deliverables/templates/rapport-audit-poc-to-prod.template.html, rendu par tools/rapport-poc-to-prod.mjs).
@@ -12,19 +18,21 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import * as yaml from 'js-yaml';
-import { rel, loadTenant, loadJson, loadYaml, valeurFichierOuUsage } from './lib.mjs';
+import { rel, loadTenant, loadJson, loadYaml, valeurFichierOuUsage, valeurDossierOuUsage } from './lib.mjs';
 import { renderRapport, buildPlan, planToActions, controlesEvalues } from './rapport-engine.mjs';
 import { rendreRapportPocToProd, GABARIT_ID, GABARIT_VERSION } from './rapport-poc-to-prod.mjs';
 import { construireTheme } from './build-theme.mjs';
+import { deposerCopie, verifierOutputAJour } from './copie-output.mjs';
 
 const FORMES = ['poc-to-prod', 'vues'];
 const file = process.argv[2];
 const tIdx = process.argv.indexOf('--tenant');
-const USAGE = 'Usage: node tools/build-rapport.mjs <rapport-data.json> --tenant <tenant.yaml> [--out <fichier.html>] [--forme poc-to-prod|vues]';
+const USAGE = 'Usage: node tools/build-rapport.mjs <rapport-data.json> --tenant <tenant.yaml> [--out <fichier.html>] [--forme poc-to-prod|vues] [--copie-output <dossier>]';
 if (!file || tIdx === -1) { console.error(USAGE); process.exit(2); }
 const tenantArg = valeurFichierOuUsage(process.argv, '--tenant', USAGE);   // TF-2131 : une option n'est jamais le fichier d'une autre
 const { cfg, tenantDir } = loadTenant(tenantArg);
 const outArg = valeurFichierOuUsage(process.argv, '--out', USAGE);
+const copieArg = valeurDossierOuUsage(process.argv, '--copie-output', USAGE);   // TF-2261 : une option n'est jamais le dossier de dépôt
 const fIdx = process.argv.indexOf('--forme');
 const forme = fIdx === -1 ? 'poc-to-prod' : process.argv[fIdx + 1];
 if (!FORMES.includes(forme)) { console.error(`Option --forme : « ${forme ?? ''} » inconnue (${FORMES.join(' | ')}).`); console.error(USAGE); process.exit(2); }
@@ -86,6 +94,18 @@ console.log(`✔ contrôles évalués: ${evalues.total} (${Object.entries(evalue
 // Pas de troncature muette : ce qui ne passe pas le contrat forge se dit.
 if (nonProjetees.length)
   console.log(`⚠ ${nonProjetees.length} action(s) hors YAML (dimension non rattachée, visibles au plan HTML) : ${nonProjetees.map(a => a.source).join(', ')}`);
+// TF-2261 : le dépôt dans output/ du produit, après l'écriture du rendu et de ses compagnons.
+if (copieArg !== undefined) {
+  const dep = deposerCopie({ rendu: out, dossier: copieArg });
+  if (dep.refus.length) {
+    for (const r of dep.refus) console.error(`ERREUR --copie-output : ${r}`);
+    console.error(`✖ dépôt refusé : rien n'a été écrit dans ${path.resolve(copieArg)}`);
+    process.exit(1);
+  }
+  console.log(`✔ copie output : ${dep.deposes.length} fichier(s) déposé(s) dans ${path.resolve(copieArg)}${dep.inchanges.length ? `, ${dep.inchanges.length} déjà identique(s)` : ''}${dep.ranges.length ? `, ${dep.ranges.length} indice(s) précédent(s) rangé(s) sous ${path.join(path.resolve(copieArg), 'old')}` : ''}`);
+  const verdict = verifierOutputAJour({ espace: path.dirname(out), output: copieArg });
+  if (verdict.erreurs.length) { for (const e of verdict.erreurs) console.error(`ERREUR output/ : ${e}`); process.exit(1); }
+}
 console.log('  rappel gate machine : node tools/verifier-rapport.mjs <rapport-data.json> (exit 0 avant diffusion)');
 console.log('  porte de clôture    : node tools/verifier-remediation.mjs <rapport.html> --status <suivi.json>');
 // TF-2144 : le standard publié par le client, quand il existe, est une porte de plus — exigée, jamais passée sous silence.

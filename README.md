@@ -127,6 +127,9 @@ node tools/build-rapport.mjs <rapport-data.json> --tenant config/tenants/exemple
 #   node tools/verifier-standard-client.mjs <rapport.html> --tenant <tenant.yaml>   (aussi jouée par verifier-rapport-html --tenant)
 #   Sans déclaration, la sortie le DIT ("aucun standard client déclaré") : le rapport n'est alors jugé que par les portes d'AuditCore.
 #   Le kit d'audit livre un rendu autonome (build-rapport-standalone.mjs) de la MÊME forme par défaut (TF-2169).
+#   DÉPÔT DANS output/ DU PRODUIT (TF-2261) : `--copie-output <dossier>` (output/05-audits/ du produit) dépose le rendu et ses
+#   compagnons et range l'indice précédent sous old/ ; contrôle d'un output/ en retard :
+#   node tools/copie-output.mjs --verifier <dossier-du-rendu> <output-du-produit>   (exit 0 à jour · 1 en retard · 2 usage)
 #   --kind compliance : la part du PROJET AUDITÉ (contraintes fusionnées, banc, vérificateur AUTONOME,
 #                       fiche sécurité, thème) · --kind audit : la part de l'équipe qui conduit l'audit
 #   indice de version auto (a, b, c… par jour) · zip natif sans dépendance (tools/ziplib.mjs)

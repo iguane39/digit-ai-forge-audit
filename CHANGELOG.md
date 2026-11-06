@@ -7,6 +7,20 @@ sources mis à jour.
 ## [Non publié]
 
 ### Ajouté
+- **TF-2261 — `build-rapport --copie-output <dossier>` dépose le rendu et ses compagnons dans output/ du produit, range
+  l'indice précédent sous old/, et un contrôle refuse un output/ en retard sur l'espace d'audit** (06/11/2026, RT-52 du retour
+  Produit-84 du 06/11/2026) — le 05/11/2026 à 11:47, le rapport 20261104b était rendu sous l'espace d'audit seulement, et
+  output/05-audits/ du produit a gardé 20261104a jusqu'au 06/11 à 10:15, relevé par le porteur : forge-tests dépose déjà dans
+  output/ (`--copie-output`, TF-1808), build-rapport n'avait aucun équivalent. Nouveau `tools/copie-output.mjs` :
+  `deposerCopie` copie le rendu, `.remediation-actions.yaml` et `.controles-evalues.json`, puis range sous `old/` chaque
+  indice précédent de la même famille (nom sans jour+lettre) ; jamais d'écrasement (contenu différent, indice rangé différent,
+  indice plus récent déjà déposé : refus, sortie 1, RIEN d'écrit) ; `node tools/copie-output.mjs --verifier <dossier-du-rendu>
+  <output-du-produit>` refuse (1) un output/ dont une famille est absente ou en retard sur l'espace d'audit et nomme le
+  fichier. Le contrôle ne lit que le niveau du dossier (pas `old/`, pas les rubriques de l'espace) et les trois suffixes du
+  rendu : les autres pièces d'un espace d'audit (fiche sécurité, présentation) ne sont pas jugées. L'espace créé par
+  `init-audit-workspace` range ses archives sous `output/Old/` ; le rangement du dépôt suit la décision : `old/`. Banc
+  `tests/oracles/copie-output-rapport.test.mjs` (16 tests, nommé à la CI) : 16 rouges sans le module, 16 verts après, le remède
+  du message (`--copie-output`) joué et suivi d'un contrôle vert.
 - **TF-2262 — la forme POC-to-Prod déclare ses 6 cartes de synthèse, et sa porte refuse une carte hors liste ou une carte du
   modèle absente** (06/11/2026, RT-53 du retour Produit-84 du 06/11/2026) — le 05/11/2026 à 11:47, `verifier-forme-rapport`
   rendait « forme POC-to-Prod conforme (F0–F17) » sur un rapport à 17 cartes de synthèse alors que le modèle en porte 6, et le
