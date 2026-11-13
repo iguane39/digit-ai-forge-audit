@@ -6,6 +6,12 @@ sources mis à jour.
 
 ## [Non publié]
 
+### Corrigé
+- **F10 de `tools/verifier-forme-rapport.mjs` reconnaît « à confirmer »** (13/11/2026, TF-2496 du pilot) — la frontière ASCII
+  `\bà` ne voyait jamais « à » comme un caractère de mot : « 1.2 à confirmer » n'était pas relevé comme estimation, et
+  « voilà confirmer » l'était. Frontière Unicode `(?<![\wà-ÿ])à`, deux sens rejoués ; oracle-pieges-regex du pilot ne relève
+  plus cette ligne.
+
 ### Changé
 - **Re-vendorage du canevas « modèle de données » sur digit-ai-forge-agents 3254b81** (06/11/2026, suite du constat de dérive
   levé pendant la campagne du 06/11/2026) — la source (`digit-ai-schemas/assets/template-modele-donnees.html`) a changé le

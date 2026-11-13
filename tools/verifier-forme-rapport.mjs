@@ -180,7 +180,7 @@ export function jugerForme(html, { dimensions = dimensionsDuReferentiel(), herit
       else if (!VERDICTS.includes(r.verdict)) fail('F6', `${a.id} : verdict hors vocabulaire (${JSON.stringify(r.verdict)})`);
     }
     // F10 · versions (avertissement), F11 · inventaires
-    const estim = /≈|~|\bà\s*confirmer\b|\bcanal\b|\bx\b|\.x\b|\?/i;
+    const estim = /≈|~|(?<![\wà-ÿ])à\s*confirmer\b|\bcanal\b|\bx\b|\.x\b|\?/i;
     const scanVer = (rows, lbl) => (rows ?? []).forEach((r) => {
       if (!r || typeof r !== 'object') return;
       const statut = String(r.statut ?? '').trim(), v = String(r.version_actuelle ?? '').trim(), nom = r.nom ?? r.outil ?? r.id ?? '?';
