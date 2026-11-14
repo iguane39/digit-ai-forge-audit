@@ -42,7 +42,7 @@ const temporaire = () => fs.mkdtempSync(path.join(os.tmpdir(), 'fiche-t-'));
 test('verifier-fiche-securite --self-test : le cas vert est accepté, chaque cas rouge est refusé', () => {
   const r = jouer(ORACLE, '--self-test');
   assert.equal(r.status, 0, `auto-test rouge : ${r.stdout}${r.stderr}`);
-  assert.match(r.stdout, /21\/21 PASS/, 'le compte de cas exercés a changé sans que le test le dise');
+  assert.match(r.stdout, /26\/26 PASS/,'le compte de cas exercés a changé sans que le test le dise');
 });
 
 test('fiche-en-pdf --self-test : la règle d\'indice mord, et preferCSSPageSize est MESURÉ', () => {
@@ -469,6 +469,88 @@ test('TF-2087 — l\'environnement se lit aussi dans l\'en-tête quand le nom n\
   const prerod = jugerFiche('CDC - Fiche Securite - PRD - 20261030a.html',
     ficheModele({ env: 'PRD', libelleLien: 'Lien pré-production' }));
   assert.equal(statutDe(prerod, 'FS4'), 'FAIL', 'un lien de pré-production est accepté comme lien de production');
+});
+
+// ── TF-2419 · FS12 : LA VERSION CITÉE PAR LA FICHE EST LA DERNIÈRE ÉTIQUETTE DÉPLOYÉE. Le 10/11/2026, la fiche
+//    CDC-SEC-HPR-20261104a citait v1.10.0 alors que v1.13.0 était qualifiée et servie : jointe telle quelle à un courriel du
+//    référent sécurité, elle a été réémise (16 champs sur 29 changés). Chaque sortie de la règle a son sens vert et son
+//    sens rouge ; la fiche est celle du modèle (intitulés th.k / td.k) avec une ligne « Version déployée » ajoutée.
+const NOM_HPR = 'CDC - Fiche Securite - HPR - 20261104a.html';
+const avecVersion = (v, { intitule = 'Version déployée', env = 'HPR' } = {}) => ficheModele({ env, jour: '20261104a' })
+  .replace('<tr><th class="k">Dev-team / run</th>', `<tr><th class="k">${intitule}</th><td>${v}</td></tr><tr><th class="k">Dev-team / run</th>`);
+
+test('TF-2419 — sens rouge : la fiche cite v1.10.0 alors que v1.13.0 est servie → FS12 FAIL, qui nomme les deux versions', () => {
+  const r = jugerFiche(NOM_HPR, avecVersion('v1.10.0'), { etiquetteDeployee: 'v1.13.0' });
+  assert.equal(statutDe(r, 'FS12'), 'FAIL');
+  assert.equal(r.verdict, 'FAIL');
+  const message = r.findings.find((f) => f.regle === 'FS12').message;
+  assert.match(message, /1\.10\.0/); assert.match(message, /1\.13\.0/); assert.match(message, /ANTÉRIEURE/);
+  // Les onze règles de forme, elles, ne voient rien : c'est le trou que FS12 ferme.
+  const sans = jugerFiche(NOM_HPR, avecVersion('v1.10.0'));
+  assert.equal(sans.verdict, 'PASS', 'la fiche périmée passait déjà FS1 à FS11 — elle doit continuer à les passer');
+});
+
+test('TF-2419 — sens vert : la fiche à jour (v1.13.0 contre « v1.13.0 » ou « 1.13.0 ») est ACCEPTÉE, la citée postérieure est refusée', () => {
+  for (const etiquette of ['v1.13.0', '1.13.0']) {
+    const r = jugerFiche(NOM_HPR, avecVersion('v1.13.0'), { etiquetteDeployee: etiquette });
+    assert.equal(statutDe(r, 'FS12'), 'PASS', `étiquette ${etiquette}`);
+    assert.equal(r.verdict, 'PASS', r.findings.filter((f) => f.statut === 'FAIL').map((f) => f.message).join(' | '));
+  }
+  const apres = jugerFiche(NOM_HPR, avecVersion('v1.14.0'), { etiquetteDeployee: 'v1.13.0' });
+  assert.equal(statutDe(apres, 'FS12'), 'FAIL');
+  assert.match(apres.findings.find((f) => f.regle === 'FS12').message, /POSTÉRIEURE/);
+  // « 1.9.0 » précède « 1.13.0 » : la comparaison est numérique, pas lexicographique.
+  assert.match(jugerFiche(NOM_HPR, avecVersion('v1.9.0'), { etiquetteDeployee: 'v1.13.0' }).findings.find((f) => f.regle === 'FS12').message, /ANTÉRIEURE/);
+});
+
+test('TF-2419 — la version se lit aussi sur « Projet / application » et « Version de l\'application » ; une version de TLS n\'est pas la version citée', () => {
+  assert.equal(statutDe(jugerFiche(NOM_HPR, avecVersion('Produit-84 v1.13.0', { intitule: 'Projet / application' }), { etiquetteDeployee: '1.13.0' }), 'FS12'), 'PASS');
+  assert.equal(statutDe(jugerFiche(NOM_HPR, avecVersion('v1.10.0', { intitule: "Version de l'application" }), { etiquetteDeployee: '1.13.0' }), 'FS12'), 'FAIL');
+  // « Version TLS » (1.3, 1.2.0) n'est pas la version de l'application : aucune version citée → SKIP, pas un faux refus.
+  const tls = jugerFiche(NOM_HPR, avecVersion('TLS 1.2.0', { intitule: 'Version TLS' }), { etiquetteDeployee: '1.13.0' });
+  assert.equal(statutDe(tls, 'FS12'), 'SKIP');
+  // Deux versions différentes citées par la même fiche : refusée.
+  const deux = jugerFiche(NOM_HPR, avecVersion('v1.13.0').replace('<tr><th class="k">Dev-team / run</th>', '<tr><th class="k">Version</th><td>v1.10.0</td></tr><tr><th class="k">Dev-team / run</th>'), { etiquetteDeployee: '1.13.0' });
+  assert.equal(statutDe(deux, 'FS12'), 'FAIL');
+  assert.match(deux.findings.find((f) => f.regle === 'FS12').message, /2 versions différentes/);
+});
+
+test('TF-2419 — aucune version citée : SKIP motivé (ni réussie ni échouée) ; aucune étiquette donnée : FS12 absente des constats et dite non jouée', () => {
+  const nue = jugerFiche(NOM_HPR, ficheModele({ env: 'HPR', jour: '20261104a' }), { etiquetteDeployee: '1.13.0' });
+  assert.equal(statutDe(nue, 'FS12'), 'SKIP');
+  assert.equal(nue.verdict, 'PASS', 'un SKIP motivé ne fait pas échouer la fiche');
+  assert.match(nue.findings.find((f) => f.regle === 'FS12').message, /NI réussie NI échouée/);
+  const sans = jugerFiche(NOM_HPR, avecVersion('v1.10.0'));
+  assert.equal(statutDe(sans, 'FS12'), undefined, 'FS12 ne rend aucun constat quand rien ne lui est donné à comparer');
+  assert.ok(sans.non_juge.some((n) => /FS12/.test(n) && /NON JOUÉE/.test(n)), 'le non-jugé ne dit pas que FS12 n\'a pas eu lieu');
+  const donnee = jugerFiche(NOM_HPR, avecVersion('v1.13.0'), { etiquetteDeployee: '1.13.0' });
+  assert.ok(!donnee.non_juge.some((n) => /FS12/.test(n)), 'FS12 est jouée : elle ne doit plus se dire non jouée');
+  // Une étiquette illisible donnée à juger() est un refus nommé, pas une comparaison devinée.
+  assert.equal(statutDe(jugerFiche(NOM_HPR, avecVersion('v1.13.0'), { etiquetteDeployee: 'dernière' }), 'FS12'), 'FAIL');
+});
+
+test('TF-2419 — en ligne de commande : --etiquette-deployee refuse la fiche périmée (exit 1), accepte la fiche à jour (exit 0), et une étiquette illisible est une erreur d\'usage (exit 2)', () => {
+  const dir = temporaire();
+  try {
+    const perimee = path.join(dir, NOM_HPR);
+    fs.writeFileSync(perimee, avecVersion('v1.10.0'), 'utf8');
+    let r = jouer(ORACLE, perimee, '--sans-pdf', '--etiquette-deployee', 'v1.13.0', '--json-only');
+    assert.equal(r.status, 1, `la fiche périmée est déclarée diffusable : ${r.stdout}`);
+    assert.match(r.stdout, /FS12/);
+    // sans l'option, le même fichier passe : c'est le trou d'avant TF-2419, désormais dit dans non_juge
+    r = jouer(ORACLE, perimee, '--sans-pdf', '--json-only');
+    assert.equal(r.status, 0, r.stdout);
+    assert.match(r.stdout, /FS12 \(fraîcheur de la version citée\) NON JOUÉE/);
+    const aJour = path.join(dir, 'CDC - Fiche Securite - HPR - 20261104b.html');
+    fs.writeFileSync(aJour, avecVersion('v1.13.0').replace(/20261104a/g, '20261104b'), 'utf8');
+    r = jouer(ORACLE, aJour, '--sans-pdf', '--etiquette-deployee', '1.13.0', '--json-only');
+    assert.equal(r.status, 0, `la fiche à jour est refusée : ${r.stdout}`);
+    r = jouer(ORACLE, aJour, '--sans-pdf', '--etiquette-deployee', 'dernière');
+    assert.equal(r.status, 2, 'une étiquette qui n\'est pas une version doit être une erreur d\'usage');
+    assert.match(r.stderr, /--etiquette-deployee/);
+    r = jouer(ORACLE, aJour, '--sans-pdf', '--etiquette-deployee');
+    assert.equal(r.status, 2, 'une option sans valeur doit être une erreur d\'usage');
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
 
 // ── Utilitaires ──────────────────────────────────────────────────────────────────────────────

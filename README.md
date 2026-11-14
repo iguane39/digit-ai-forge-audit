@@ -95,7 +95,7 @@ node tools/fiche-en-pdf.mjs  <fiche.html> [--out <fiche.pdf>] [--pages-max 1]
 #   propres format et marges et IGNORE le @page du gabarit (mesure : 612x792 pt, US Letter,
 #   contre 595x842 pt). Le PDF porte le MEME indice que son HTML, sinon il REFUSE. Requiert
 #   Node >= 22 (WebSocket natif) ; sinon SKIP motive, jamais un PASS silencieux.
-node oracles/verifier-fiche-securite.mjs <fiche.html> [--seuil-texte 300] [--sans-pdf]
+node oracles/verifier-fiche-securite.mjs <fiche.html> [--seuil-texte 300] [--sans-pdf] [--etiquette-deployee <x.y.z>]
 #   LA PORTE BLOQUANTE DE LA FICHE (TF-0701), symetrique de celle du rapport : la fiche n'est
 #   CONFORME (diffusable) que si exit code = 0. FS1 zero placeholder · FS2 les 8 sections ·
 #   FS3/FS3bis reference <TRI>-SEC-<DEV|HPR|PRD>-<AAAAMMJJ><indice> identique en-tete/pied et
@@ -104,7 +104,10 @@ node oracles/verifier-fiche-securite.mjs <fiche.html> [--seuil-texte 300] [--san
 #   (th, th.k ou td.k) <= 25 % et table-layout fixe
 #   (TF-0697) · FS6 PDF present et de meme indice · FS7 TEXTE EXTRACTIBLE au-dessus d'un seuil —
 #   un PDF de fiche sans texte est une CAPTURE : muette pour un lecteur d'ecran, non
-#   recherchable, non controlable, ~5x plus lourde. `--self-test` : 21 cas a double sens.
+#   recherchable, non controlable, ~5x plus lourde · FS12 (TF-2419) la version que la fiche CITE
+#   (ligne « Version déployée », « Version de l'application » ou « Projet / application ») est la
+#   derniere etiquette DEPLOYEE, que la chaine de qualification donne par `--etiquette-deployee` ;
+#   sans elle FS12 n'est pas jouee et le dit dans non_juge. `--self-test` : 26 cas a double sens.
 node oracles/verifier-pdf.mjs <fichier.pdf> --format A4 --apres <ms> --source <html>
 #   ON RELIT LE FICHIER, ON NE CROIT PAS LA COMMANDE. P1 complet (%%EOF) · P2 format lu dans
 #   /MediaBox · P3 pages comptees · P4 FRAICHEUR — c'est P4 qui attrape le verrou Windows, ou une

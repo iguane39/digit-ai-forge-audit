@@ -36,6 +36,16 @@ sources mis à jour.
   (empreinte, octets normalisés, `source_version`, date, delta déclaré). Recette : 17 étapes sur 17 vertes.
 
 ### Ajouté
+- **TF-2419 — règle FS12 de `oracles/verifier-fiche-securite.mjs` : la version que la fiche cite est la dernière étiquette
+  déployée** (14/11/2026, décision R-58 du 10/11/2026 ; retour Produit-84 du 10/11/2026) — la fiche CDC-SEC-HPR-20261104a citait
+  v1.10.0 alors que v1.13.0 était qualifiée et servie : jointe telle quelle à un courriel du référent sécurité, elle a dû être
+  réémise (16 champs sur 29 changés), et FS1 à FS11, qui jugent la forme, ne pouvaient pas le voir. La chaîne de qualification
+  donne l'étiquette par `--etiquette-deployee <x.y.z>` ; FS12 la compare à la version lue sur la ligne « Version déployée »,
+  « Version de l'application » ou « Projet / application ». Citée antérieure ou postérieure : FAIL ; deux versions citées :
+  FAIL ; aucune version citée : SKIP motivé ; aucune étiquette donnée : FS12 n'est pas jouée et le dit dans `non_juge`
+  (aucun constat, le verdict des fiches existantes est inchangé). Étiquette qui n'est pas une version : erreur d'usage (exit 2).
+  Auto-test 26/26 (cinq cas neufs), cinq cas dans `tests/oracles/fiche-securite.test.mjs`. Reste à câbler : l'appel par la
+  chaîne de qualification du pilot, et un champ « Version déployée » au canevas de la fiche.
 - **TF-2231 — les profils contrôlent Always Use HTTPS et la MFA des membres d'organisation, et l'écart accepté d'un réglage classé
   décision s'écrit : pas d'écart nu** (06/11/2026, décision humaine D-178 (a) du 06/11/2026 ; spécification : étude « Sécurité par
   défaut de bout en bout » du 06/11/2026, sections 3 à 5 et son registre JSON de 9 réglages) — l'audit relisait déjà le TLS imposé, la

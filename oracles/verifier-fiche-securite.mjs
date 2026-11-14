@@ -55,9 +55,19 @@
  *          REMPLI — sœur de FS8/FS10, sur le TROISIÈME champ du même bloc. Les trois existent
  *          parce que la MÊME fiche a un jour dit vrai et fait comprendre faux (3 128 comptes
  *          invités admis au même titre que les collaborateurs) : aucun des trois n'est optionnel.
+ *   FS12 · la version que la fiche CITE est la dernière étiquette DÉPLOYÉE (TF-2419). Le 10/11/2026,
+ *          la fiche CDC-SEC-HPR-20261104a citait v1.10.0 alors que v1.13.0 était qualifiée et servie :
+ *          jointe telle quelle à un courriel du référent sécurité, elle a dû être réémise (16 champs sur
+ *          29 changés). Aucune autre règle ne la voit : FS1 à FS11 jugent la FORME de la fiche, jamais
+ *          sa fraîcheur. Ce que sert l'environnement n'est pas dans la fiche : la chaîne de qualification
+ *          le DONNE (`--etiquette-deployee`), et FS12 le compare à la version lue sur la ligne « Version
+ *          déployée » (ou « Version de l'application », « Projet / application »). Citée ≠ déployée,
+ *          par défaut OU par excès, est refusé ; une fiche qui ne cite aucune version rend SKIP motivé
+ *          (la comparaison n'est ni réussie ni échouée) ; sans étiquette donnée, FS12 n'est pas jouée
+ *          et le DIT dans `non_juge` — jamais un PASS silencieux.
  *
  *   node oracles/verifier-fiche-securite.mjs <fiche.html> [--seuil-texte N] [--sans-pdf]
- *                                            [--json-only]
+ *                                            [--etiquette-deployee <x.y.z>] [--json-only]
  *   node oracles/verifier-fiche-securite.mjs --self-test
  *
  * Verdicts : PASS (exit 0, DIFFUSABLE) · FAIL (exit 1) · SKIP motivé (exit 2, rien à juger).
@@ -149,6 +159,29 @@ export function unitesDeTexte(octets) {
   return { total, flux };
 }
 
+/**
+ * FS12 (TF-2419) · une version « x.y.z » (préfixe « v » toléré, suffixe de pré-version admis), mot entier : ni « 1.3 »
+ * (version de TLS), ni le « 1.10.0 » d'un numéro à quatre composantes.
+ */
+const RE_VERSION = /(?<![\w.])v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)(?!\w|\.\d)/gi;
+const RE_VERSION_SEULE = /^v?(\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:\.[0-9A-Za-z]+)*)?)$/i;
+/** Les intitulés dont la valeur dit QUELLE version la fiche décrit (jamais « version du gabarit », ni une version de TLS). */
+const INTITULE_VERSION = /^(?:version(?:\s+(?:d[ée]ploy[ée]e|de\s+l['’]application|livr[ée]e))?|projet\s*\/\s*application|(?:deployed|application)\s+version|project\s*\/\s*application)\s*:?$/i;
+/** « v1.13.0 » → « 1.13.0 » ; `null` si ce n'est pas une version x.y.z. */
+export const versionDe = (texte) => (RE_VERSION_SEULE.exec(String(texte ?? '').trim()) || [])[1] ?? null;
+/** Les versions distinctes que la fiche cite, lues sur les lignes qui désignent la version de l'application. */
+export function versionsCitees(lignes) {
+  const vues = new Set();
+  for (const l of lignes) {
+    if (!INTITULE_VERSION.test(l.intitule)) continue;
+    for (const m of texteDe(l.valeur).matchAll(RE_VERSION)) vues.add(m[1]);
+  }
+  return [...vues];
+}
+const sansPreVersion = (v) => v.split('-')[0].split('.').map(Number);
+/** Négatif si `a` précède `b`, positif si elle la suit, 0 si les trois composantes sont égales. */
+const comparer = (a, b) => { const x = sansPreVersion(a), y = sansPreVersion(b); return x[0] - y[0] || x[1] - y[1] || x[2] - y[2]; };
+
 /** Le PDF de diffusion attendu à côté d'un HTML de référence : même nom, même indice. */
 export const pdfDe = (html) => String(html).replace(/\.html?$/i, '') + '.pdf';
 /** `… - 20260902c.html` → `20260902c` ; `null` si le nom n'est pas daté. */
@@ -158,7 +191,7 @@ export const indiceDe = (nom) => (/(\d{8}[a-z])(?=\.[A-Za-z0-9]+$|$)/.exec(path.
  * Juge une fiche. Rend `{ verdict, findings, non_juge }` — la forme commune des oracles du dépôt.
  * Aucune sortie, aucun `process.exit` : c'est ce qui rend l'auto-test possible.
  */
-export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {}) {
+export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false, etiquetteDeployee = null } = {}) {
   const F = [];
   const add = (statut, regle, message) => F.push({ statut, regle, message });
   const html = fs.readFileSync(fiche, 'utf8');
@@ -350,6 +383,35 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
   champDuBloc('FS11', 'comptes\\s+externes\\s*/\\s*invit[ée]s\\s+en\\s+port[ée]e|external\\s*/\\s*guest\\s+accounts\\s+in\\s+scope',
     'Comptes externes / invités en portée');
 
+  // ── FS12 · la version citée par la fiche est la dernière étiquette déployée (TF-2419) ─────
+  // Les onze règles précédentes jugent la FORME de la fiche ; aucune ne voit qu'elle décrit une version que
+  // l'environnement ne sert plus. Ce que l'environnement sert n'est pas dans la fiche : l'appelant le DONNE.
+  if (etiquetteDeployee != null) {
+    const deployee = versionDe(etiquetteDeployee);
+    const citees = versionsCitees(lignes);
+    if (!deployee) {
+      add('FAIL', 'FS12', `l'étiquette déployée donnée (« ${etiquetteDeployee} ») n'est pas une version x.y.z : la `
+        + 'comparaison ne peut pas se faire, et elle ne se devine pas.');
+    } else if (!citees.length) {
+      add('SKIP', 'FS12', `la fiche ne cite aucune version (ni « Version déployée », ni « Version de l'application », ni `
+        + `« Projet / application » avec une version x.y.z) : la comparaison à l'étiquette déployée ${deployee} n'est NI `
+        + 'réussie NI échouée, elle n\'a pas pu se faire.');
+    } else if (citees.length > 1) {
+      add('FAIL', 'FS12', `la fiche cite ${citees.length} versions différentes (${citees.join(', ')}) : une fiche décrit `
+        + `UNE version, et la dernière étiquette déployée est ${deployee}.`);
+    } else if (citees[0].toLowerCase() === deployee.toLowerCase()) {
+      add('PASS', 'FS12', `la version citée (${citees[0]}) est la dernière étiquette déployée`);
+    } else {
+      const sens = comparer(citees[0], deployee) < 0
+        ? `ANTÉRIEURE à la dernière étiquette déployée (${deployee}) : la fiche décrit une version que l'environnement ne `
+          + 'sert plus. Ne pas la diffuser telle quelle — la RÉÉMETTRE sur la version servie (le 10/11/2026, une fiche '
+          + 'v1.10.0 jointe à un courriel alors que v1.13.0 était servie : 16 champs sur 29 changés).'
+        : `POSTÉRIEURE à la dernière étiquette déployée (${deployee}) : la fiche décrit une version que l'environnement ne `
+          + 'sert pas encore. Elle ne se diffuse pas avant le déploiement.';
+      add('FAIL', 'FS12', `la version citée (${citees[0]}) est ${sens}`);
+    }
+  }
+
   const echecs = F.filter((f) => f.statut === 'FAIL').length;
   return {
     oracle: 'verifier-fiche-securite',
@@ -364,6 +426,10 @@ export function juger(fiche, { seuilTexte = SEUIL_TEXTE, sansPdf = false } = {})
       + 'extractible, ce qui sépare une impression d\'une capture — ce n\'est pas un audit d\'accessibilité',
       'la mise en page RENDUE : FS5 lit la feuille de style, il ne mesure pas au moteur (cette mesure vit '
       + 'dans `tools/fiche-en-pdf.mjs --self-test` et dans les tests, qui ont un navigateur)',
+      ...(etiquetteDeployee == null ? [
+        "FS12 (fraîcheur de la version citée) NON JOUÉE : aucune étiquette déployée donnée (`--etiquette-deployee <x.y.z>`) — "
+        + 'la version que la fiche cite n\'est comparée à rien ; ni réussie ni échouée, elle n\'a pas eu lieu',
+      ] : []),
     ],
   };
 }
@@ -506,10 +572,30 @@ function selfTest() {
   rouge('ACM - Fiche Securite - Dev - 20261030c.html', FICHE_MODELE('DEV', { ref: 'CDC-SEC-DEV-20261030c', lien: 'à venir' }), 'FS4');
   rouge('ACM - Fiche Securite - HPR - 20261030d.html', FICHE_MODELE('HPR', { ref: 'CDC-SEC-DEV-20261030d' }), 'FS3');
 
+  // FS12 (TF-2419) — LE DÉFAUT DU 10/11/2026, À DOUBLE SENS : une fiche qui cite v1.10.0 pendant que v1.13.0 est
+  // servie est refusée ; la même fiche à jour (v1.13.0) est ACCEPTÉE. Les autres sorties se prouvent aussi : citée
+  // postérieure à l'étiquette (FAIL), aucune version citée (SKIP motivé, la comparaison n'a pas eu lieu), aucune
+  // étiquette donnée (FS12 non jouée et DITE dans non_juge, verdict inchangé).
+  const avecVersion = (ref, v) => FICHE_VERTE(ref).replace('<tr><th>Population effectivement admise</th>',
+    `<tr><th>Version déployée</th><td>${v}</td></tr><tr><th>Population effectivement admise</th>`);
+  const aJour = ecrire('ACM - Fiche Securite - Dev - 20261110a.html', avecVersion('ACM-SEC-DEV-20261110a', 'v1.13.0'));
+  fs.writeFileSync(pdfDe(aJour), pdfFabrique(1200));
+  r = juger(aJour, { etiquetteDeployee: 'v1.13.0' });
+  if (r.verdict !== 'PASS' || statut(r, 'FS12') !== 'PASS') casse.push(`FS12 : la fiche À JOUR (v1.13.0 contre v1.13.0) est refusée : ${r.findings.filter((f) => f.statut === 'FAIL').map((f) => f.regle).join(',')}`);
+  rouge('ACM - Fiche Securite - Dev - 20261110b.html', avecVersion('ACM-SEC-DEV-20261110b', 'v1.10.0'), 'FS12', true, { etiquetteDeployee: 'v1.13.0' });
+  rouge('ACM - Fiche Securite - Dev - 20261110c.html', avecVersion('ACM-SEC-DEV-20261110c', 'v1.14.0'), 'FS12', true, { etiquetteDeployee: 'v1.13.0' });
+  r = juger(vert, { etiquetteDeployee: '1.13.0' });
+  if (statut(r, 'FS12') !== 'SKIP' || r.verdict !== 'PASS') casse.push('FS12 : une fiche sans version citée ne rend pas un SKIP motivé qui laisse le verdict à PASS');
+  const perimee = ecrire('ACM - Fiche Securite - Dev - 20261110d.html', avecVersion('ACM-SEC-DEV-20261110d', 'v1.10.0'));
+  fs.writeFileSync(pdfDe(perimee), pdfFabrique(1200));
+  r = juger(perimee);
+  if (statut(r, 'FS12') !== undefined || !r.non_juge.some((n) => /FS12/.test(n)))
+    casse.push('FS12 : sans étiquette donnée, la règle doit être ABSENTE des constats et DITE non jouée dans non_juge');
+
   fs.rmSync(dir, { recursive: true, force: true });
   console.log(casse.length
     ? 'SELF-TEST FAIL : ' + casse.join(' · ')
-    : 'Self-test verifier-fiche-securite : 21/21 PASS — fiche complète acceptée, modèle th.k/td.k en DEV et en HPR '
+    : 'Self-test verifier-fiche-securite : 26/26 PASS — fiche complète acceptée, modèle th.k/td.k en DEV et en HPR '
       + 'acceptés (TF-2086, TF-2087) · th.k à 32 % (FS5), modèle sans URL (FS4), nom HPR contre référence DEV (FS3) '
       + 'refusés · placeholder résiduel (FS1), '
       + 'section perdue (FS2), références divergentes en-tête/pied (FS3), indice du nom ≠ indice imprimé (FS3bis), '
@@ -517,7 +603,9 @@ function selfTest() {
       + 'PDF sans texte à 9 images — la capture du 24/07 (FS7), champ « Population effectivement admise » absent '
       + 'et champ présent mais vide (FS8, TF-1089), gabarit et sa version non rendus (FS9, TF-1095), '
       + '« Restriction d\'accès effective » absente (FS10, TF-1102), « Comptes externes / invités en portée » '
-      + 'absente (FS11, TF-1102) : tous REFUSÉS · --sans-pdf rendu en SKIP motivé');
+      + 'absente (FS11, TF-1102) : tous REFUSÉS · fiche à jour sur la version déployée acceptée, version citée antérieure '
+      + 'ou postérieure à la dernière étiquette déployée refusée (FS12, TF-2419), fiche sans version citée en SKIP motivé, '
+      + 'FS12 non jouée sans étiquette et dite dans non_juge · --sans-pdf rendu en SKIP motivé');
   return casse.length ? 1 : 0;
 }
 
@@ -535,11 +623,17 @@ if (path.resolve(process.argv[1] ?? '') === path.resolve(fileURLToPath(import.me
       console.error(v === undefined
         ? `Option ${n} sans valeur : une valeur est attendue.`
         : `Option ${n} : « ${v} » refusé comme fichier, un argument qui commence par « - » est une option, pas un fichier.`);
-      console.error('usage: node verifier-fiche-securite.mjs <fiche.html> [--seuil-texte N] [--sans-pdf] [--json-only]');
+      console.error('usage: node verifier-fiche-securite.mjs <fiche.html> [--seuil-texte N] [--sans-pdf] [--etiquette-deployee <x.y.z>] [--json-only]');
       process.exit(2);
     }
     return v;
   };
+  // FS12 (TF-2419) : une étiquette qui n'est pas une version x.y.z est une erreur d'usage, pas un constat sur la fiche.
+  const etiquette = opt('--etiquette-deployee');
+  if (etiquette !== null && !versionDe(etiquette)) {
+    console.error(`Option --etiquette-deployee : « ${etiquette} » n'est pas une version x.y.z (« v1.13.0 » ou « 1.13.0 »).`);
+    process.exit(2);
+  }
   const jsonOnly = args.includes('--json-only');
   const cible = args.find((a) => !a.startsWith('--') && /\.html?$/i.test(a));
   if (!cible || !fs.existsSync(cible)) {
@@ -553,6 +647,7 @@ if (path.resolve(process.argv[1] ?? '') === path.resolve(fileURLToPath(import.me
   const rapport = juger(cible, {
     seuilTexte: opt('--seuil-texte') ? Number(opt('--seuil-texte')) : SEUIL_TEXTE,
     sansPdf: args.includes('--sans-pdf'),
+    etiquetteDeployee: etiquette,
   });
   process.stdout.write(JSON.stringify(rapport, null, jsonOnly ? 0 : 2) + '\n');
   process.exit(rapport.verdict === 'FAIL' ? 1 : 0);
