@@ -394,7 +394,7 @@ export function cssSombre(themeCss) {
     return [k, versHex(luminance(c) > 0.45 ? melanger(encre, NOIR, 0.1) : melanger(c, BLANC, 0.45))];
   });
   const clairs = Object.entries(j);
-  return `:root[data-theme="dark"]{${sombres.map(([k, v]) => `${k}:${v};`).join('')}}\n`
+  return `:root[data-theme="dark"]{color-scheme:dark;${sombres.map(([k, v]) => `${k}:${v};`).join('')}}\n`
     + `@media print{:root,:root[data-theme="dark"]{${clairs.map(([k, v]) => `${k}:${v};`).join('')}}}`;
 }
 

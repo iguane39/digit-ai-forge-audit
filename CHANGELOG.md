@@ -7,12 +7,26 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **Le rapport POC-to-Prod déclare `color-scheme` en CSS pour chaque thème** (14/11/2026, relevé en rejouant la recette pour
+  TF-2515 : 14/17 sur main) — `run-oracles-design` (forge-design, SC4 de `oracle-surcouche`, TF-2384) refusait le rapport rendu :
+  la balise `<meta name="color-scheme">` annonce ce que la page supporte, elle ne suit pas la bascule. Le gabarit
+  `deliverables/templates/rapport-audit-poc-to-prod.template.html` pose `color-scheme:light` à son bloc `:root`, et `cssSombre`
+  (`tools/rapport-poc-to-prod.mjs`) pose `color-scheme:dark` au bloc `:root[data-theme="dark"]`. Cela faisait tomber la porte de
+  rendu et 10 cas de la batterie des oracles. Deux cas dans `tests/oracles/rapport-design.test.mjs` : la déclaration présente
+  (statique), et la même page privée de ses deux déclarations refusée pour SC4 (exécuté). Le gabarit passe à la version 1.0.2
+  (`gabarits-versions.json` réenregistré par `verifier-gabarits --maj`, TF-1820).
 - **F10 de `tools/verifier-forme-rapport.mjs` reconnaît « à confirmer »** (13/11/2026, TF-2496 du pilot) — la frontière ASCII
   `\bà` ne voyait jamais « à » comme un caractère de mot : « 1.2 à confirmer » n'était pas relevé comme estimation, et
   « voilà confirmer » l'était. Frontière Unicode `(?<![\wà-ÿ])à`, deux sens rejoués ; oracle-pieges-regex du pilot ne relève
   plus cette ligne.
 
 ### Changé
+- **TF-2515 — le canevas « modèle de données » est re-vendoré sur digit-ai-forge-agents 8f6820a7** (14/11/2026) — la source
+  (`digit-ai-schemas/assets/template-modele-donnees.html`) a changé le 10 et le 12/11/2026 et `verifier-heritage` rendait DÉRIVE
+  sur main (empreinte enregistrée `575b1f3ffca3…`, calculée `d992d6602e5f…`). Diff 3254b81→8f6820a7 relu en entier : trois hunks,
+  tous hors de ce que le module reprend (`color-scheme` du bloc `:root` et du bloc sombre de la page, marque du footer en
+  gabarit). `tools/canevas-modele-donnees.mjs` est donc inchangé ; `HERITAGE.json` reçoit l'empreinte, les octets normalisés,
+  `source_version`, la date et le delta déclaré.
 - **Re-vendorage du canevas « modèle de données » sur digit-ai-forge-agents 3254b81** (06/11/2026, suite du constat de dérive
   levé pendant la campagne du 06/11/2026) — la source (`digit-ai-schemas/assets/template-modele-donnees.html`) a changé le
   06/11/2026 (TF-2263) et `verifier-heritage` rendait DÉRIVE (empreinte enregistrée `88780574c41e…`, calculée `575b1f3ffca3…`).

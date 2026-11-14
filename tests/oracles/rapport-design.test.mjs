@@ -144,6 +144,30 @@ test('TF-2139 branchement — un bandeau latéral réintroduit est REFUSÉ (orac
   assert.match(r.stderr, /oracle-slop/);
 });
 
+// ── SC4 (oracle-surcouche) : `color-scheme` est déclaré PAR THÈME — TF-2515 (recette rouge sur main, 14/11/2026) ─────
+// Sens vert (statique, CI-sûr) : le rapport déclare « color-scheme: light » au bloc :root et « color-scheme: dark » au bloc
+// [data-theme="dark"]. Sens rouge (exécuté) : la même page sans ces deux déclarations est REFUSÉE pour SC4 — la balise
+// <meta name="color-scheme"> annonce ce que la page supporte, elle ne suit pas la bascule.
+test('TF-2515 statique — le rapport déclare color-scheme en CSS pour chaque thème (clair au bloc :root, sombre au bloc [data-theme="dark"])', () => {
+  for (const [nom, fichier] of Object.entries(RAPPORTS)) {
+    const html = fs.readFileSync(fichier, 'utf8');
+    assert.match(html, /:root\s*\{\s*color-scheme:\s*light\s*;/, `${nom} : « color-scheme: light » absent du bloc :root`);
+    assert.match(html, /:root\[data-theme="dark"\]\s*\{\s*color-scheme:\s*dark\s*;/, `${nom} : « color-scheme: dark » absent du bloc [data-theme="dark"]`);
+  }
+});
+
+test('TF-2515 branchement — un rapport sans color-scheme en CSS est REFUSÉ (oracle-surcouche SC4)', { skip: sautSansDesign }, () => {
+  const sale = path.join(dossier, 'sans-color-scheme.html');
+  const html = fs.readFileSync(RAPPORTS.valide, 'utf8');
+  const nu = html.replace(/color-scheme:\s*(?:light|dark)\s*;/g, '');
+  assert.notEqual(nu, html, 'la mutation ne retire rien : le rapport ne porte plus de color-scheme à retirer');
+  fs.writeFileSync(sale, nu, 'utf8');
+  const r = verifier(sale, '--design-root', DESIGN);
+  assert.equal(r.status, 1, `accepté (exit ${r.status}) : ${r.stdout}`);
+  assert.match(r.stderr, /oracle-surcouche/);
+  assert.match(r.stderr, /SC4/);
+});
+
 test('TF-2139 branchement — forge-design introuvable : racine donnée = erreur (2), racine implicite absente = NON JUGÉ dit tout haut', async () => {
   const lib = await import(`file:///${path.join(RACINE, 'tools', 'oracles-design.mjs').replace(/\\/g, '/')}`);
   const absent = path.join(dossier, 'inexistant');
