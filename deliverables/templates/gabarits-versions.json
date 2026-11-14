@@ -11,13 +11,13 @@
   },
   "fiche-securite.template.en.md": {
     "id": "gd-fiche-securite-auditcore",
-    "version": "1.0.0",
-    "empreinte": "f308ec2223ae4fd558406fdf93319e6654a718eea59dadb89308b764eaec24dd"
+    "version": "1.1.0",
+    "empreinte": "64738c90efd38f31e858bdc770c4cdc5bcf13d7cffab5c64a5f989672aebed9c"
   },
   "fiche-securite.template.md": {
     "id": "gd-fiche-securite-auditcore",
-    "version": "1.0.0",
-    "empreinte": "7e5eb353d0738d17c28d71770f57a49ce508c824815d44797614d91f58076632"
+    "version": "1.1.0",
+    "empreinte": "b333558ef907a55a581db135f0af24d4c1702698fe9f4fae3b5e0067d3bcc2b1"
   },
   "matrice-tracabilite.template.md": {
     "id": "gd-matrice-tracabilite-auditcore",

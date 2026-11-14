@@ -11,7 +11,7 @@
 
 # {{tenant.name}} — Deployment Security Sheet — {{projet.nom}} — {{date}}{{indice}}
 
-> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0
+> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.1.0
 
 > Sheet completed for every deployment of an environment (dev, sandbox…) within the audited scope.
 > Generic core fields; additional tenant-specific fields added by pack (`packs/*`), never
@@ -28,6 +28,7 @@
 | Solution type | {{projet.type}} *(web-app · api · data · mobile · ml · infra)* |
 | Environment | {{environnement.label}} ({{environnement.code}}) |
 | Deployment date | {{date}} |
+| **Deployed version** | {{projet.version_deployee — x.y.z, the latest tag DEPLOYED on this environment (the one the qualification chain gives to `--etiquette-deployee`), never the template version nor the sheet's own }} |
 | URL / access point | {{environnement.url}} |
 
 > **Owner and Business Owner must not be filled in identically in silence.** When one person

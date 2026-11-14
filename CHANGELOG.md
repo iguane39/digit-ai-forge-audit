@@ -21,6 +21,14 @@ sources mis à jour.
   plus cette ligne.
 
 ### Changé
+- **TF-2536 (part forge-audit) — le canevas de fiche sécurité pose la ligne « Version déployée »** (14/11/2026) — FS12 (TF-2419)
+  compare la version que la fiche cite à la dernière étiquette déployée, mais aucun canevas ne posait cette ligne : sur une fiche
+  née du canevas, FS12 rendait SKIP (« aucune version citée »), donc inerte. `fiche-securite.template.md` (« Version déployée »)
+  et `fiche-securite.template.en.md` (« Deployed version ») reçoivent la ligne `projet.version_deployee` à l'Identification,
+  que FS12 lit ; le gabarit passe à la version 1.1.0 (canevas FR/EN, `GABARIT_VERSION` de `tools/build-fiche.mjs`,
+  `gabarits-versions.json` réenregistré par `verifier-gabarits --maj`, TF-1820 ; parité FR/EN tenue). Deux cas dans
+  `tests/oracles/fiche-securite.test.mjs` (FR et EN) : la ligne du canevas est lue comme version citée, le canevas privé de sa
+  ligne n'en cite aucune. Reste hors de ce dépôt : la chaîne de qualification du pilot doit passer `--etiquette-deployee`.
 - **TF-2515 — le canevas « modèle de données » est re-vendoré sur digit-ai-forge-agents 8f6820a7** (14/11/2026) — la source
   (`digit-ai-schemas/assets/template-modele-donnees.html`) a changé le 10 et le 12/11/2026 et `verifier-heritage` rendait DÉRIVE
   sur main (empreinte enregistrée `575b1f3ffca3…`, calculée `d992d6602e5f…`). Diff 3254b81→8f6820a7 relu en entier : trois hunks,

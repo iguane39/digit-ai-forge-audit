@@ -36,7 +36,7 @@ import { allouerIndice } from './allouer-indice.mjs';
 // `oracle-gabarits-documents.mjs` G4 du pilot (`Gabarit : gd-… · version du gabarit x.y.z`) — un
 // tiers qui tient la fiche peut dater sa conformite SANS registre, y compris recue par courriel.
 export const GABARIT_ID = 'gd-fiche-securite-auditcore';
-export const GABARIT_VERSION = '1.0.0';
+export const GABARIT_VERSION = '1.1.0';
 
 const tenantYaml = process.argv[2];
 const USAGE = 'Usage: node tools/build-fiche.mjs <tenant.yaml> [--data <fiche-data.json>] (--produit <racine> | --out <fichier.html>) [--sans-pdf]';

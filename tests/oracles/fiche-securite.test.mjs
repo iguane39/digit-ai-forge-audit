@@ -25,7 +25,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { verdictNavigateur } from '../verdicts.mjs';
-import { juger } from '../../oracles/verifier-fiche-securite.mjs';
+import { juger, lignesDeChamps, versionsCitees } from '../../oracles/verifier-fiche-securite.mjs';
 
 const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const ORACLE = path.join(RACINE, 'oracles', 'verifier-fiche-securite.mjs');
@@ -53,6 +53,31 @@ test('fiche-en-pdf --self-test : la règle d\'indice mord, et preferCSSPageSize 
   assert.match(r.stdout, /(6\/6 PASS|SKIP MOTIVÉ)/,
     'ni les 6 cas ni un SKIP motivé : l\'auto-test ne dit plus ce qu\'il a joué');
 });
+
+// ── TF-2536 · LE CANEVAS PORTE LA LIGNE QUE FS12 LIT. FS12 (TF-2419) compare la version que la fiche CITE à
+//    la dernière étiquette déployée ; or aucun canevas ne posait cette ligne : sur une fiche née du canevas,
+//    FS12 rendait SKIP (« aucune version citée ») — inerte. Le canevas, dans ses deux langues, reçoit une ligne
+//    « Version déployée » / « Deployed version » ; ce test instancie le canevas (la ligne de tableau markdown
+//    devient une ligne de fiche), pose la version à la place du trou, et REJOUE FS12. Sens rouge : le même
+//    canevas privé de sa ligne ne cite aucune version (le défaut d'avant).
+for (const [langue, fichier] of [['fr', 'fiche-securite.template.md'], ['en', 'fiche-securite.template.en.md']]) {
+  const canevas = fs.readFileSync(path.join(RACINE, 'deliverables', 'templates', fichier), 'utf8');
+  const enLignes = (md, version) => md.split(/\r?\n/)
+    .filter((l) => /^\|[^|]+\|[^|]+\|$/.test(l.trim()))
+    .map((l) => l.trim().slice(1, -1).split('|'))
+    .map(([i, v]) => `<tr><th>${i.replace(/\*\*/g, '').trim()}</th><td>${/\{\{\s*projet\.version_deployee/.test(v) ? version : 'valeur'}</td></tr>`)
+    .join('\n');
+  const fiche = (md, version) => `<table>${enLignes(md, version)}</table>`;
+  const sansLigne = (md) => md.split(/\r?\n/).filter((l) => !/projet\.version_deployee/.test(l)).join('\n');
+
+  test(`TF-2536 — le canevas ${langue} porte une ligne de version que FS12 lit (sens vert), son absence ne cite rien (sens rouge)`, () => {
+    assert.match(canevas, /\{\{\s*projet\.version_deployee/, 'le canevas ne porte pas le champ projet.version_deployee');
+    assert.deepEqual(versionsCitees(lignesDeChamps(fiche(canevas, 'v1.13.0'))), ['1.13.0'],
+      'la ligne du canevas n\'est pas lue comme « la version que la fiche cite »');
+    assert.deepEqual(versionsCitees(lignesDeChamps(fiche(sansLigne(canevas), 'v1.13.0'))), [],
+      'le canevas privé de sa ligne cite encore une version : le contrôle ne mord pas');
+  });
+}
 
 // ── TF-0701 · LA PORTE. Une fiche réellement produite par la forge passe l'oracle ; chaque
 //    défaut réellement constaté le fait sortir 1.

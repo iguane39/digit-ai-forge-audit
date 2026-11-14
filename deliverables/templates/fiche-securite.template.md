@@ -12,7 +12,7 @@
 
 # {{tenant.name}} — Fiche sécurité de mise à disposition — {{projet.nom}} — {{date}}{{indice}}
 
-> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.0.0
+> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.1.0
 
 > Fiche remplie à chaque mise à disposition d'un environnement (dev, sandbox…) du périmètre audité.
 > Champs génériques core ; champs additionnels propres au tenant ajoutés par pack (`packs/*`), jamais
@@ -29,6 +29,7 @@
 | Type de solution | {{projet.type}} *(web-app · api · data · mobile · ml · infra)* |
 | Environnement concerné | {{environnement.label}} ({{environnement.code}}) |
 | Date de mise à disposition | {{date}} |
+| **Version déployée** | {{projet.version_deployee — x.y.z, la dernière étiquette DÉPLOYÉE sur cet environnement (celle que la chaîne de qualification donne à `--etiquette-deployee`), jamais la version du gabarit ni celle de la fiche }} |
 | URL / point d'accès | {{environnement.url}} |
 
 > **Porteur et Business Owner ne se remplissent pas à l'identique en silence.** Quand les deux
