@@ -7,6 +7,10 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **Les 14 alertes de dépendances de l'hébergeur sont fermées** (14/11/2026, TF-2539 part forge-audit) — toutes sur le
+  `package-lock.json` racine, toutes sur des dépendances réelles (12 sur `fast-uri`, transitive d'ajv, 3.1.3 ; 2 sur `js-yaml`,
+  5.2.1), aucune sur une fixture : les `package.json` de `tests/fixtures/` n'ont pas de verrou. Verrou mis à jour sur `fast-uri`
+  3.1.9 et `js-yaml` 5.5.0 (`package.json` inchangé, ses plages admettaient déjà ces versions) ; `npm audit` : 14 avis avant, 0 après.
 - **Le rapport POC-to-Prod déclare `color-scheme` en CSS pour chaque thème** (14/11/2026, relevé en rejouant la recette pour
   TF-2515 : 14/17 sur main) — `run-oracles-design` (forge-design, SC4 de `oracle-surcouche`, TF-2384) refusait le rapport rendu :
   la balise `<meta name="color-scheme">` annonce ce que la page supporte, elle ne suit pas la bascule. Le gabarit
