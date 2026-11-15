@@ -7,6 +7,15 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **Une fiche complète sans `business_owner` est refusée par FS1** (15/11/2026, TF-2582) — FS1 ne lit que les `{{…}}` de 80
+  caractères au plus ; le trou `{{BUSINESS_OWNER — qui VALIDE la mise à disposition ; si c'est le porteur lui-même, l'écrire : le
+  dire est le contrôle}}` de `tools/build-fiche.mjs` en portait 116 (seul trou du squelette au-delà de la borne, 1 sur 32,
+  mesuré). Reproduit avant correction : fiche complète sans `business_owner`, 1 occurrence de `BUSINESS_OWNER` dans le HTML, FS1
+  « 0 placeholder résiduel », verdict PASS. Le trou tient maintenant en 49 caractères (`{{BUSINESS_OWNER — qui VALIDE la mise à
+  disposition}}`) et la consigne sur le porteur qui valide lui-même reste visible HORS du trou. FS1 est inchangé. Deux cas dans
+  `tests/oracles/fiche-securite.test.mjs`, rouges sur le `build-fiche` d'avant et verts sur le nouveau : fiche complète sans
+  `business_owner` (FS1 FAIL, verdict FAIL ; avec, PASS) et squelette dont chaque trou tient en 80 caractères et que FS1 compte en
+  entier (31 lus sur 32 avant, 32 sur 32 après).
 - **Le plancher de `js-yaml` passe à `^5.4.1`** (15/11/2026, TF-2568) — TF-2539 avait fermé les 14 alertes par le verrou seul
   (js-yaml 5.5.0) ; `package.json` gardait `^5.2.1`, plage qui admet 5.2.1 (avis GHSA-pm4m-ph32-ghv5, ≤ 5.2.1) et 5.4.0 (avis
   GHSA-r3ph-w7gj-g6xm, ≤ 5.4.0) : une installation qui garde un verrou ancien ou sans verrou pouvait reprendre une version

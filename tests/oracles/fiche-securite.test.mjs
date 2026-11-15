@@ -90,11 +90,12 @@ const CLES_FICHE_COMPLETE = ['projet', 'objet', 'equipe', 'hebergement', 'enviro
   'observabilite', 'alerting', 'sauvegardes', 'tags', 'budget', 'porteur', 'business_owner', 'lien_dev'];
 const texteDeLaLigne = (h) => String(h).replace(/<[^>]*>/g, '');
 /** Rend une fiche par build-fiche (données complètes + la version donnée), la juge avec l'étiquette donnée. */
-const ficheRendueJugee = (version, etiquetteDeployee) => {
+const ficheRendueJugee = (version, etiquetteDeployee, sansChamps = []) => {
   const prod = temporaire();
   try {
     const donnees = path.join(prod, 'data.json');
-    const champs = Object.fromEntries(CLES_FICHE_COMPLETE.map((k) => [k, k === 'lien_dev' ? 'https://dev.exemple.test/app' : `valeur ${k}`]));
+    const champs = Object.fromEntries(CLES_FICHE_COMPLETE.filter((k) => !sansChamps.includes(k))
+      .map((k) => [k, k === 'lien_dev' ? 'https://dev.exemple.test/app' : `valeur ${k}`]));
     if (version !== undefined) champs.version_deployee = version;
     fs.writeFileSync(donnees, JSON.stringify(champs), 'utf8');
     const b = jouer(BUILD, TENANT, '--data', donnees, '--produit', prod, '--sans-pdf');
@@ -131,6 +132,33 @@ test('TF-2567 — le squelette porte la ligne « Version déployée » (ligne lu
   const sans = ficheRendueJugee(undefined, '1.13.0');
   assert.equal(statutDe(sans, 'FS1'), 'FAIL', 'une fiche sans version déployée est diffusable');
   assert.notEqual(statutDe(sans, 'FS12'), 'PASS', 'FS12 ne doit pas passer sur un trou');
+});
+
+// ── TF-2582 · UN TROU QUE FS1 NE LIT PAS EST UN TROU DIFFUSÉ. FS1 ne lit que les `{{…}}` de 80 caractères au plus ;
+//    le trou « BUSINESS_OWNER — … ; si c'est le porteur lui-même, … » en portait 116 : une fiche complète SANS
+//    business_owner rendait PASS (FS1 « 0 placeholder résiduel »), le trou imprimé dans la page. Rouge sur le
+//    build-fiche d'avant (verdict PASS, 1 trou sur 32 non vu par FS1), vert sur le nouveau.
+test('TF-2582 — une fiche complète SANS business_owner est refusée par FS1 (elle rendait PASS, le trou imprimé)', () => {
+  const sans = ficheRendueJugee('v1.13.0', '1.13.0', ['business_owner']);
+  assert.equal(statutDe(sans, 'FS1'), 'FAIL', 'le trou BUSINESS_OWNER passe FS1 : une fiche sans valideur est diffusable');
+  assert.match(sans.findings.find((f) => f.regle === 'FS1').message, /BUSINESS_OWNER/, 'FS1 refuse sans nommer le trou');
+  assert.equal(sans.verdict, 'FAIL');
+  // Sens vert : la même fiche AVEC business_owner reste diffusable.
+  assert.equal(ficheRendueJugee('v1.13.0', '1.13.0').verdict, 'PASS');
+});
+
+test('TF-2582 — chaque trou du squelette rendu tient dans la borne de FS1 : tous sont comptés, aucun n\'échappe', () => {
+  const prod = temporaire();
+  try {
+    assert.equal(jouer(BUILD, TENANT, '--produit', prod, '--sans-pdf').status, 0);
+    const fiche = trouverFiche(prod);
+    const trous = [...fs.readFileSync(fiche, 'utf8').matchAll(/\{\{([\s\S]*?)\}\}/g)].map((m) => m[1].trim());
+    assert.ok(trous.length > 0, 'le squelette ne porte plus aucun trou');
+    const trop = trous.filter((t) => t.length > 80);
+    assert.deepEqual(trop, [], `${trop.length} trou(s) de plus de 80 caractères : FS1 ne les lit pas`);
+    const lus = Number(/^(\d+) placeholder/.exec(juger(fiche, { sansPdf: true }).findings.find((f) => f.regle === 'FS1').message)?.[1]);
+    assert.equal(lus, trous.length, `le squelette porte ${trous.length} trous, FS1 en compte ${lus}`);
+  } finally { fs.rmSync(prod, { recursive: true, force: true }); }
 });
 
 // ── TF-0701 · LA PORTE. Une fiche réellement produite par la forge passe l'oracle ; chaque

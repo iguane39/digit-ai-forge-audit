@@ -69,8 +69,11 @@ ${rows.map(([label, key, ph]) => `<tr><th>${label}</th><td>${typeof key === 'fun
 // phrase a dû être ajoutée à la main sur une fiche réelle le 27/08 — elle est ici désormais.
 const memePersonne = data.porteur !== undefined && data.business_owner !== undefined
   && String(data.porteur).trim().toLowerCase() === String(data.business_owner).trim().toLowerCase();
+// TF-2582 : un trou ne se lit par FS1 que s'il tient en 80 caractères entre accolades. Celui-ci en
+// portait 116 : une fiche sans business_owner rendait PASS, trou imprimé. La consigne reste, HORS du trou.
 const celluleOwner = () => (data.business_owner === undefined
-  ? V('business_owner', 'BUSINESS_OWNER — qui VALIDE la mise à disposition ; si c\'est le porteur lui-même, l\'écrire : le dire est le contrôle')
+  ? V('business_owner', 'BUSINESS_OWNER — qui VALIDE la mise à disposition')
+    + ' <span class="muted small">Si c\'est le porteur lui-même, l\'écrire : le dire est le contrôle.</span>'
   : esc(data.business_owner) + (memePersonne
     ? ' — <b>même personne que le porteur : aucune relecture croisée entre construire et valider.</b>'
     : ''));
