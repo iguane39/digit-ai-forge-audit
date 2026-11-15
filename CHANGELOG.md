@@ -7,6 +7,13 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **Le plancher de `js-yaml` passe à `^5.4.1`** (15/11/2026, TF-2568) — TF-2539 avait fermé les 14 alertes par le verrou seul
+  (js-yaml 5.5.0) ; `package.json` gardait `^5.2.1`, plage qui admet 5.2.1 (avis GHSA-pm4m-ph32-ghv5, ≤ 5.2.1) et 5.4.0 (avis
+  GHSA-r3ph-w7gj-g6xm, ≤ 5.4.0) : une installation qui garde un verrou ancien ou sans verrou pouvait reprendre une version
+  vulnérable. 5.4.1 est la première version qu'aucun des deux avis ne vise (mesuré : `npm audit` sur 5.4.0 rend 1 avis, sur 5.4.1
+  rend 0). Le plancher est relevé dans `package.json` et dans la déclaration racine de `package-lock.json` (sans quoi `npm ci`
+  refuse un verrou en désaccord) ; le verrou reste à 5.5.0. Essai : plancher `^5.2.1` sur un verrou à 5.2.1 → 1 avis haut ;
+  plancher `^5.4.1` sur le même verrou → réécrit en 5.5.0, 0 avis. `npm audit` du dépôt : 0.
 - **FS12 joue sur la fiche rendue par `tools/build-fiche.mjs`** (15/11/2026, TF-2567) — TF-2536 avait posé la ligne « Version
   déployée » dans le canevas Markdown, mais le squelette HTML du générateur ne la portait pas : sur toute fiche rendue, FS12
   rendait SKIP (« aucune version citée »), mesuré avant correction. `build-fiche` rend maintenant la ligne `Version déployée` à
