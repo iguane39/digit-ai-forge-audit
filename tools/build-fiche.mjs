@@ -117,9 +117,12 @@ th{background:var(--bg);width:20%}td{overflow-wrap:break-word}
      effectivement admise » (TF-1089, 9 lignes de plus qu'au dernier réglage), tiennent sur
      UNE page A4. Réglé contre l'oracle de rendu (compte de pages du PDF A4), pas à l'estime :
      l'ajout d'une seule ligne de table a suffi à faire déborder sur une 2e page (mesuré
-     localement le 14/09/2026, tests/oracles/fiche-securite.test.mjs) au réglage précédent. */
+     localement le 14/09/2026, tests/oracles/fiche-securite.test.mjs) au réglage précédent.
+     TF-2567 (15/11/2026) : la ligne « Version déployée » refait déborder le squelette sur 2 pages
+     (P3, mesuré). Marge haute des h2 de 7 à 4 px : 8 titres, 24 px rendus ; 6 px ne suffisait pas
+     (essai à 6, 5, 4 et 3 px contre fiche-en-pdf --pages-max 1). */
   h1{font-size:18px;margin:4px 0}
-  h2{margin:7px 0 2px}
+  h2{margin:4px 0 2px}
   th,td{padding:2px 6px;font-size:10px}
   header{font-size:10.5px}
 }
@@ -127,7 +130,13 @@ th{background:var(--bg);width:20%}td{overflow-wrap:break-word}
 <header><span class="brand">${esc(cfg.tenant.short_code)}</span> <b>${esc(cfg.tenant.name)} — Fiche sécurité de mise à disposition (environnement de développement)</b><br>
 <span class="muted small">Réf. ${ref} · validée par ${esc(cfg.roles?.security_officer ?? 'le responsable sécurité')} · accompagne le rapport d'audit · core ${esc(String(cfg.core_version))}</span></header>
 <h1>Fiche sécurité — ${V('projet', 'NOM_PROJET')}</h1>
-${S('1 · Identification', [['Application / trigramme', 'projet'], ['Objet métier', 'objet'], ['Équipe / responsable', 'equipe'], ['Porteur (construit)', 'porteur'], ['Business Owner (valide)', celluleOwner], ['Lien environnement DEV', 'lien_dev']])}
+${S('1 · Identification', [['Application / trigramme', 'projet'], ['Objet métier', 'objet'], ['Équipe / responsable', 'equipe'], ['Porteur (construit)', 'porteur'], ['Business Owner (valide)', celluleOwner],
+  // TF-2567 (15/11/2026) : la ligne que le canevas Markdown pose depuis TF-2536 (« Version déployée »,
+  // projet.version_deployee) et que FS12 (TF-2419) lit comme « la version que la fiche cite ». Le squelette
+  // ne la portait pas : sur toute fiche rendue par ce générateur, FS12 rendait SKIP (« aucune version citée »).
+  ['Version déployée', 'version_deployee', 'VERSION_DEPLOYEE — x.y.z, la dernière étiquette DÉPLOYÉE ici'],
+  // Le trou tient en moins de 80 caractères : FS1 ne lit que les `{{…}}` de cette longueur (mesuré, TF-2567).
+  ['Lien environnement DEV', 'lien_dev']])}
 ${S('2 · Environnement & hébergement', [['Hébergement', 'hebergement'], ['Environnements actifs', 'environnements'], ['IaC / provisionnement', 'iac']])}
 ${S('3 · Sensibilité & conformité', [['Classification des données', 'classification'], ['Données personnelles (PII)', 'pii'], ['Juridiction(s) applicable(s)', 'juridictions'], ['Analyses requises (impact, IA)', 'analyses']])}
 ${S('4 · Criticité', [['Criticité métier', 'criticite'], ['Disponibilité attendue', 'disponibilite'], ["Impact en cas d'incident", 'impact']])}

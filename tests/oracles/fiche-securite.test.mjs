@@ -79,6 +79,60 @@ for (const [langue, fichier] of [['fr', 'fiche-securite.template.md'], ['en', 'f
   });
 }
 
+// ── TF-2567 · LA FICHE RENDUE PORTE LA LIGNE QUE FS12 LIT. TF-2536 a posé « Version déployée » dans le canevas
+//    Markdown, mais le squelette HTML de `tools/build-fiche.mjs` ne la portait pas : sur toute fiche rendue, FS12 rendait
+//    SKIP (« aucune version citée ») — le contrôle écrit n'était pas câblé à l'étape qui produit la fiche. Ces cas
+//    rendent la fiche PAR LE GÉNÉRATEUR (pas un HTML écrit à la main) et jouent FS12 dessus. Rouge sur le build-fiche
+//    d'avant : la clé `version_deployee` y était ignorée, la fiche ne citait aucune version, FS12 restait SKIP.
+const CLES_FICHE_COMPLETE = ['projet', 'objet', 'equipe', 'hebergement', 'environnements', 'iac', 'classification', 'pii',
+  'juridictions', 'analyses', 'criticite', 'disponibilite', 'impact', 'exposition',
+  'point_controle', 'authentification', 'population_admise', 'restriction', 'invites', 'ia_presente', 'ia_usage', 'ia_gardefous',
+  'observabilite', 'alerting', 'sauvegardes', 'tags', 'budget', 'porteur', 'business_owner', 'lien_dev'];
+const texteDeLaLigne = (h) => String(h).replace(/<[^>]*>/g, '');
+/** Rend une fiche par build-fiche (données complètes + la version donnée), la juge avec l'étiquette donnée. */
+const ficheRendueJugee = (version, etiquetteDeployee) => {
+  const prod = temporaire();
+  try {
+    const donnees = path.join(prod, 'data.json');
+    const champs = Object.fromEntries(CLES_FICHE_COMPLETE.map((k) => [k, k === 'lien_dev' ? 'https://dev.exemple.test/app' : `valeur ${k}`]));
+    if (version !== undefined) champs.version_deployee = version;
+    fs.writeFileSync(donnees, JSON.stringify(champs), 'utf8');
+    const b = jouer(BUILD, TENANT, '--data', donnees, '--produit', prod, '--sans-pdf');
+    assert.equal(b.status, 0, `génération rouge : ${b.stderr}`);
+    return juger(trouverFiche(prod), { sansPdf: true, etiquetteDeployee });
+  } finally { fs.rmSync(prod, { recursive: true, force: true }); }
+};
+
+test('TF-2567 — sens vert : la fiche RENDUE par build-fiche cite la version donnée, et FS12 la juge PASS contre la même étiquette', () => {
+  const r = ficheRendueJugee('v1.13.0', '1.13.0');
+  assert.equal(statutDe(r, 'FS12'), 'PASS',
+    `FS12 ne joue pas sur la fiche rendue : ${r.findings.find((f) => f.regle === 'FS12')?.message}`);
+  assert.equal(r.verdict, 'PASS', r.findings.filter((f) => f.statut === 'FAIL').map((f) => f.message).join(' | '));
+});
+
+test('TF-2567 — sens rouge : la fiche RENDUE cite v1.10.0 alors que v1.13.0 est servie → FS12 FAIL (elle rendait SKIP avant)', () => {
+  const r = ficheRendueJugee('v1.10.0', '1.13.0');
+  assert.equal(statutDe(r, 'FS12'), 'FAIL', 'la fiche périmée rendue par le générateur n\'est pas refusée par FS12');
+  assert.match(r.findings.find((f) => f.regle === 'FS12').message, /ANTÉRIEURE/);
+  assert.equal(r.verdict, 'FAIL');
+});
+
+test('TF-2567 — le squelette porte la ligne « Version déployée » (ligne lue, trou signalé), et la version non donnée laisse un trou que FS1 refuse', () => {
+  const prod = temporaire();
+  try {
+    assert.equal(jouer(BUILD, TENANT, '--produit', prod, '--sans-pdf').status, 0);
+    const html = fs.readFileSync(trouverFiche(prod), 'utf8');
+    const ligne = lignesDeChamps(html).find((l) => l.intitule === 'Version déployée');
+    assert.ok(ligne, 'le squelette ne porte pas de ligne « Version déployée » : FS12 ne peut pas la lire');
+    assert.match(ligne.valeur, /<span class="ph">\{\{VERSION_DEPLOYEE/, 'la ligne n\'est pas un trou à compléter');
+    assert.doesNotMatch(texteDeLaLigne(ligne.valeur), /\d+\.\d+\.\d+/, 'le trou cite déjà une version : FS12 la lirait comme citée');
+  } finally { fs.rmSync(prod, { recursive: true, force: true }); }
+  // Une fiche complète SANS la version : le trou reste, FS1 (placeholder résiduel) la refuse — on ne diffuse pas sans version.
+  const sans = ficheRendueJugee(undefined, '1.13.0');
+  assert.equal(statutDe(sans, 'FS1'), 'FAIL', 'une fiche sans version déployée est diffusable');
+  assert.notEqual(statutDe(sans, 'FS12'), 'PASS', 'FS12 ne doit pas passer sur un trou');
+});
+
 // ── TF-0701 · LA PORTE. Une fiche réellement produite par la forge passe l'oracle ; chaque
 //    défaut réellement constaté le fait sortir 1.
 test('TF-0701 — la fiche produite par la forge passe la porte, et exit 0 vaut « diffusable »', () => {
@@ -90,7 +144,7 @@ test('TF-0701 — la fiche produite par la forge passe la porte, et exit 0 vaut 
       'juridictions', 'analyses', 'criticite', 'disponibilite', 'impact', 'exposition',
       'point_controle', 'authentification', 'population_admise', 'restriction', 'invites', 'ia_presente', 'ia_usage', 'ia_gardefous',
       'observabilite', 'alerting', 'sauvegardes', 'tags', 'budget', 'porteur', 'business_owner',
-    ].map((k) => [k, `valeur ${k}`]).concat([['lien_dev', 'https://dev.exemple.test/app']]))), 'utf8');
+    ].map((k) => [k, `valeur ${k}`]).concat([['lien_dev', 'https://dev.exemple.test/app'], ['version_deployee', 'v1.13.0']]))), 'utf8');
     const b = jouer(BUILD, TENANT, '--data', donnees, '--produit', prod, '--sans-pdf');
     assert.equal(b.status, 0, `génération rouge : ${b.stderr}`);
     const fiche = trouverFiche(prod);
@@ -134,8 +188,8 @@ test('TF-1751 — fiche complète : aucun surlignage « à remplir » dans le so
     const cles = ['projet', 'objet', 'equipe', 'hebergement', 'environnements', 'iac', 'classification', 'pii',
       'juridictions', 'analyses', 'criticite', 'disponibilite', 'impact', 'exposition',
       'point_controle', 'authentification', 'population_admise', 'restriction', 'invites', 'ia_presente', 'ia_usage', 'ia_gardefous',
-      'observabilite', 'alerting', 'sauvegardes', 'tags', 'budget', 'porteur', 'business_owner', 'lien_dev'];
-    fs.writeFileSync(donnees, JSON.stringify(Object.fromEntries(cles.map((k) => [k, `valeur ${k}`]))), 'utf8');
+      'observabilite', 'alerting', 'sauvegardes', 'tags', 'budget', 'porteur', 'business_owner', 'lien_dev', 'version_deployee'];
+    fs.writeFileSync(donnees, JSON.stringify(Object.fromEntries(cles.map((k) => [k, k === 'version_deployee' ? 'v1.13.0' : `valeur ${k}`]))), 'utf8');
     assert.equal(jouer(BUILD, TENANT, '--data', donnees, '--produit', prod, '--sans-pdf').status, 0);
     const source = fs.readFileSync(trouverFiche(prod), 'utf8');
     assert.equal((source.match(/class="ph"/g) ?? []).length, 0, 'une fiche complète porte encore un surlignage « à remplir »');

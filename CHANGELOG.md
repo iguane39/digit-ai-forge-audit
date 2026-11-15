@@ -7,6 +7,16 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **FS12 joue sur la fiche rendue par `tools/build-fiche.mjs`** (15/11/2026, TF-2567) — TF-2536 avait posé la ligne « Version
+  déployée » dans le canevas Markdown, mais le squelette HTML du générateur ne la portait pas : sur toute fiche rendue, FS12
+  rendait SKIP (« aucune version citée »), mesuré avant correction. `build-fiche` rend maintenant la ligne `Version déployée` à
+  l'Identification, depuis la donnée `version_deployee` (trou `{{VERSION_DEPLOYEE …}}` à compléter sinon, refusé par FS1 : le
+  trou tient en moins de 80 caractères, au-delà FS1 ne le lit plus). Une fiche complète SANS `version_deployee` n'est donc plus
+  diffusable : à compléter. La ligne coûtant une ligne de tableau, le squelette débordait sur 2 pages A4 (P3) : marge haute des
+  `h2` à l'impression de 7 à 4 px (6 px ne suffisait pas). Trois cas dans `tests/oracles/fiche-securite.test.mjs`, rouges sur
+  le `build-fiche` d'avant et verts sur le nouveau : fiche rendue à jour (FS12 PASS), fiche rendue périmée (FS12 FAIL), squelette
+  qui porte la ligne et fiche sans version refusée par FS1 ; les deux listes de données des fiches complètes du test portent
+  `version_deployee`.
 - **Les 14 alertes de dépendances de l'hébergeur sont fermées** (14/11/2026, TF-2539 part forge-audit) — toutes sur le
   `package-lock.json` racine, toutes sur des dépendances réelles (12 sur `fast-uri`, transitive d'ajv, 3.1.3 ; 2 sur `js-yaml`,
   5.2.1), aucune sur une fixture : les `package.json` de `tests/fixtures/` n'ont pas de verrou. Verrou mis à jour sur `fast-uri`
