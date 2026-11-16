@@ -12,7 +12,7 @@
 
 # {{tenant.name}} — Fiche sécurité de mise à disposition — {{projet.nom}} — {{date}}{{indice}}
 
-> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.1.0
+> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.1.1
 
 > Fiche remplie à chaque mise à disposition d'un environnement (dev, sandbox…) du périmètre audité.
 > Champs génériques core ; champs additionnels propres au tenant ajoutés par pack (`packs/*`), jamais
@@ -24,12 +24,12 @@
 |---|---|
 | Projet / application | {{projet.nom}} |
 | Porteur (construit) | {{porteur.nom}} ({{porteur.email}}) |
-| **Business Owner (valide)** | {{business_owner.nom — QUI VALIDE la mise à disposition. Si c'est le porteur lui-même, l'ÉCRIRE : « même personne que le porteur » }} |
+| **Business Owner (valide)** | {{business_owner.nom — QUI VALIDE la mise à disposition}} <!-- Si c'est le porteur lui-même, l'ÉCRIRE : « même personne que le porteur » --> |
 | Direction / équipe | {{porteur.direction}} |
 | Type de solution | {{projet.type}} *(web-app · api · data · mobile · ml · infra)* |
 | Environnement concerné | {{environnement.label}} ({{environnement.code}}) |
 | Date de mise à disposition | {{date}} |
-| **Version déployée** | {{projet.version_deployee — x.y.z, la dernière étiquette DÉPLOYÉE sur cet environnement (celle que la chaîne de qualification donne à `--etiquette-deployee`), jamais la version du gabarit ni celle de la fiche }} |
+| **Version déployée** | {{projet.version_deployee — x.y.z, la dernière étiquette DÉPLOYÉE ici}} <!-- Sur cet environnement : celle que la chaîne de qualification donne à `--etiquette-deployee`, jamais la version du gabarit ni celle de la fiche --> |
 | URL / point d'accès | {{environnement.url}} |
 
 > **Porteur et Business Owner ne se remplissent pas à l'identique en silence.** Quand les deux
@@ -58,9 +58,9 @@
 | MFA | {{auth.mfa — activé/non}} |
 | Comptes de test | {{auth.comptes_test — nombre, portée, expiration}} |
 | Modèle d'autorisation | {{auth.rbac — rôles, granularité, ou « aucun rôle, aucune granularité » }} |
-| **Population effectivement admise** | {{auth.population_admise — QUI entre, et COMBIEN : « collaborateurs du tenant (N) », « tout compte du fournisseur d'identité, invités compris (N dont M invités) »… }} |
-| **Restriction d'accès effective** | {{auth.restriction — assignation de rôle requise oui/non · liste d'autorisation renseignée oui/non et son contenu · ou « aucune : tout compte authentifié entre » }} |
-| **Comptes externes / invités en portée** | {{auth.invites — nombre relevé à la date de la fiche, et la commande ou l'écran qui l'a donné }} |
+| **Population effectivement admise** | {{auth.population_admise — QUI entre, et COMBIEN (N dont M invités)}} <!-- Par exemple : « collaborateurs du tenant (N) », « tout compte du fournisseur d'identité, invités compris (N dont M invités) » --> |
+| **Restriction d'accès effective** | {{auth.restriction — rôle requis oui/non · liste d'autorisation oui/non, contenu}} <!-- Assignation de rôle requise oui/non, liste d'autorisation renseignée oui/non et son contenu, ou « aucune : tout compte authentifié entre » --> |
+| **Comptes externes / invités en portée** | {{auth.invites — nombre relevé à la date de la fiche, et sa source}} <!-- La source : la commande ou l'écran qui a donné le nombre --> |
 
 > **S'authentifier n'est pas être admis.** Les trois champs en gras existent parce qu'une fiche a
 > déjà dit vrai et fait comprendre faux : « fournisseur d'identité mono-tenant, connexion
@@ -105,7 +105,7 @@
 | Délai de rétablissement (RTO) | {{sla.rto — valeur, et sa nature : cible ou engagement}} |
 | Perte de données tolérée (RPO) | {{sla.rpo — valeur, et sa nature : cible ou engagement}} |
 | Coupure à chaque livraison | {{sla.coupure_livraison — durée, ou « inconnue » ; jamais « aucune » sans mesure}} |
-| Preuve de tenabilité | {{sla.preuve — plan de service, nombre d'instances, redondance de zone, emplacements de déploiement ; c'est CETTE ligne qui autorise le mot « engagement »}} |
+| Preuve de tenabilité | {{sla.preuve — plan de service, instances, redondance de zone, emplacements}} <!-- Emplacements de déploiement compris ; c'est CETTE ligne qui autorise le mot « engagement » --> |
 | Validé par | {{sla.valide_par — qui, quand}} |
 
 > **Un engagement sans preuve d'architecture qui le rende atteignable est un objectif mal nommé.**

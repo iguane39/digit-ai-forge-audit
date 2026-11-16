@@ -1,8 +1,8 @@
 {
   "banc-de-preuves.template.md": {
     "id": "gd-banc-de-preuves-auditcore",
-    "version": "1.0.0",
-    "empreinte": "a9a25984a7b3e0c2cac1b28ef83ae13def99b9da5eaab63c1de8c5cf06c3637c"
+    "version": "1.0.1",
+    "empreinte": "623c257f86a78f2374ac67b6574221c7ab0835d1a8d2966af4616a3f24052f98"
   },
   "checklist-go-prod.template.md": {
     "id": "gd-checklist-go-prod-auditcore",
@@ -11,13 +11,13 @@
   },
   "fiche-securite.template.en.md": {
     "id": "gd-fiche-securite-auditcore",
-    "version": "1.1.0",
-    "empreinte": "64738c90efd38f31e858bdc770c4cdc5bcf13d7cffab5c64a5f989672aebed9c"
+    "version": "1.1.1",
+    "empreinte": "36db5ab70c9612bbd3d7b31026bf9aaea4a00022f82e7720f30f90a5fe8cc309"
   },
   "fiche-securite.template.md": {
     "id": "gd-fiche-securite-auditcore",
-    "version": "1.1.0",
-    "empreinte": "b333558ef907a55a581db135f0af24d4c1702698fe9f4fae3b5e0067d3bcc2b1"
+    "version": "1.1.1",
+    "empreinte": "e8cd8a5c05001a7093e98e7430800b33df36ee15e3be2b32dd94c878987420d9"
   },
   "matrice-tracabilite.template.md": {
     "id": "gd-matrice-tracabilite-auditcore",

@@ -2,7 +2,7 @@
 
 # {{tenant.name}} — Banc de preuves — {{projet.nom}} — {{date}}{{indice}}
 
-> Gabarit : gd-banc-de-preuves-auditcore · version du gabarit 1.0.0
+> Gabarit : gd-banc-de-preuves-auditcore · version du gabarit 1.0.1
 
 > Format conservé à l'identique : **Règle / Actions d'audit / Preuve attendue / Grille de verdict**,
 > un bloc par contrôle applicable. Généré depuis `controls-core-v1.json` (core, ~150 contrôles)
@@ -13,7 +13,7 @@
 
 ## {{dim_1.id}} — {{dim_1.label}}
 
-{{dim_1.intro — 1 à 3 phrases de cadrage du domaine et de ses thèmes (cf. référentiel)}}
+{{dim_1.intro — 1 à 3 phrases de cadrage du domaine et de ses thèmes}} <!-- cf. référentiel -->
 
 ### {{control.id}} — {{criticite}} · {{bucket}} · enforcement {{enforcement}} · audit {{dimension_audit}}
 

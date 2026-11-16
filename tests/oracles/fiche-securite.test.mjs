@@ -161,6 +161,43 @@ test('TF-2582 — chaque trou du squelette rendu tient dans la borne de FS1 : to
   } finally { fs.rmSync(prod, { recursive: true, force: true }); }
 });
 
+// ── TF-2592 · LE CANEVAS NE PORTE AUCUN TROU QUE FS1 NE LIT PAS. TF-2582 a ramené le trou du squelette HTML dans la
+//    borne de FS1 (80 caractères) ; les canevas Markdown portaient le même défaut : 6 trous trop longs dans
+//    fiche-securite.template.md, 7 dans la version anglaise, 1 dans banc-de-preuves.template.md (mesuré avant
+//    correction). Une fiche rédigée depuis le canevas qui en laissait un en place passait FS1. Ces cas instancient le
+//    canevas (chaque trou lu par FS1 est rempli, un seul est laissé) et jouent FS1 : un trou laissé tel quel rend FAIL.
+//    Rouge sur les canevas d'avant (FS1 PASS pour chacun des 14 trous longs), vert sur les canevas raccourcis.
+const DOSSIER_CANEVAS = path.join(RACINE, 'deliverables', 'templates');
+const TROU = /\{\{[^}]*\}\}/g;
+const CANEVAS_A_TROUS = ['fiche-securite.template.md', 'fiche-securite.template.en.md', 'banc-de-preuves.template.md'];
+/** Instancie le canevas : tout trou est rempli sauf `laisse`, puis FS1 juge le résultat posé en HTML. */
+const fs1SurCanevasInstancie = (md, laisse) => {
+  const dossier = temporaire();
+  try {
+    const fiche = path.join(dossier, 'fiche.html');
+    fs.writeFileSync(fiche, `<html><body><pre>${md.replace(TROU, (t) => (t === laisse ? t : 'valeur'))}</pre></body></html>`, 'utf8');
+    return juger(fiche, { sansPdf: true }).findings.find((f) => f.regle === 'FS1').statut;
+  } finally { fs.rmSync(dossier, { recursive: true, force: true }); }
+};
+
+for (const fichier of CANEVAS_A_TROUS) {
+  test(`TF-2592 — ${fichier} : un trou laissé en place est refusé par FS1, aucun n'échappe à la borne de 80 caractères`, () => {
+    const md = fs.readFileSync(path.join(DOSSIER_CANEVAS, fichier), 'utf8');
+    const trous = [...new Set(md.match(TROU))];
+    assert.ok(trous.length > 0, `${fichier} ne porte plus aucun trou`);
+    const echappes = trous.filter((t) => fs1SurCanevasInstancie(md, t) !== 'FAIL');
+    assert.deepEqual(echappes.map((t) => `${t.length - 4} car. : ${t.slice(0, 60)}`), [],
+      `${echappes.length} trou(s) de ${fichier} laissé(s) en place passe(nt) FS1`);
+  });
+}
+
+test('TF-2592 — sens vert : le canevas entièrement rempli reste accepté par FS1 (le contrôle ne refuse pas tout)', () => {
+  for (const fichier of CANEVAS_A_TROUS) {
+    const md = fs.readFileSync(path.join(DOSSIER_CANEVAS, fichier), 'utf8');
+    assert.equal(fs1SurCanevasInstancie(md, null), 'PASS', `${fichier} rempli est refusé par FS1`);
+  }
+});
+
 // ── TF-0701 · LA PORTE. Une fiche réellement produite par la forge passe l'oracle ; chaque
 //    défaut réellement constaté le fait sortir 1.
 test('TF-0701 — la fiche produite par la forge passe la porte, et exit 0 vaut « diffusable »', () => {

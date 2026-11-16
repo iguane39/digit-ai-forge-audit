@@ -7,6 +7,18 @@ sources mis à jour.
 ## [Non publié]
 
 ### Corrigé
+- **Les canevas Markdown de fiche et de banc de preuves ne portent plus de trou que FS1 ne lit pas** (16/11/2026, TF-2592,
+  récidive de TF-2582) — FS1 ne lit que les `{{…}}` de 80 caractères au plus ; TF-2582 avait ramené le trou du squelette HTML
+  dans cette borne, pas ceux des canevas. Mesuré avant correction (trous de plus de 80 caractères entre `{{` et `}}`) : 6 dans
+  `fiche-securite.template.md`, 7 dans `fiche-securite.template.en.md`, 1 dans `banc-de-preuves.template.md`, soit 14 (le
+  constat de l'agent du lot au en annonçait 16, dont 8 en français : non reproduit, 6 mesurés). Une fiche rédigée depuis le
+  canevas qui laissait l'un d'eux en place rendait PASS. Chaque trou est raccourci à 80 caractères au plus en gardant sa clé
+  (parité FR/EN tenue) ; la consigne qui dépassait la borne passe dans un commentaire HTML `<!-- … -->` de la même cellule, sans
+  perte. Le gabarit fiche passe à 1.1.1 (canevas FR/EN, `GABARIT_VERSION` de `tools/build-fiche.mjs`), le banc à 1.0.1,
+  `gabarits-versions.json` réenregistré par `verifier-gabarits --maj`. Trois cas dans `tests/oracles/fiche-securite.test.mjs`
+  (un par canevas) : pour chaque trou, le canevas est instancié avec tous les autres trous remplis et celui-là laissé en place,
+  FS1 doit rendre FAIL (rouge avant : 6, 7 et 1 trous passaient ; vert après : 0) ; un quatrième cas vérifie que le canevas
+  entièrement rempli reste accepté (FS1 PASS). FS1 est inchangé.
 - **Une fiche complète sans `business_owner` est refusée par FS1** (15/11/2026, TF-2582) — FS1 ne lit que les `{{…}}` de 80
   caractères au plus ; le trou `{{BUSINESS_OWNER — qui VALIDE la mise à disposition ; si c'est le porteur lui-même, l'écrire : le
   dire est le contrôle}}` de `tools/build-fiche.mjs` en portait 116 (seul trou du squelette au-delà de la borne, 1 sur 32,

@@ -11,7 +11,7 @@
 
 # {{tenant.name}} — Deployment Security Sheet — {{projet.nom}} — {{date}}{{indice}}
 
-> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.1.0
+> Gabarit : gd-fiche-securite-auditcore · version du gabarit 1.1.1
 
 > Sheet completed for every deployment of an environment (dev, sandbox…) within the audited scope.
 > Generic core fields; additional tenant-specific fields added by pack (`packs/*`), never
@@ -23,12 +23,12 @@
 |---|---|
 | Project / application | {{projet.nom}} |
 | Owner / builder | {{porteur.nom}} ({{porteur.email}}) |
-| **Business Owner (approves)** | {{business_owner.nom — WHO APPROVES the deployment. If this is the owner themselves, WRITE IT: "same person as the owner" }} |
+| **Business Owner (approves)** | {{business_owner.nom — WHO APPROVES the deployment}} <!-- If this is the owner themselves, WRITE IT: "same person as the owner" --> |
 | Department / team | {{porteur.direction}} |
 | Solution type | {{projet.type}} *(web-app · api · data · mobile · ml · infra)* |
 | Environment | {{environnement.label}} ({{environnement.code}}) |
 | Deployment date | {{date}} |
-| **Deployed version** | {{projet.version_deployee — x.y.z, the latest tag DEPLOYED on this environment (the one the qualification chain gives to `--etiquette-deployee`), never the template version nor the sheet's own }} |
+| **Deployed version** | {{projet.version_deployee — x.y.z, the latest tag DEPLOYED here}} <!-- On this environment: the one the qualification chain gives to `--etiquette-deployee`, never the template version nor the sheet's own --> |
 | URL / access point | {{environnement.url}} |
 
 > **Owner and Business Owner must not be filled in identically in silence.** When one person
@@ -56,9 +56,9 @@
 | MFA | {{auth.mfa — activé/non}} |
 | Test accounts | {{auth.comptes_test — nombre, portée, expiration}} |
 | Authorization model | {{auth.rbac — rôles, granularité, ou « aucun rôle, aucune granularité » }} |
-| **Population actually admitted** | {{auth.population_admise — WHO gets in, and HOW MANY: "tenant staff (N)", "any account from the identity provider, guests included (N of which M guests)"… }} |
-| **Effective access restriction** | {{auth.restriction — role assignment required yes/no · allow-list populated yes/no and its content · or "none: any authenticated account gets in" }} |
-| **External / guest accounts in scope** | {{auth.invites — count as of the sheet's date, and the command or screen that produced it }} |
+| **Population actually admitted** | {{auth.population_admise — WHO gets in, and HOW MANY (N of which M guests)}} <!-- For example: "tenant staff (N)", "any account from the identity provider, guests included (N of which M guests)" --> |
+| **Effective access restriction** | {{auth.restriction — role required yes/no · allow-list yes/no, and its content}} <!-- Role assignment required yes/no, allow-list populated yes/no and its content, or "none: any authenticated account gets in" --> |
+| **External / guest accounts in scope** | {{auth.invites — count as of the sheet's date, and its source}} <!-- The source: the command or screen that produced the count --> |
 
 > **Authenticating is not being admitted.** The three bold fields exist because a sheet once told
 > the truth and conveyed a falsehood: "single-tenant identity provider, sign-in required" read as
@@ -100,8 +100,8 @@
 | Availability | {{sla.disponibilite}} |
 | Recovery time (RTO) | {{sla.rto — value, and its nature: target or commitment}} |
 | Tolerated data loss (RPO) | {{sla.rpo — value, and its nature: target or commitment}} |
-| Outage on each release | {{sla.coupure_livraison — duration, or "unknown"; never "none" without a measurement}} |
-| Evidence it is attainable | {{sla.preuve — service plan, instance count, zone redundancy, deployment slots; THIS line is what licenses the word "commitment"}} |
+| Outage on each release | {{sla.coupure_livraison — duration, or "unknown"; never "none" unmeasured}} <!-- Never "none" without a measurement --> |
+| Evidence it is attainable | {{sla.preuve — service plan, instances, zone redundancy, deployment slots}} <!-- THIS line is what licenses the word "commitment" --> |
 | Approved by | {{sla.valide_par — who, when}} |
 
 > **A commitment with no architectural evidence making it attainable is a mis-named objective.**
